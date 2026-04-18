@@ -1,0 +1,15 @@
+.layout {
+  display: grid;
+  grid-template-rows: var(--nav-height) 1fr;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-areas:
+    "nav nav"
+    "sidebar content";
+  height: 100%;
+}
+
+.content {
+  grid-area: content;
+  padding: 16px 24px;
+  overflow-y: auto;
+}
