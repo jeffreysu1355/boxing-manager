@@ -1,0 +1,61 @@
+import { Navigate, type RouteObject } from 'react-router';
+import App from './App';
+import Dashboard from './pages/Dashboard/Dashboard';
+import LeagueLayout from './pages/League/LeagueLayout';
+import Standings from './pages/League/Standings';
+import Calendar from './pages/League/Calendar';
+import GymLayout from './pages/Gym/GymLayout';
+import Roster from './pages/Gym/Roster';
+import Finances from './pages/Gym/Finances';
+import Coaches from './pages/Gym/Coaches';
+import PlayersLayout from './pages/Players/PlayersLayout';
+import Recruiting from './pages/Players/Recruiting';
+import Compare from './pages/Players/Compare';
+import ToolsLayout from './pages/Tools/ToolsLayout';
+import GodMode from './pages/Tools/GodMode';
+
+export const routes: RouteObject[] = [
+  {
+    path: '/',
+    element: <App />,
+    children: [
+      { index: true, element: <Dashboard /> },
+      {
+        path: 'league',
+        element: <LeagueLayout />,
+        children: [
+          { index: true, element: <Navigate to="standings" replace /> },
+          { path: 'standings', element: <Standings /> },
+          { path: 'calendar', element: <Calendar /> },
+        ],
+      },
+      {
+        path: 'gym',
+        element: <GymLayout />,
+        children: [
+          { index: true, element: <Navigate to="roster" replace /> },
+          { path: 'roster', element: <Roster /> },
+          { path: 'finances', element: <Finances /> },
+          { path: 'coaches', element: <Coaches /> },
+        ],
+      },
+      {
+        path: 'players',
+        element: <PlayersLayout />,
+        children: [
+          { index: true, element: <Navigate to="recruiting" replace /> },
+          { path: 'recruiting', element: <Recruiting /> },
+          { path: 'compare', element: <Compare /> },
+        ],
+      },
+      {
+        path: 'tools',
+        element: <ToolsLayout />,
+        children: [
+          { index: true, element: <Navigate to="god-mode" replace /> },
+          { path: 'god-mode', element: <GodMode /> },
+        ],
+      },
+    ],
+  },
+];
