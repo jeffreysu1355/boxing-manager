@@ -1,0 +1,37 @@
+.topNav {
+  grid-area: nav;
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  gap: 4px;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--accent);
+  margin-right: 24px;
+  white-space: nowrap;
+}
+
+.tab {
+  padding: 8px 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 4px 4px 0 0;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-hover);
+}
+
+.activeTab {
+  composes: tab;
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
+}
