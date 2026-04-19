@@ -1,6 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router';
 import App from './App';
 import Dashboard from './pages/Dashboard/Dashboard';
+import PlayerPage from './pages/Player/PlayerPage';
 import LeagueLayout from './pages/League/LeagueLayout';
 import Standings from './pages/League/Standings';
 import Calendar from './pages/League/Calendar';
@@ -20,6 +21,7 @@ export const routes: RouteObject[] = [
     element: <App />,
     children: [
       { index: true, element: <Dashboard /> },
+      { path: 'player/:id', element: <PlayerPage /> },
       {
         path: 'league',
         element: <LeagueLayout />,

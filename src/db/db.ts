@@ -131,6 +131,7 @@ export interface Boxer {
   style: FightingStyle;
   reputation: ReputationLevel;
   gymId: number | null;
+  federationId: number | null;
   stats: BoxerStats;
   naturalTalents: NaturalTalent[];
   injuries: Injury[];
@@ -209,7 +210,7 @@ interface BoxingManagerDBSchema extends DBSchema {
   boxers: {
     key: number;
     value: Boxer;
-    indexes: { weightClass: WeightClass };
+    indexes: { weightClass: WeightClass; federationId: number };
   };
   coaches: {
     key: number;
@@ -259,8 +260,8 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 3, {
-    upgrade(db, oldVersion) {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 4, {
+    upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
           keyPath: 'id',
@@ -320,6 +321,11 @@ export async function getDB(): Promise<DB> {
         calendarEventStore.createIndex('date', 'date');
         calendarEventStore.createIndex('boxerIds', 'boxerIds', { multiEntry: true });
         calendarEventStore.createIndex('fightId', 'fightId');
+      }
+
+      if (oldVersion < 4) {
+        const store = transaction.objectStore('boxers');
+        store.createIndex('federationId', 'federationId');
       }
     },
   });

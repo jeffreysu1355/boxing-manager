@@ -15,6 +15,11 @@ export async function getBoxersByWeightClass(weightClass: WeightClass): Promise<
   return db.getAllFromIndex('boxers', 'weightClass', weightClass);
 }
 
+export async function getBoxersByFederation(federationId: number): Promise<Boxer[]> {
+  const db = await getDB();
+  return db.getAllFromIndex('boxers', 'federationId', federationId);
+}
+
 export async function putBoxer(boxer: Omit<Boxer, 'id'> | Boxer): Promise<number> {
   const db = await getDB();
   const { id, ...rest } = boxer as Boxer;

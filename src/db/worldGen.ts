@@ -285,6 +285,7 @@ export async function generateWorld(): Promise<void> {
         style,
         reputation,
         gymId: null,
+        federationId: fedId,
         stats: generateStats(reputation, style),
         naturalTalents: generateNaturalTalents(style),
         injuries: [],
