@@ -1,11 +1,13 @@
 import namesData from '../data/names.json';
 import { getBoxer, putBoxer } from './boxerStore';
+import { putCoach } from './coachStore';
 import { putFederation } from './federationStore';
-import { saveGym } from './gymStore';
+import { getGym, saveGym } from './gymStore';
 import { putTitle } from './titleStore';
 import type {
   Boxer,
   BoxerStats,
+  Coach,
   Federation,
   FederationName,
   FightingStyle,
@@ -345,6 +347,47 @@ async function generateFreeAgents(): Promise<void> {
   }
 }
 
+// --- Coach generation ---
+
+async function generateCoaches(): Promise<number[]> {
+  const styles: FightingStyle[] = ['out-boxer', 'swarmer', 'slugger', 'counterpuncher'];
+
+  // Distribute 10 local coaches across 4 styles: 3 + 3 + 2 + 2
+  const localStyleAssignments: FightingStyle[] = [
+    ...Array(3).fill(styles[0]),
+    ...Array(3).fill(styles[1]),
+    ...Array(2).fill(styles[2]),
+    ...Array(2).fill(styles[3]),
+  ];
+  // Shuffle so it's not always the same order
+  localStyleAssignments.sort(() => Math.random() - 0.5);
+
+  const coachIds: number[] = [];
+
+  for (const style of localStyleAssignments) {
+    const coach: Omit<Coach, 'id'> = {
+      name: generateName(pick(FEDERATION_NAMES)),
+      skillLevel: 'local',
+      style,
+      assignedBoxerId: null,
+    };
+    const id = await putCoach(coach);
+    coachIds.push(id);
+  }
+
+  // 1 contender coach with random style
+  const contender: Omit<Coach, 'id'> = {
+    name: generateName(pick(FEDERATION_NAMES)),
+    skillLevel: 'contender',
+    style: pick(styles),
+    assignedBoxerId: null,
+  };
+  const contenderId = await putCoach(contender);
+  coachIds.push(contenderId);
+
+  return coachIds;
+}
+
 // --- Main world gen ---
 
 export async function generateWorld(): Promise<void> {
@@ -440,4 +483,11 @@ export async function generateWorld(): Promise<void> {
     rosterIds: [],
     coachIds: [],
   });
+
+  // 7. Seed coaches and update gym
+  const coachIds = await generateCoaches();
+  const gym = await getGym();
+  if (gym) {
+    await saveGym({ ...gym, coachIds });
+  }
 }
