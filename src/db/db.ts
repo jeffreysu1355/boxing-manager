@@ -29,6 +29,19 @@ export type CoachSkillLevel =
   | 'championship-caliber'
   | 'all-time-great';
 
+export type FederationName =
+  | 'North America Boxing Federation'
+  | 'South America Boxing Federation'
+  | 'African Boxing Federation'
+  | 'European Boxing Federation'
+  | 'Asia Boxing Federation'
+  | 'Oceania Boxing Federation'
+  | 'International Boxing Federation';
+
+export type FightMethod = 'KO' | 'TKO' | 'Decision' | 'Split Decision' | 'Draw';
+
+export type ContractStatus = 'pending' | 'accepted' | 'countered' | 'rejected' | 'completed';
+
 export interface BoxerStats {
   // Offense
   jab: number;
@@ -54,8 +67,7 @@ export interface BoxerStats {
 }
 
 export interface NaturalTalent {
-  name: string;
-  affectedStats: (keyof BoxerStats)[];
+  stat: keyof BoxerStats; // display name = `Super ${capitalize(stat)}`; raises cap from 20 → 25
 }
 
 export interface Injury {
@@ -67,8 +79,6 @@ export interface Injury {
 
 export interface TitleRecord {
   titleId: number;
-  federationId: number;
-  weightClass: WeightClass;
   dateWon: string;
   dateLost: string | null;
 }
@@ -82,6 +92,33 @@ export interface FightRecord {
   time: string;
   federation: string;
   date: string;
+}
+
+export interface TitleReign {
+  boxerId: number;
+  dateWon: string;
+  dateLost: string | null;
+  defenseCount: number;
+}
+
+export interface Title {
+  id?: number;
+  federationId: number;
+  weightClass: WeightClass;
+  currentChampionId: number | null;
+  reigns: TitleReign[];
+}
+
+export type CalendarEventType = 'fight' | 'training-camp';
+
+export interface CalendarEvent {
+  id?: number;
+  type: CalendarEventType;
+  date: string;        // fight date OR training camp start date (ISO)
+  boxerIds: number[];  // multi-entry indexed; single element for training-camp
+  fightId: number;     // 'fight': the fight itself; 'training-camp': the fight being prepped for
+  endDate?: string;    // training-camp only (ISO)
+  intensityLevel?: 'light' | 'moderate' | 'intense'; // training-camp only
 }
 
 // --- Entity interfaces ---
@@ -118,6 +155,54 @@ export interface Gym {
   coachIds: number[];
 }
 
+export interface Federation {
+  id?: number;
+  name: FederationName;
+  prestige: number; // 1-10, International BF = 10
+}
+
+export interface Fight {
+  id?: number;
+  date: string;
+  federationId: number;
+  weightClass: WeightClass;
+  boxerIds: number[]; // [boxer1Id, boxer2Id], multiEntry indexed
+  winnerId: number | null; // null = draw
+  method: FightMethod;
+  finishingMove: string | null;
+  round: number | null; // null for decisions
+  time: string | null; // null for decisions
+  isTitleFight: boolean;
+  contractId: number;
+}
+
+export interface FightContract {
+  id?: number;
+  boxerId: number;
+  opponentId: number;
+  federationId: number;
+  weightClass: WeightClass;
+  guaranteedPayout: number;
+  ppvSplitPercentage: number; // player's share (0–100)
+  ppvNetworkId: number | null;
+  isTitleFight: boolean;
+  status: ContractStatus;
+  counterOfferPayout: number | null; // set when opponent counter-offers
+  scheduledDate: string | null;
+  fightId: number | null; // set after fight completes
+}
+
+export interface PpvNetwork {
+  id?: number;
+  name: string;
+  baseViewership: number;
+  titleFightMultiplier: number; // multiplier applied for title fights
+  playerRevenueShare: number; // percentage (0–100) player earns
+  contractedBoxerId: number | null;
+  contractStart: string | null;
+  contractEnd: string | null;
+}
+
 // --- DB schema ---
 
 interface BoxingManagerDBSchema extends DBSchema {
@@ -135,6 +220,35 @@ interface BoxingManagerDBSchema extends DBSchema {
     key: number;
     value: Gym;
   };
+  federations: {
+    key: number;
+    value: Federation;
+    indexes: { name: FederationName };
+  };
+  fights: {
+    key: number;
+    value: Fight;
+    indexes: { boxerIds: number; federationId: number };
+  };
+  fightContracts: {
+    key: number;
+    value: FightContract;
+    indexes: { boxerId: number; status: ContractStatus };
+  };
+  ppvNetworks: {
+    key: number;
+    value: PpvNetwork;
+  };
+  titles: {
+    key: number;
+    value: Title;
+    indexes: { federationId: number; weightClass: WeightClass };
+  };
+  calendarEvents: {
+    key: number;
+    value: CalendarEvent;
+    indexes: { type: CalendarEventType; date: string; boxerIds: number; fightId: number };
+  };
 }
 
 export type DB = IDBPDatabase<BoxingManagerDBSchema>;
@@ -145,21 +259,68 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 1, {
-    upgrade(db) {
-      const boxerStore = db.createObjectStore('boxers', {
-        keyPath: 'id',
-        autoIncrement: true,
-      });
-      boxerStore.createIndex('weightClass', 'weightClass');
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 3, {
+    upgrade(db, oldVersion) {
+      if (oldVersion < 1) {
+        const boxerStore = db.createObjectStore('boxers', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        boxerStore.createIndex('weightClass', 'weightClass');
 
-      const coachStore = db.createObjectStore('coaches', {
-        keyPath: 'id',
-        autoIncrement: true,
-      });
-      coachStore.createIndex('style', 'style');
+        const coachStore = db.createObjectStore('coaches', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        coachStore.createIndex('style', 'style');
 
-      db.createObjectStore('gym', { keyPath: 'id' });
+        db.createObjectStore('gym', { keyPath: 'id' });
+      }
+
+      if (oldVersion < 2) {
+        const federationStore = db.createObjectStore('federations', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        federationStore.createIndex('name', 'name', { unique: true });
+
+        const fightStore = db.createObjectStore('fights', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        fightStore.createIndex('boxerIds', 'boxerIds', { multiEntry: true });
+        fightStore.createIndex('federationId', 'federationId');
+
+        const contractStore = db.createObjectStore('fightContracts', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        contractStore.createIndex('boxerId', 'boxerId');
+        contractStore.createIndex('status', 'status');
+
+        db.createObjectStore('ppvNetworks', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+      }
+
+      if (oldVersion < 3) {
+        const titleStore = db.createObjectStore('titles', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        titleStore.createIndex('federationId', 'federationId');
+        titleStore.createIndex('weightClass', 'weightClass');
+
+        const calendarEventStore = db.createObjectStore('calendarEvents', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        calendarEventStore.createIndex('type', 'type');
+        calendarEventStore.createIndex('date', 'date');
+        calendarEventStore.createIndex('boxerIds', 'boxerIds', { multiEntry: true });
+        calendarEventStore.createIndex('fightId', 'fightId');
+      }
     },
   });
   return dbInstance;
