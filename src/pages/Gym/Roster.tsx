@@ -1,5 +1,13 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import type { Boxer, CalendarEvent, Fight, Federation, FightRecord, FederationName } from '../../db/db';
+import { getGym } from '../../db/gymStore';
+import { getAllBoxers } from '../../db/boxerStore';
+import { getAllCalendarEvents } from '../../db/calendarEventStore';
+import { getAllFights } from '../../db/fightStore';
+import { getAllFederations } from '../../db/federationStore';
+import styles from './Roster.module.css';
 
 // --- Constants ---
 
@@ -99,13 +107,122 @@ export function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-// --- Component stub ---
+// --- Component ---
 
 export default function Roster() {
+  const [roster, setRoster] = useState<Boxer[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [fightsMap, setFightsMap] = useState<Map<number, Fight>>(new Map());
+  const [federationsMap, setFederationsMap] = useState<Map<number, Federation>>(new Map());
+  const [boxersMap, setBoxersMap] = useState<Map<number, Boxer>>(new Map());
+  const [loading, setLoading] = useState(true);
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      const [gym, allBoxers, allEvents, allFights, allFederations] = await Promise.all([
+        getGym(),
+        getAllBoxers(),
+        getAllCalendarEvents(),
+        getAllFights(),
+        getAllFederations(),
+      ]);
+
+      if (cancelled) return;
+
+      const gymId = gym?.id ?? 1;
+      const gymRoster = allBoxers.filter(b => b.gymId === gymId);
+
+      const bMap = new Map<number, Boxer>();
+      for (const b of allBoxers) {
+        if (b.id !== undefined) bMap.set(b.id, b);
+      }
+
+      const fMap = new Map<number, Fight>();
+      for (const f of allFights) {
+        if (f.id !== undefined) fMap.set(f.id, f);
+      }
+
+      const fedMap = new Map<number, Federation>();
+      for (const fed of allFederations) {
+        if (fed.id !== undefined) fedMap.set(fed.id, fed);
+      }
+
+      setRoster(gymRoster);
+      setEvents(allEvents);
+      setFightsMap(fMap);
+      setFederationsMap(fedMap);
+      setBoxersMap(bMap);
+      setLoading(false);
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  if (loading) {
+    return (
+      <div>
+        <PageHeader title="Roster" subtitle="Current gym members" />
+        <p className={styles.loading}>Loading…</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHeader title="Roster" subtitle="Current gym members" />
-      <p>Roster will display here.</p>
+      <div className={styles.page}>
+        {roster.length === 0 ? (
+          <p className={styles.empty}>No boxers on your roster yet.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Weight Class</th>
+                <th>Style</th>
+                <th>Record</th>
+                <th>Status</th>
+                <th>Next Fight</th>
+              </tr>
+            </thead>
+            <tbody>
+              {roster.map(boxer => {
+                const status = getBoxerStatus(boxer, events, today);
+                const nextFight = getNextFight(boxer, events, fightsMap, federationsMap, today, boxersMap);
+                return (
+                  <tr key={boxer.id}>
+                    <td><Link to={`/player/${boxer.id}`}>{boxer.name}</Link></td>
+                    <td>{boxer.age}</td>
+                    <td>{capitalize(boxer.weightClass)}</td>
+                    <td className={styles.styleTag}>{styleLabel(boxer.style)}</td>
+                    <td>{calcRecord(boxer.record)}</td>
+                    <td>
+                      <span
+                        className={styles.statusBadge}
+                        style={{ backgroundColor: status.color }}
+                      >
+                        {status.label}
+                      </span>
+                    </td>
+                    <td>
+                      {nextFight
+                        ? <span className={styles.nextFight}>{nextFight}</span>
+                        : <span className={styles.noFight}>—</span>
+                      }
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
