@@ -7,9 +7,9 @@ docs/superpowers/specs/2026-04-18-recruiting-page-design.md
 
 ## Tasks
 - [x] Design brainstormed and approved
-- [ ] Update worldGen.ts — generate ~15 prospects (age 14-17, Unknown, amateur record) and ~25 free agents (age 22-35, weighted reputation distribution)
-- [ ] Build Recruiting.tsx — two sections (Prospects / Free Agents), gym balance callout, recruit action
-- [ ] Create Recruiting.module.css
+- [x] Update worldGen.ts — generate ~15 prospects (age 14-17, Unknown, amateur record) and ~25 free agents (age 22-35, weighted reputation distribution)
+- [x] Build Recruiting.tsx — two sections (Prospects / Free Agents), gym balance callout, recruit action
+- [x] Create Recruiting.module.css
 
 ## Key Decisions
 - Recruitable boxers identified by: gymId=null + federationId=null + age<18 (prospect) or age>=18 (free agent)

@@ -254,6 +254,96 @@ const FEDERATION_PRESTIGE: Record<FederationName, number> = {
   'International Boxing Federation': 10,
 };
 
+// --- Prospect / Free Agent pool generation ---
+
+const FREE_AGENT_REPUTATION_DISTRIBUTION: [ReputationLevel, number][] = [
+  ['Unknown',              60],
+  ['Local Star',           30],
+  ['Rising Star',           8],
+  ['Respectable Opponent',  1.5],
+  ['Contender',             0.5],
+];
+
+function generateAmateurRecord(style: FightingStyle): FightRecord[] {
+  const total = rand(0, 5);
+  const records: FightRecord[] = [];
+  let year = 2026 - Math.ceil(total / 3);
+  let month = rand(1, 12);
+
+  for (let i = 0; i < total; i++) {
+    const isWin = Math.random() < 0.55;
+    const method = pick(['Decision', 'TKO', 'KO'] as const);
+    const isDecision = method === 'Decision';
+    const round = isDecision ? 4 : rand(1, 4);
+    const mins = rand(0, 2);
+    const secs = rand(0, 59).toString().padStart(2, '0');
+    const dateStr = `${MONTHS[month - 1]} ${rand(1, 28)} ${year}`;
+
+    records.push({
+      result: isWin ? 'win' : 'loss',
+      opponentName: generateName('North America Boxing Federation'),
+      method,
+      finishingMove: isDecision ? null : pick(FINISH_MOVES[style]),
+      round,
+      time: isDecision ? '3:00' : `${mins}:${secs}`,
+      federation: 'Amateur',
+      date: dateStr,
+    });
+
+    month += rand(2, 5);
+    while (month > 12) { month -= 12; year++; }
+  }
+
+  return records;
+}
+
+async function generateProspects(): Promise<void> {
+  const count = rand(13, 17);
+  for (let i = 0; i < count; i++) {
+    const style = pick(FIGHTING_STYLES);
+    const fedName = pick(FEDERATION_NAMES);
+    const prospect: Omit<Boxer, 'id'> = {
+      name: generateName(fedName),
+      age: rand(14, 17),
+      weightClass: 'welterweight',
+      style,
+      reputation: 'Unknown',
+      gymId: null,
+      federationId: null,
+      stats: generateStats('Unknown', style),
+      naturalTalents: generateNaturalTalents(style),
+      injuries: [],
+      titles: [],
+      record: generateAmateurRecord(style),
+    };
+    await putBoxer(prospect);
+  }
+}
+
+async function generateFreeAgents(): Promise<void> {
+  const count = rand(23, 27);
+  for (let i = 0; i < count; i++) {
+    const style = pick(FIGHTING_STYLES);
+    const reputation = weightedPick(FREE_AGENT_REPUTATION_DISTRIBUTION);
+    const fedName = pick(FEDERATION_NAMES);
+    const freeAgent: Omit<Boxer, 'id'> = {
+      name: generateName(fedName),
+      age: rand(22, 35),
+      weightClass: 'welterweight',
+      style,
+      reputation,
+      gymId: null,
+      federationId: null,
+      stats: generateStats(reputation, style),
+      naturalTalents: generateNaturalTalents(style),
+      injuries: [],
+      titles: [],
+      record: generateFightRecord(reputation, style),
+    };
+    await putBoxer(freeAgent);
+  }
+}
+
 // --- Main world gen ---
 
 export async function generateWorld(): Promise<void> {
@@ -336,4 +426,8 @@ export async function generateWorld(): Promise<void> {
       }
     }
   }
+
+  // 5. Generate recruiting pool (prospects + free agents)
+  await generateProspects();
+  await generateFreeAgents();
 }
