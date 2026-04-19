@@ -126,6 +126,14 @@ describe('getBoxerStatus', () => {
     const status = getBoxerStatus(boxer, events, TODAY);
     expect(status.label).toBe('Injured (Moderate, 10 days)');
   });
+
+  it('includes events on today as future', () => {
+    const events: CalendarEvent[] = [
+      { id: 4, type: 'fight', date: TODAY, boxerIds: [1, 2], fightId: 20 },
+    ];
+    const status = getBoxerStatus(baseBoxer, events, TODAY);
+    expect(status.label).toBe('Scheduled Fight');
+  });
 });
 
 // --- getNextFight ---
@@ -196,6 +204,20 @@ describe('getNextFight', () => {
     ];
     const result = getNextFight(baseBoxer, events, fightsMap, federationsMap, TODAY, boxersMap);
     expect(result).toBeNull();
+  });
+
+  it('includes fights on today as upcoming', () => {
+    const fight: Fight = {
+      id: 10, date: TODAY, federationId: 1, weightClass: 'welterweight',
+      boxerIds: [1, 2], winnerId: null, method: 'Decision', finishingMove: null,
+      round: null, time: null, isTitleFight: false, contractId: 5,
+    };
+    const fightsMap = new Map<number, Fight>([[10, fight]]);
+    const events: CalendarEvent[] = [
+      { id: 2, type: 'fight', date: TODAY, boxerIds: [1, 2], fightId: 10 },
+    ];
+    const result = getNextFight(baseBoxer, events, fightsMap, federationsMap, TODAY, boxersMap);
+    expect(result).not.toBeNull();
   });
 });
 

@@ -41,7 +41,7 @@ export function getBoxerStatus(
     return { label: `Injured (${sev}, ${days} day${days === 1 ? '' : 's'})`, color: 'var(--danger)' };
   }
 
-  const boxerEvents = events.filter(e => e.boxerIds.includes(boxer.id!) && e.date > today);
+  const boxerEvents = events.filter(e => e.boxerIds.includes(boxer.id!) && e.date >= today);
   if (boxerEvents.some(e => e.type === 'training-camp')) {
     return { label: 'In Training Camp', color: 'var(--warning)' };
   }
@@ -60,7 +60,7 @@ export function getNextFight(
   boxersMap: Map<number, Boxer>
 ): string | null {
   const futureEvents = events
-    .filter(e => e.type === 'fight' && e.boxerIds.includes(boxer.id!) && e.date > today)
+    .filter(e => e.type === 'fight' && e.boxerIds.includes(boxer.id!) && e.date >= today)
     .sort((a, b) => a.date.localeCompare(b.date));
 
   if (futureEvents.length === 0) return null;
