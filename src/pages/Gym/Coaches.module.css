@@ -1,0 +1,45 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0 0 10px 0;
+}
+
+.styleTag {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.skillTag {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.coachSelect {
+  font-size: 12px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+
+.empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.loading {
+  color: var(--text-secondary);
+  font-style: italic;
+}
