@@ -159,7 +159,7 @@ export async function getDB(): Promise<DB> {
       });
       coachStore.createIndex('style', 'style');
 
-      db.createObjectStore('gym', { keyPath: 'id', autoIncrement: true });
+      db.createObjectStore('gym', { keyPath: 'id' });
     },
   });
   return dbInstance;
