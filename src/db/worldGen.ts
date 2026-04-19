@@ -1,6 +1,7 @@
 import namesData from '../data/names.json';
 import { getBoxer, putBoxer } from './boxerStore';
 import { putFederation } from './federationStore';
+import { saveGym } from './gymStore';
 import { putTitle } from './titleStore';
 import type {
   Boxer,
@@ -430,4 +431,13 @@ export async function generateWorld(): Promise<void> {
   // 5. Generate recruiting pool (prospects + free agents)
   await generateProspects();
   await generateFreeAgents();
+
+  // 6. Create player gym
+  await saveGym({
+    name: 'My Gym',
+    level: 1,
+    balance: 500_000_000,
+    rosterIds: [],
+    coachIds: [],
+  });
 }
