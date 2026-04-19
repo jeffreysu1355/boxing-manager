@@ -56,4 +56,50 @@ describe('getDB', () => {
     const db2 = await getDB();
     expect(db1).not.toBe(db2);
   });
+
+  it('creates the federations object store', async () => {
+    const db = await getDB();
+    expect(db.objectStoreNames.contains('federations')).toBe(true);
+  });
+
+  it('creates the fights object store', async () => {
+    const db = await getDB();
+    expect(db.objectStoreNames.contains('fights')).toBe(true);
+  });
+
+  it('creates the fightContracts object store', async () => {
+    const db = await getDB();
+    expect(db.objectStoreNames.contains('fightContracts')).toBe(true);
+  });
+
+  it('creates the ppvNetworks object store', async () => {
+    const db = await getDB();
+    expect(db.objectStoreNames.contains('ppvNetworks')).toBe(true);
+  });
+
+  it('creates the titles object store', async () => {
+    const db = await getDB();
+    expect(db.objectStoreNames.contains('titles')).toBe(true);
+  });
+
+  it('creates the calendarEvents object store', async () => {
+    const db = await getDB();
+    expect(db.objectStoreNames.contains('calendarEvents')).toBe(true);
+  });
+
+  it('creates federationId and weightClass indexes on titles store', async () => {
+    const db = await getDB();
+    const tx = db.transaction('titles', 'readonly');
+    expect(tx.store.indexNames.contains('federationId')).toBe(true);
+    expect(tx.store.indexNames.contains('weightClass')).toBe(true);
+  });
+
+  it('creates type, date, boxerIds, fightId indexes on calendarEvents store', async () => {
+    const db = await getDB();
+    const tx = db.transaction('calendarEvents', 'readonly');
+    expect(tx.store.indexNames.contains('type')).toBe(true);
+    expect(tx.store.indexNames.contains('date')).toBe(true);
+    expect(tx.store.indexNames.contains('boxerIds')).toBe(true);
+    expect(tx.store.indexNames.contains('fightId')).toBe(true);
+  });
 });
