@@ -1,5 +1,13 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
-import type { CalendarEvent, Fight, Federation, FederationName } from '../../db/db';
+import { getGym } from '../../db/gymStore';
+import { getAllBoxers } from '../../db/boxerStore';
+import { getAllCalendarEvents } from '../../db/calendarEventStore';
+import { getAllFights } from '../../db/fightStore';
+import { getAllFederations } from '../../db/federationStore';
+import type { Boxer, CalendarEvent, Fight, Federation, FederationName } from '../../db/db';
+import styles from './Calendar.module.css';
 
 // --- Constants ---
 
@@ -76,13 +84,116 @@ export function formatDate(isoDate: string): string {
   });
 }
 
-// --- Component stub ---
+// --- Component ---
 
 export default function Calendar() {
+  const [today] = useState(() => new Date().toISOString().slice(0, 10));
+  const [rows, setRows] = useState<CalendarRow[] | null>(null);
+  const [boxerMap, setBoxerMap] = useState<Map<number, Boxer>>(new Map());
+
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.all([
+      getGym(),
+      getAllBoxers(),
+      getAllCalendarEvents(),
+      getAllFights(),
+      getAllFederations(),
+    ]).then(([gym, allBoxers, allEvents, allFights, allFederations]) => {
+      if (cancelled) return;
+
+      const gymId = gym?.id;
+      const gymBoxerIds = new Set<number>(
+        allBoxers
+          .filter(b => b.gymId === gymId && b.id !== undefined)
+          .map(b => b.id!)
+      );
+
+      const bMap = new Map<number, Boxer>();
+      for (const boxer of allBoxers) {
+        if (boxer.id !== undefined) bMap.set(boxer.id, boxer);
+      }
+
+      const fMap = new Map<number, Fight>();
+      for (const fight of allFights) {
+        if (fight.id !== undefined) fMap.set(fight.id, fight);
+      }
+
+      const fedMap = new Map<number, Federation>();
+      for (const fed of allFederations) {
+        if (fed.id !== undefined) fedMap.set(fed.id, fed);
+      }
+
+      const derived = deriveRows(allEvents, fMap, gymBoxerIds, fedMap, today);
+      setBoxerMap(bMap);
+      setRows(derived);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [today]);
+
+  if (rows === null) {
+    return (
+      <div className={styles.page}>
+        <PageHeader title="Calendar" subtitle="Upcoming fights for your gym members" />
+        <p className={styles.loading}>Loading…</p>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className={styles.page}>
       <PageHeader title="Calendar" subtitle="Upcoming fights for your gym members" />
-      <p>Calendar will display here.</p>
+      {rows.length === 0 ? (
+        <p className={styles.empty}>No upcoming fights scheduled.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Boxer</th>
+              <th>Opponent</th>
+              <th>Federation</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(row => {
+              const gymBoxer = boxerMap.get(row.gymBoxerId);
+              const opponent = row.opponentId !== undefined
+                ? boxerMap.get(row.opponentId)
+                : undefined;
+
+              return (
+                <tr key={row.eventId}>
+                  <td>{formatDate(row.date)}</td>
+                  <td>
+                    {gymBoxer !== undefined
+                      ? <Link to={'/player/' + gymBoxer.id}>{gymBoxer.name}</Link>
+                      : '—'}
+                  </td>
+                  <td>
+                    {opponent !== undefined
+                      ? <Link to={'/player/' + opponent.id}>{opponent.name}</Link>
+                      : row.opponentId !== undefined
+                        ? 'Unknown'
+                        : '—'}
+                  </td>
+                  <td>{row.federationAbbr}</td>
+                  <td>
+                    {row.isTitleFight && (
+                      <span className={styles.titleBadge}>Title Fight</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
