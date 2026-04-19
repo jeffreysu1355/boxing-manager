@@ -1,5 +1,5 @@
 import { PageHeader } from '../../components/PageHeader/PageHeader';
-import type { Boxer, CalendarEvent, Fight, Federation, FederationName } from '../../db/db';
+import type { CalendarEvent, Fight, Federation, FederationName } from '../../db/db';
 
 // --- Constants ---
 
@@ -39,15 +39,13 @@ export function deriveRows(
     if (event.type !== 'fight') continue;
     if (event.date < today) continue;
 
-    const hasGymBoxer = event.boxerIds.some(id => gymBoxerIds.has(id));
-    if (!hasGymBoxer) continue;
+    const gymBoxerId = event.boxerIds.find(id => gymBoxerIds.has(id));
+    if (gymBoxerId === undefined) continue;
 
     const fight = fightsMap.get(event.fightId);
     if (!fight) continue;
 
     if (event.id === undefined) continue;
-
-    const gymBoxerId = event.boxerIds.find(id => gymBoxerIds.has(id))!;
     const opponentId = fight.boxerIds.find(id => id !== gymBoxerId);
 
     const federation = federationsMap.get(fight.federationId);
