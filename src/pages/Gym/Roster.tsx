@@ -39,6 +39,7 @@ export function getBoxerStatus(
   events: CalendarEvent[],
   today: string
 ): BoxerStatus {
+  if (boxer.id === undefined) return { label: 'Active', color: 'var(--success)' };
   const activeInjuries = boxer.injuries.filter(i => i.recoveryDays > 0);
   if (activeInjuries.length > 0) {
     const worst = activeInjuries.reduce((a, b) =>
@@ -49,7 +50,7 @@ export function getBoxerStatus(
     return { label: `Injured (${sev}, ${days} day${days === 1 ? '' : 's'})`, color: 'var(--danger)' };
   }
 
-  const boxerEvents = events.filter(e => e.boxerIds.includes(boxer.id!) && e.date >= today);
+  const boxerEvents = events.filter(e => e.boxerIds.includes(boxer.id) && e.date >= today);
   if (boxerEvents.some(e => e.type === 'training-camp')) {
     return { label: 'In Training Camp', color: 'var(--warning)' };
   }
@@ -67,8 +68,9 @@ export function getNextFight(
   today: string,
   boxersMap: Map<number, Boxer>
 ): string | null {
+  if (boxer.id === undefined) return null;
   const futureEvents = events
-    .filter(e => e.type === 'fight' && e.boxerIds.includes(boxer.id!) && e.date >= today)
+    .filter(e => e.type === 'fight' && e.boxerIds.includes(boxer.id) && e.date >= today)
     .sort((a, b) => a.date.localeCompare(b.date));
 
   if (futureEvents.length === 0) return null;
@@ -117,7 +119,7 @@ export default function Roster() {
   const [boxersMap, setBoxersMap] = useState<Map<number, Boxer>>(new Map());
   const [loading, setLoading] = useState(true);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const [today] = useState(() => new Date().toISOString().slice(0, 10));
 
   useEffect(() => {
     let cancelled = false;
