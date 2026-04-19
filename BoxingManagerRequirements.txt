@@ -51,7 +51,7 @@ BOXER SYSTEM
 [x] Professional record format:
     "Win: Zach Pitt - KO (Rear Hook) - Rd. 1 (1:34) - North America Boxing Federation - April 14 2026"
 
-[ ] Boxer detail view (click name in Roster → detailed stats page)
+[x] Boxer detail view (click name in Roster → detailed stats page)
 [ ] Reputation increases as boxer wins fights
 [ ] Injury recovery tracking (days remaining)
 
@@ -133,12 +133,12 @@ League:
   [x] Calendar page (stub — no data displayed yet)
 
 Gym:
-  [x] Roster page (stub — no data displayed yet)
-  [x] Finances page (stub — no data displayed yet)
-  [x] Coaches page (stub — no data displayed yet)
+  [x] Roster page
+  [x] Finances page
+  [x] Coaches page
 
 Players:
-  [x] Recruiting page (stub — no data displayed yet)
+  [x] Recruiting page
   [x] Compare page (stub — no data displayed yet)
 
 Tools:
@@ -146,10 +146,10 @@ Tools:
 
 [ ] Standings: display current title holders and contenders by federation/weight class
 [ ] Calendar: show upcoming fights for gym members
-[ ] Roster: list gym members with next fight and status; click name → detailed boxer view
-[ ] Finances: show gym level, balance, upgrade option
-[ ] Coaches: show coaches and assigned boxers
-[ ] Recruiting: show under-18 prospects with stats and youth boxing history
+[x] Roster: list gym members with next fight and status; click name → detailed boxer view
+[x] Finances: show gym level, balance, upgrade option
+[x] Coaches: show coaches and assigned boxers
+[x] Recruiting: show under-18 prospects with stats and youth boxing history
 [ ] Compare: side-by-side fighter comparison tool
 [ ] God Mode: modify stats, natural talents, and history for any boxer
 
