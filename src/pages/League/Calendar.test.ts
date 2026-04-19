@@ -1,35 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { deriveRows, formatDate } from './Calendar';
-import type { Boxer, CalendarEvent, Fight, Federation } from '../../db/db';
+import type { CalendarEvent, Fight, Federation } from '../../db/db';
 
 // --- Fixtures ---
-
-const makeBoxer = (id: number, gymId: number | null): Boxer => ({
-  id,
-  name: `Boxer ${id}`,
-  age: 24,
-  weightClass: 'welterweight',
-  style: 'out-boxer',
-  reputation: 'Unknown',
-  gymId,
-  federationId: 1,
-  stats: {
-    jab: 10, cross: 10, leadHook: 10, rearHook: 10, uppercut: 10,
-    headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
-    timing: 10, adaptability: 10, discipline: 10,
-    speed: 10, power: 10, endurance: 10, recovery: 10, toughness: 10,
-  },
-  naturalTalents: [],
-  injuries: [],
-  titles: [],
-  record: [],
-});
-
-const gymBoxer = makeBoxer(1, 1);
-const opponent = makeBoxer(2, null);
-
-void gymBoxer;
-void opponent;
 
 const gymBoxerIds = new Set<number>([1]);
 

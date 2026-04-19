@@ -45,6 +45,8 @@ export function deriveRows(
     const fight = fightsMap.get(event.fightId);
     if (!fight) continue;
 
+    if (event.id === undefined) continue;
+
     const gymBoxerId = event.boxerIds.find(id => gymBoxerIds.has(id))!;
     const opponentId = fight.boxerIds.find(id => id !== gymBoxerId);
 
@@ -54,7 +56,7 @@ export function deriveRows(
       : '?';
 
     rows.push({
-      eventId: event.id!,
+      eventId: event.id,
       date: event.date,
       gymBoxerId,
       opponentId,
