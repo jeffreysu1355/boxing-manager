@@ -1,106 +1,171 @@
-Main Idea:
-This game will simulate the user as a gym owner, with idea being that the user is recruiting and training up boxers to fight for the world championship.
-The user can schedule fights with other boxers and through those fights the user will win prize money and ad revenue which they can use to upgrade the gym further.
-The gym can be upgraded in terms of the value of higher raw recruits and better training equipment. There are level 1-10 of gym. Which increases in cost every time you upgrade. The last upgrade should take 100,000,000 dollars.
-There will be reputation levels of boxers, starting with the lowest: Unknown, Local Star, Rising Star, Respectable Opponent, Contender, Championship Caliber, Nationally Ranked, World Class Fighter, International Superstar, All-Time Great.
-As the boxer's reputation level increases, boxer will earn more prize money as well as ad money from their fights.
-Boxer's will have stats that go from a scale of 1-20 for each stat. If they have a natural talen the stat will have an maximum value of 25.
-There are four styles of boxers: Out-Boxer, Swarmer, Slugger, Conuterpuncher. The Out-Boxer is countered by Swarmer. The Swarmer is countered by Slugger. The Slugger is countered by Counterpuncher. The counterpunch is countered by Boxer.
+Boxing Manager — Product Requirements Document
+==============================================
+Legend: [x] = complete, [ ] = not started / in progress
 
-Outboxer focuses on:  Jab, Cross, Head Movement, Guard, Positioning, Speed
-Swarmer focuses on: Lead Hook, Rear Hook, Body Movement, Positioning, Endurance, Toughness
-Slugger focuses on: Rear Hook, Uppercut, Power, Endurance, Recovery, Toughness
-Counterpunch focuses on: Timing, Adaptability, Discipline, Head Movement, Body Movement, Speed
 
-Here are some stats that each boxer will have seprated into 4 categories: offense, defense, mental, physical. Take a look at the boxer-stats.png file for a screenshot of the different stats.
-Each boxer might also have some randomly generated Natural Talents. These can be randomly gained from training or from character generation.
-There boxers can also be injured, these can be from training or during the boxing match. The injuries will need to be tracked here.
-Boxers will also have their titles that they earned and the date ranges that they held it on.
-Boxers will also need to have their Professional Record saved in a list, in a format like this "Win: Zach Pitt - KO (Rear Hook) - Rd. 1 (1:34) - North America Boxing Federation - April 14 2026"
-Check screenshot boxer-stats-full-image.png, the stat screen does not need to look exactly like this, I want to have a ui similar to football-gm.
+CORE CONCEPT
+------------
+The user plays as a gym owner: recruit and train boxers, schedule fights, earn prize money and ad revenue,
+and upgrade the gym. The goal is to develop fighters to become world champions.
 
-Boxer weight classes are:
-Flyweight 126 lbs 
-Lightweight 135 lbs 
-Welterweight 147 lbs 
-Middleweight 160 lbs 
-Heavyweight over 200 lbs
 
-Coaches will also be included this game and have to be recruited just like boxers. Coaches also have a skill level and better gyms will attact better coaches.
-Coaches skill levels are Local, Contender, Championship Caliber, All Time Great.
-Coaches train specific styles, for example a sluggler style coach will be good at increasing stats that sluggers are good at. But that doesn't mean that you can use a slugger style coach with other styles. It just means that style's specific stats won't be increased.
-Coaches train certain stats during the season gaining a certain amount of exp per day trained. When a fight is coming up they will no longer gain exp, but instead the training will temporarily increase a boxers specific stats by 300%. This will scale on the number of days the boxer trains for before the match.
+GYM SYSTEM
+----------
+[x] Gym levels 1–10 (level 10 costs $100,000,000)
+[ ] Higher gym levels attract better recruits and coaches
+[ ] All money flows to the gym (individual boxers earn nothing directly)
+[ ] Gym upgrade UI (Finances tab)
 
-There are multiple different fighting organizations: North America Boxing Federation, South America Boxing Federation, African Boxing Federation, European Boxing Federation, Asia Boxing Federation, Oceania Boxing Federation, Interational Boxing Federation. International boxing federation has the most prestige/viewers.
-All these organizations each host 4 events throughout the year. You can challenge boxers in each federation for a fight at those events. 
-Each federation has a Title for each weight class.
-When scheduling a fight, you can select a couple things, the guaranteed payout which is the payout that you will recieve. It should be in increments of 1000 up to 10000. and then increments of 10,000 until 100,000. and incremetns of 100,000 until 1,000,000.
-There is also a PPV/Network split where the boxer can earn a % of the PPV. Usually at larger events it would be better to get PPV percentage, but for smaller events/early career the guaranteed payout would be better.
-The boxer that you are trying to schedule a fight against can also alter the terms, for example lower payout or negotiating on the PPV percentage. Since the other part of the PPV percentage goes to the other boxer.
-The other boxer can choose to reject it if the challenging boxer is too low reputation or they are not getting enough money. 
-The user should also be able to select a title to fight for. Meaning the winner of the match gets the title. Most matches would be where there is no title to be fought for.
 
-After scheduling the fight, but before the actual fight the user will be able to signup for a specific PPV network, networks have a number of viewers and can expect 60% of those viewers to view the fight. The viewer percentage would be increased for title fights.
-After the fight, the user will get the contract determined PPV% paid out. All the money goes to the gym, not the individual boxer. In this game individual boxers don't get any of the payout.
+BOXER SYSTEM
+------------
+[x] Weight classes: Flyweight (126 lbs), Lightweight (135 lbs), Welterweight (147 lbs),
+    Middleweight (160 lbs), Heavyweight (200+ lbs)
 
-During a fight, I'm not sure of the exact calculation to determine the winner, but it should be 20% determined by the type of figher, 70% determined by stats. 10% random chance.
-A further feature would be implementing in-fight tactics, but no plans for that feature yet. 
-For now we will be doing a simulator experience.
+[x] Reputation levels (lowest → highest):
+    Unknown, Local Star, Rising Star, Respectable Opponent, Contender,
+    Championship Caliber, Nationally Ranked, World Class Fighter,
+    International Superstar, All-Time Great
 
-I really like the UI design from https://play.football-gm.com/, so some reference screenshots are from that game. But I like the concepts introduced in another game called World Boxing Manager, so you may also see screenshots from that game.
-This is a web browser game that should be a single page app that runs client-side by storing data in IndexDB. 
-I've seen patterns where a shared worker is used to talk to indexdb and the tab only runs ui code. In addition there is a cache layer onto of indextb that contains commonly accessed data.
-I'm not sure if this pattern is good for this game's usecase.
+[x] Fighting styles (rock-paper-scissors counters):
+    Out-Boxer → countered by Swarmer
+    Swarmer   → countered by Slugger
+    Slugger   → countered by Counterpuncher
+    Counterpuncher → countered by Out-Boxer
 
-Dashboard:
-Check screenshot football-gm-ui-sample.png. This is a ui snapshot from a game I like the UI of, but it is for a football related manager, so it doesn't need to be an exact copy. I want to adapt this UI for the boxing manager.
-Simple text based dashboard, don't need any images right now.
+[x] Style focus stats:
+    Out-Boxer:      Jab, Cross, Head Movement, Guard, Positioning, Speed
+    Swarmer:        Lead Hook, Rear Hook, Body Movement, Positioning, Endurance, Toughness
+    Slugger:        Rear Hook, Uppercut, Power, Endurance, Recovery, Toughness
+    Counterpuncher: Timing, Adaptability, Discipline, Head Movement, Body Movement, Speed
 
-Tabs that should be included (on the same level as League, Team, Players):
-League: 
-    Sub Tabs within League:
-        Standings: this will display the current titles and the boxer's standings with the current title holder at the top and contenders at the bottom.
-        These will also need to be in different sections based on the federation.
-        Calender: shows current gym members upcoming fights.
+[x] Boxer stats (1–20 scale; natural talent raises cap to 25):
+    Offense:  Jab, Cross, Lead Hook, Rear Hook, Uppercut
+    Defense:  Head Movement, Body Movement, Guard, Positioning
+    Mental:   Timing, Adaptability, Discipline
+    Physical: Speed, Power, Endurance, Recovery, Toughness
+
+[x] Natural Talents (randomly generated or earned via training)
+[x] Injuries (from training or matches) — data model complete
+[x] Titles held with date ranges — data model complete
+[x] Professional record format:
+    "Win: Zach Pitt - KO (Rear Hook) - Rd. 1 (1:34) - North America Boxing Federation - April 14 2026"
+
+[ ] Boxer detail view (click name in Roster → detailed stats page)
+[ ] Reputation increases as boxer wins fights
+[ ] Injury recovery tracking (days remaining)
+
+
+COACH SYSTEM
+------------
+[x] Coach skill levels: Local, Contender, Championship Caliber, All-Time Great
+[x] Coach data model (style specialty, assigned boxer)
+
+[ ] Coach recruitment (same flow as boxer recruiting)
+[ ] Coaches train specific style stats during the season (exp per day)
+[ ] Pre-fight training: switches from exp gain to temporary 300% stat boost
+    (boost scales with number of training days before the match)
+[ ] Higher gym levels attract better coaches
+
+
+FIGHT SYSTEM
+------------
+[x] Federations: North America BF, South America BF, African BF, European BF,
+    Asia BF, Oceania BF, International BF (most prestigious)
+[x] Each federation has titles for every weight class
+[x] Fight data model (method, round, time, title fight flag, etc.)
+
+[ ] Each federation hosts 4 events per year
+[ ] Fight scheduling UI — select opponent + event slot
+[ ] Contract negotiation:
+    [ ] Guaranteed payout ($1k–$10k in $1k steps, $10k–$100k in $10k steps,
+        $100k–$1M in $100k steps)
+    [ ] PPV/Network split percentage (player's share)
+    [ ] Title fight option (winner takes title)
+    [ ] Opponent AI: can counter-offer (lower payout), negotiate PPV %, or reject
+        (rejects if challenger rep too low or offer too poor)
+[ ] PPV network signup (after scheduling, before fight):
+    [ ] Networks have base viewership; expect 60% of viewers to watch
+    [ ] Title fights increase viewer percentage
+    [ ] Player earns their contracted PPV % of network revenue
+[ ] Fight outcome formula: 20% style matchup + 70% stats + 10% random
+[ ] Post-fight: contract payout deposited to gym balance
+
+
+WORLD GENERATION (First Launch)
+--------------------------------
+[x] Detect empty DB on first launch and auto-generate world
+[x] Seed all 7 federations with prestige values (International BF = 10)
+[x] MVP — Welterweight only:
+    [x] ~10 welterweight fighters per federation
+    [x] Pyramid reputation distribution per federation:
+          All-Time Great: 0–1 (IBF only)
+          International Superstar: 0–1
+          World Class Fighter: 1
+          Nationally Ranked: 1
+          Championship Caliber: 1 (champion)
+          Contender: 2
+          Respectable Opponent: 2
+          Rising Star: 1
+          Local Star: 1
+          Unknown: 1
+    [x] IBF skews higher (All-Time Great + International Superstar guaranteed)
+    [x] 1 welterweight title per federation; champion = Championship Caliber or higher
+    [x] IBF champion = Nationally Ranked or higher
+    [x] Procedural names drawn from country pools per federation
+    [x] Stats scale with reputation; style focus stats skew high
+    [x] Natural talents: ~25% of fighters
+    [x] Generated fight records consistent with reputation level
+
+[ ] Future phase: generate all 5 weight classes per federation (~50 fighters total per federation)
+
+
+UI STRUCTURE
+------------
+[x] Single-page app (Vite + React 18 + TypeScript)
+[x] Client-side only; all data in IndexedDB
+[x] CSS Modules with global dark theme
+[x] Top navigation + sidebar layout
+[x] Route structure: League, Gym, Players, Tools (with sub-tabs)
+
+League:
+  [x] Standings page (stub — no data displayed yet)
+  [x] Calendar page (stub — no data displayed yet)
+
 Gym:
-    Sub Tabs within Gym:
-    Roster: Current gym members with some broad information like their next fight and current status. Clicking their name should bring up more detailed information about them.
-    Finances: Shows the current level of the gym.
-    Coaches: Shows the current coaches and who they are training. 
+  [x] Roster page (stub — no data displayed yet)
+  [x] Finances page (stub — no data displayed yet)
+  [x] Coaches page (stub — no data displayed yet)
+
 Players:
-    Recruiting: Show potential prospects that are under-18 and their stats and youth boxing history.
-    Compare: Allows side by side comparison of two selected fighters.
+  [x] Recruiting page (stub — no data displayed yet)
+  [x] Compare page (stub — no data displayed yet)
+
 Tools:
-    God Mode: Enables modifying stats/natural talents/history
+  [x] God Mode page (stub — no data displayed yet)
 
-World Generation (New Game Initialization):
-When no fighter data is detected (first launch or fresh save), the game should automatically generate a full world of fighters across all federations and weight classes.
+[ ] Standings: display current title holders and contenders by federation/weight class
+[ ] Calendar: show upcoming fights for gym members
+[ ] Roster: list gym members with next fight and status; click name → detailed boxer view
+[ ] Finances: show gym level, balance, upgrade option
+[ ] Coaches: show coaches and assigned boxers
+[ ] Recruiting: show under-18 prospects with stats and youth boxing history
+[ ] Compare: side-by-side fighter comparison tool
+[ ] God Mode: modify stats, natural talents, and history for any boxer
 
-Each federation (North America BF, South America BF, African BF, European BF, Asia BF, Oceania BF, International BF) should have approximately 50 fighters distributed across all 5 weight classes (~10 per weight class).
 
-MVP Scope: Initially, only Welterweight (147 lbs) fighters will be generated to establish a working foundation. Other weight classes will be added in a later phase.
+DATA LAYER
+----------
+[x] IndexedDB schema (v3) with stores:
+    boxers, coaches, gym, federations, fights, fightContracts,
+    ppvNetworks, titles, calendarEvents
+[x] CRUD store files for all entities
+[x] Gym stored as singleton (id = 1)
 
-Reputation distribution per federation (pyramid structure — fewer fighters at higher tiers):
-    All-Time Great: 1-2
-    International Superstar: 3-4
-    World Class Fighter: 3-4
-    Nationally Ranked: 5-6
-    Championship Caliber: 6-8
-    Contender: 8-10
-    Respectable Opponent: 6-8
-    Rising Star: 5-6
-    Local Star: 4-5
-    Unknown: 3-4
 
-Each federation should have exactly 1 title holder per weight class (5 titles per federation, 35 titles total across all federations). Title holders should be drawn from Championship Caliber or higher.
-
-International Boxing Federation titles should only be held by Nationally Ranked or higher fighters, since it is the most prestigious organization.
-
-Generated fighters should have:
-    - Stats appropriate to their reputation level (higher reputation = higher average stats)
-    - A randomly assigned fighting style
-    - A plausible professional record consistent with their reputation
-    - Natural talents assigned at a reasonable rate (roughly 1 in 4 fighters)
-    - Random weight class assignment weighted so each weight class has roughly equal representation
-
-The user's gym starts with no fighters — all generated fighters are AI-controlled opponents in the world.
+FUTURE / UNPLANNED
+-------------------
+[ ] In-fight tactics system
+[ ] Shared worker architecture for IndexedDB communication
+[ ] Cache layer on top of IndexedDB for frequently accessed data
+[ ] Other weight classes in world generation (beyond welterweight MVP)
