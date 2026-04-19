@@ -80,6 +80,15 @@ describe('getBoxerStatus', () => {
     expect(status.label).toBe('Active');
   });
 
+  it('uses singular "day" when recoveryDays is 1', () => {
+    const boxer: Boxer = {
+      ...baseBoxer,
+      injuries: [{ name: 'Bruise', severity: 'minor', recoveryDays: 1, dateOccurred: '2026-04-18' }],
+    };
+    const status = getBoxerStatus(boxer, [], TODAY);
+    expect(status.label).toBe('Injured (Minor, 1 day)');
+  });
+
   it('returns In Training Camp when future training-camp event exists', () => {
     const events: CalendarEvent[] = [
       { id: 1, type: 'training-camp', date: '2026-05-01', boxerIds: [1], fightId: 10 },
