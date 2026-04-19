@@ -72,3 +72,35 @@ Players:
     Compare: Allows side by side comparison of two selected fighters.
 Tools:
     God Mode: Enables modifying stats/natural talents/history
+
+World Generation (New Game Initialization):
+When no fighter data is detected (first launch or fresh save), the game should automatically generate a full world of fighters across all federations and weight classes.
+
+Each federation (North America BF, South America BF, African BF, European BF, Asia BF, Oceania BF, International BF) should have approximately 50 fighters distributed across all 5 weight classes (~10 per weight class).
+
+MVP Scope: Initially, only Welterweight (147 lbs) fighters will be generated to establish a working foundation. Other weight classes will be added in a later phase.
+
+Reputation distribution per federation (pyramid structure — fewer fighters at higher tiers):
+    All-Time Great: 1-2
+    International Superstar: 3-4
+    World Class Fighter: 3-4
+    Nationally Ranked: 5-6
+    Championship Caliber: 6-8
+    Contender: 8-10
+    Respectable Opponent: 6-8
+    Rising Star: 5-6
+    Local Star: 4-5
+    Unknown: 3-4
+
+Each federation should have exactly 1 title holder per weight class (5 titles per federation, 35 titles total across all federations). Title holders should be drawn from Championship Caliber or higher.
+
+International Boxing Federation titles should only be held by Nationally Ranked or higher fighters, since it is the most prestigious organization.
+
+Generated fighters should have:
+    - Stats appropriate to their reputation level (higher reputation = higher average stats)
+    - A randomly assigned fighting style
+    - A plausible professional record consistent with their reputation
+    - Natural talents assigned at a reasonable rate (roughly 1 in 4 fighters)
+    - Random weight class assignment weighted so each weight class has roughly equal representation
+
+The user's gym starts with no fighters — all generated fighters are AI-controlled opponents in the world.
