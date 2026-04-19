@@ -42,6 +42,13 @@ describe('boxerStore', () => {
     expect(id).toBe(1);
   });
 
+  it('putBoxer with id: undefined inserts as a new boxer', async () => {
+    const id = await putBoxer({ ...baseBoxer, id: undefined });
+    expect(id).toBe(1);
+    const boxer = await getBoxer(id);
+    expect(boxer?.name).toBe('Test Boxer');
+  });
+
   it('putBoxer assigns incrementing ids', async () => {
     const id1 = await putBoxer(baseBoxer);
     const id2 = await putBoxer({ ...baseBoxer, name: 'Second Boxer' });

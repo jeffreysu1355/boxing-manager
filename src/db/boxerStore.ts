@@ -17,7 +17,9 @@ export async function getBoxersByWeightClass(weightClass: WeightClass): Promise<
 
 export async function putBoxer(boxer: Omit<Boxer, 'id'> | Boxer): Promise<number> {
   const db = await getDB();
-  return db.put('boxers', boxer as Boxer);
+  const { id, ...rest } = boxer as Boxer;
+  const record = id !== undefined ? { ...rest, id } : rest;
+  return db.put('boxers', record as Boxer);
 }
 
 export async function deleteBoxer(id: number): Promise<void> {
