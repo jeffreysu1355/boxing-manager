@@ -170,7 +170,7 @@ export default function Schedule() {
       const paramBoxerId = searchParams.get('boxerId');
       if (paramBoxerId) {
         const id = parseInt(paramBoxerId, 10);
-        if (!isNaN(id)) {
+        if (!isNaN(id) && gym.rosterIds.includes(id)) {
           setSelectedBoxerId(id);
         }
       }
@@ -216,11 +216,7 @@ export default function Schedule() {
   const injuredBoxerIds = new Set<number>();
   for (const boxer of gymBoxers) {
     if (boxer.id === undefined) continue;
-    const hasActiveInjury = boxer.injuries.some(inj => {
-      const occurred = new Date(inj.dateOccurred);
-      const recovery = new Date(occurred.getTime() + inj.recoveryDays * 86400000);
-      return recovery.toISOString().slice(0, 10) >= today;
-    });
+    const hasActiveInjury = boxer.injuries.some(inj => inj.recoveryDays > 0);
     if (hasActiveInjury) {
       injuredBoxerIds.add(boxer.id!);
     }
