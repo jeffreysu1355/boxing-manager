@@ -5,6 +5,7 @@ import PlayerPage from './pages/Player/PlayerPage';
 import LeagueLayout from './pages/League/LeagueLayout';
 import Standings from './pages/League/Standings';
 import Calendar from './pages/League/Calendar';
+import Schedule from './pages/League/Schedule';
 import GymLayout from './pages/Gym/GymLayout';
 import Roster from './pages/Gym/Roster';
 import Finances from './pages/Gym/Finances';
@@ -29,6 +30,7 @@ export const routes: RouteObject[] = [
           { index: true, element: <Navigate to="standings" replace /> },
           { path: 'standings', element: <Standings /> },
           { path: 'calendar', element: <Calendar /> },
+          { path: 'schedule', element: <Schedule /> },
         ],
       },
       {

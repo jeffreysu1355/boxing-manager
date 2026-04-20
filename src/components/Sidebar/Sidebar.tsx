@@ -13,6 +13,7 @@ const sidebarConfig: Record<string, SidebarSection[]> = {
       links: [
         { to: '/league/standings', label: 'Standings' },
         { to: '/league/calendar', label: 'Calendar' },
+        { to: '/league/schedule', label: 'Schedule' },
       ],
     },
   ],
