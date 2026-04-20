@@ -1,0 +1,130 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panelTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.eventRow {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.eventRow:hover {
+  border-color: var(--accent);
+}
+
+.eventRowSelected {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.opponentRow {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.opponentRow:hover {
+  border-color: var(--accent);
+}
+
+.opponentRowSelected {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.opponentRowBooked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.matchupCounter { color: var(--danger); font-size: 11px; }
+.matchupNeutral  { color: var(--text-muted); font-size: 11px; }
+.matchupYou      { color: var(--success); font-size: 11px; }
+
+.statCompare {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.confirmRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.confirmButton {
+  padding: 6px 16px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirmButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.scheduleBtn {
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.federationGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.federationGroupLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-top: 8px;
+}
+
+.loading {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
