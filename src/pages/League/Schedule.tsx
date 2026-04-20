@@ -103,7 +103,10 @@ interface ScheduleData {
 // --- Component ---
 
 export default function Schedule() {
-  const [today] = useState(() => new Date().toISOString().slice(0, 10));
+  const [today] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -201,7 +204,7 @@ export default function Schedule() {
   }
 
   const gymBoxerIds = new Set(gym.rosterIds);
-  const gymBoxers = boxers.filter(b => b.id !== undefined && gymBoxerIds.has(b.id!));
+  const gymBoxers = boxers.filter(b => b.id !== undefined && gymBoxerIds.has(b.id));
 
   // Determine which boxers have a future scheduled fight
   const futureCalendarFightEvents = calendarEvents.filter(e => e.type === 'fight' && e.date >= today);
@@ -218,7 +221,7 @@ export default function Schedule() {
     if (boxer.id === undefined) continue;
     const hasActiveInjury = boxer.injuries.some(inj => inj.recoveryDays > 0);
     if (hasActiveInjury) {
-      injuredBoxerIds.add(boxer.id!);
+      injuredBoxerIds.add(boxer.id);
     }
   }
 
@@ -237,7 +240,7 @@ export default function Schedule() {
 
   // Map federationId -> Federation
   const fedMap = new Map<number, Federation>(
-    federations.filter(f => f.id !== undefined).map(f => [f.id!, f])
+    federations.filter(f => f.id !== undefined).map(f => [f.id, f])
   );
 
   // Group future events by federation
@@ -265,7 +268,7 @@ export default function Schedule() {
   const opponents = selectedGymBoxer && selectedEvent
     ? boxers.filter(b => {
         if (b.id === undefined) return false;
-        if (gymBoxerIds.has(b.id!)) return false;
+        if (gymBoxerIds.has(b.id)) return false;
         if (b.weightClass !== selectedGymBoxer.weightClass) return false;
         return true;
       })
@@ -304,9 +307,9 @@ export default function Schedule() {
     if (selectedOpponent.id === undefined) return;
     if (selectedEvent.id === undefined) return;
 
-    const gymBoxerId = selectedGymBoxer.id!;
-    const opponentId = selectedOpponent.id!;
-    const eventId = selectedEvent.id!;
+    const gymBoxerId = selectedGymBoxer.id;
+    const opponentId = selectedOpponent.id;
+    const eventId = selectedEvent.id;
 
     setConfirming(true);
     try {
@@ -386,7 +389,7 @@ export default function Schedule() {
           )}
           {gymBoxers.map(boxer => {
             if (boxer.id === undefined) return null;
-            const bid = boxer.id!;
+            const bid = boxer.id;
             const booked = bookedBoxerIds.has(bid);
             const injured = injuredBoxerIds.has(bid);
             const disabled = booked || injured;
@@ -454,7 +457,7 @@ export default function Schedule() {
                         key={ev.id}
                         className={`${styles.eventRow}${isSelected ? ` ${styles.eventRowSelected}` : ''}`}
                         onClick={() => {
-                          setSelectedEventId(ev.id!);
+                          setSelectedEventId(ev.id);
                           setSelectedOpponentId(null);
                           setIsTitleFight(false);
                         }}
@@ -462,7 +465,7 @@ export default function Schedule() {
                         tabIndex={0}
                         onKeyDown={e => {
                           if (e.key === 'Enter' || e.key === ' ') {
-                            setSelectedEventId(ev.id!);
+                            setSelectedEventId(ev.id);
                             setSelectedOpponentId(null);
                             setIsTitleFight(false);
                           }
@@ -496,7 +499,7 @@ export default function Schedule() {
             <>
               {opponentsByFed.size === 0 && opponents.map(opp => {
                 if (opp.id === undefined) return null;
-                const oppId = opp.id!;
+                const oppId = opp.id;
                 const booked = opponentsBookedForEvent.has(oppId);
                 const isSelected = selectedOpponentId === oppId;
                 const label = selectedGymBoxer ? matchupLabel(selectedGymBoxer.style, opp.style) : 'Neutral';
@@ -524,7 +527,7 @@ export default function Schedule() {
                       </div>
                       {opps.map(opp => {
                         if (opp.id === undefined) return null;
-                        const oppId = opp.id!;
+                        const oppId = opp.id;
                         const booked = opponentsBookedForEvent.has(oppId);
                         const isSelected = selectedOpponentId === oppId;
                         const label = selectedGymBoxer ? matchupLabel(selectedGymBoxer.style, opp.style) : 'Neutral';

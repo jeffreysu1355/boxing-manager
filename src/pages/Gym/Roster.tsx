@@ -1,25 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
-import type { Boxer, CalendarEvent, Fight, Federation, FightRecord, FederationName } from '../../db/db';
+import type { Boxer, CalendarEvent, Fight, Federation, FightRecord } from '../../db/db';
 import { getGym } from '../../db/gymStore';
 import { getAllBoxers } from '../../db/boxerStore';
 import { getAllCalendarEvents } from '../../db/calendarEventStore';
 import { getAllFights } from '../../db/fightStore';
 import { getAllFederations } from '../../db/federationStore';
+import { FEDERATION_ABBR } from '../League/Schedule';
 import styles from './Roster.module.css';
-
-// --- Constants ---
-
-export const FEDERATION_ABBR: Record<FederationName, string> = {
-  'North America Boxing Federation': 'NABF',
-  'South America Boxing Federation': 'SABF',
-  'African Boxing Federation':       'ABF',
-  'European Boxing Federation':      'EBF',
-  'Asia Boxing Federation':          'AsBF',
-  'Oceania Boxing Federation':       'OBF',
-  'International Boxing Federation': 'IBF',
-};
 
 const SEVERITY_ORDER: Record<'minor' | 'moderate' | 'severe', number> = {
   minor: 0,
@@ -120,7 +109,10 @@ export default function Roster() {
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
-  const [today] = useState(() => new Date().toISOString().slice(0, 10));
+  const [today] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
 
   useEffect(() => {
     let cancelled = false;
