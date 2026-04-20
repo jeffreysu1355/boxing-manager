@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
-import type { Boxer, CalendarEvent, Federation, FederationEvent, FightingStyle, FightRecord, ReputationLevel, BoxerStats, Title } from '../../db/db';
+import type { Boxer, CalendarEvent, Federation, FederationEvent, FederationName, FightingStyle, FightRecord, ReputationLevel, BoxerStats, Title } from '../../db/db';
 import { getAllFights, putFight } from '../../db/fightStore';
 import { putFightContract } from '../../db/fightContractStore';
 import { putCalendarEvent, getAllCalendarEvents } from '../../db/calendarEventStore';
@@ -34,7 +34,7 @@ const REPUTATION_INDEX: Record<ReputationLevel, number> = {
   'All-Time Great': 9,
 };
 
-export const FEDERATION_ABBR: Record<string, string> = {
+export const FEDERATION_ABBR: Record<FederationName, string> = {
   'North America Boxing Federation': 'NABF',
   'South America Boxing Federation': 'SABF',
   'African Boxing Federation':       'ABF',
