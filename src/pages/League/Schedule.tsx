@@ -1,5 +1,5 @@
 import { PageHeader } from '../../components/PageHeader/PageHeader';
-import type { BoxerStats, FightingStyle, FightRecord, ReputationLevel } from '../../db/db';
+import type { BoxerStats, FederationName, FightingStyle, FightRecord, ReputationLevel } from '../../db/db';
 
 // --- Constants ---
 
@@ -23,7 +23,7 @@ const REPUTATION_INDEX: Record<ReputationLevel, number> = {
   'All-Time Great': 9,
 };
 
-export const FEDERATION_ABBR: Record<string, string> = {
+export const FEDERATION_ABBR: Record<FederationName, string> = {
   'North America Boxing Federation': 'NABF',
   'South America Boxing Federation': 'SABF',
   'African Boxing Federation':       'ABF',

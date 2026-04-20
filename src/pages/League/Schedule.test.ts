@@ -37,7 +37,7 @@ describe('matchupLabel', () => {
     expect(matchupLabel('out-boxer', 'slugger')).toBe('Neutral');
   });
 
-  it('covers all four counter relationships', () => {
+  it('covers additional counter and you-counter cases', () => {
     expect(matchupLabel('swarmer', 'slugger')).toBe('Counters you');
     expect(matchupLabel('slugger', 'counterpuncher')).toBe('Counters you');
     expect(matchupLabel('counterpuncher', 'out-boxer')).toBe('Counters you');
