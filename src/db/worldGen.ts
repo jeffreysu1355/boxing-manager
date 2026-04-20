@@ -2,6 +2,7 @@ import namesData from '../data/names.json';
 import { getBoxer, putBoxer } from './boxerStore';
 import { putCoach } from './coachStore';
 import { putFederation } from './federationStore';
+import { putFederationEvent } from './federationEventStore';
 import { getGym, saveGym } from './gymStore';
 import { putTitle } from './titleStore';
 import type {
@@ -245,6 +246,16 @@ const CHAMPION_ELIGIBLE: ReputationLevel[] = [
   'All-Time Great',
 ];
 
+const FEDERATION_ABBR_MAP: Record<FederationName, string> = {
+  'North America Boxing Federation': 'NABF',
+  'South America Boxing Federation': 'SABF',
+  'African Boxing Federation':       'ABF',
+  'European Boxing Federation':      'EBF',
+  'Asia Boxing Federation':          'AsBF',
+  'Oceania Boxing Federation':       'OBF',
+  'International Boxing Federation': 'IBF',
+};
+
 // --- Federation seed data ---
 
 const FEDERATION_PRESTIGE: Record<FederationName, number> = {
@@ -388,6 +399,35 @@ async function generateCoaches(): Promise<number[]> {
   return coachIds;
 }
 
+// Quarter week offsets: weeks 10, 23, 36, 49 (roughly Mar, Jun, Sep, Dec)
+const QUARTER_WEEKS = [10, 23, 36, 49];
+
+export async function generateFederationEvents(
+  year: number,
+  federationIds: { id: number; name: FederationName }[]
+): Promise<void> {
+  for (const fed of federationIds) {
+    const abbr = FEDERATION_ABBR_MAP[fed.name];
+    // Deterministic stagger per federation (0–6 days) so events don't all land on the same day
+    const stagger = Math.floor(Math.abs(fed.id * 13) % 7);
+
+    for (const week of QUARTER_WEEKS) {
+      const dayOfYear = week * 7 + stagger;
+      const date = new Date(year, 0, dayOfYear);
+      const isoDate = date.toISOString().slice(0, 10);
+      const monthName = date.toLocaleString('en-US', { month: 'long' });
+      const name = `${abbr} ${monthName} ${year}`;
+
+      await putFederationEvent({
+        federationId: fed.id,
+        date: isoDate,
+        name,
+        fightIds: [],
+      });
+    }
+  }
+}
+
 // --- Main world gen ---
 
 export async function generateWorld(): Promise<void> {
@@ -490,4 +530,11 @@ export async function generateWorld(): Promise<void> {
   if (gym) {
     await saveGym({ ...gym, coachIds });
   }
+
+  // 8. Generate federation event slots for current year
+  const currentYear = new Date().getFullYear();
+  const fedList = (Object.entries(federationIds) as [FederationName, number][]).map(
+    ([name, id]) => ({ id, name })
+  );
+  await generateFederationEvents(currentYear, fedList);
 }
