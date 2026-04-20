@@ -49,12 +49,24 @@ describe('generateFederationEvents', () => {
     }
   });
 
-  it('event names include federation abbreviation and year', async () => {
+  it('event names match format "<ABBR> <Month> <Year>"', async () => {
     await generateFederationEvents(2026, [{ id: 1, name: 'North America Boxing Federation' }]);
     const events = await getAllFederationEvents();
     for (const e of events) {
-      expect(e.name).toContain('NABF');
-      expect(e.name).toContain('2026');
+      expect(e.name).toMatch(/^NABF \w+ 2026$/);
     }
+  });
+
+  it('different federations get different event dates in the same quarter', async () => {
+    await generateFederationEvents(2026, [
+      { id: 1, name: 'North America Boxing Federation' },
+      { id: 2, name: 'European Boxing Federation' },
+    ]);
+    const all = await getAllFederationEvents();
+    const fed1Events = all.filter(e => e.federationId === 1).map(e => e.date);
+    const fed2Events = all.filter(e => e.federationId === 2).map(e => e.date);
+    // No date should appear in both federations
+    const overlap = fed1Events.filter(d => fed2Events.includes(d));
+    expect(overlap).toHaveLength(0);
   });
 });

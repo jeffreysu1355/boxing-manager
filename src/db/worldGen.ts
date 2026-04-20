@@ -414,8 +414,11 @@ export async function generateFederationEvents(
     for (const week of QUARTER_WEEKS) {
       const dayOfYear = week * 7 + stagger;
       const date = new Date(year, 0, dayOfYear);
-      const isoDate = date.toISOString().slice(0, 10);
-      const monthName = date.toLocaleString('en-US', { month: 'long' });
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      const isoDate = `${y}-${m}-${d}`;
+      const monthName = MONTHS[date.getMonth()];
       const name = `${abbr} ${monthName} ${year}`;
 
       await putFederationEvent({
