@@ -102,4 +102,11 @@ describe('getDB', () => {
     expect(tx.store.indexNames.contains('boxerIds')).toBe(true);
     expect(tx.store.indexNames.contains('fightId')).toBe(true);
   });
+
+  it('opens DB at version 5 with federationEvents store', async () => {
+    const db = await getDB();
+    expect(db.version).toBe(5);
+    const storeNames = Array.from(db.objectStoreNames);
+    expect(storeNames).toContain('federationEvents');
+  });
 });

@@ -204,6 +204,14 @@ export interface PpvNetwork {
   contractEnd: string | null;
 }
 
+export interface FederationEvent {
+  id?: number;
+  federationId: number;
+  date: string;        // ISO date, e.g. '2026-03-14'
+  name: string;        // e.g. 'NABF March 2026'
+  fightIds: number[];  // fight ids on this card
+}
+
 // --- DB schema ---
 
 interface BoxingManagerDBSchema extends DBSchema {
@@ -250,6 +258,11 @@ interface BoxingManagerDBSchema extends DBSchema {
     value: CalendarEvent;
     indexes: { type: CalendarEventType; date: string; boxerIds: number; fightId: number };
   };
+  federationEvents: {
+    key: number;
+    value: FederationEvent;
+    indexes: { federationId: number; date: string };
+  };
 }
 
 export type DB = IDBPDatabase<BoxingManagerDBSchema>;
@@ -260,7 +273,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 4, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 5, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -326,6 +339,15 @@ export async function getDB(): Promise<DB> {
       if (oldVersion < 4) {
         const store = transaction.objectStore('boxers');
         store.createIndex('federationId', 'federationId');
+      }
+
+      if (oldVersion < 5) {
+        const fedEventStore = db.createObjectStore('federationEvents', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        fedEventStore.createIndex('federationId', 'federationId');
+        fedEventStore.createIndex('date', 'date');
       }
     },
   });
