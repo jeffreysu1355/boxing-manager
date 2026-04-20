@@ -9,13 +9,13 @@ The fight system covers everything from scheduling a fight to resolving it and c
 ## Sub-projects
 
 ### Sub-project 1: Fight Scheduling UI
-**Status:** In progress
+**Status:** Complete
 
 Player picks a gym boxer, an opponent, a federation, and a date. A `Fight`, `FightContract` (basic, no negotiation), and `CalendarEvent` are created. The Calendar page becomes populated.
 
-- [ ] Spec written
-- [ ] Plan written
-- [ ] Implementation complete
+- [x] Spec written
+- [x] Plan written
+- [x] Implementation complete
 
 ---
 
