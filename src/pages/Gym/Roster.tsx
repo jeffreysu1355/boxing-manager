@@ -221,7 +221,9 @@ export default function Roster() {
                       }
                     </td>
                     <td>
-                      {status.label !== 'Scheduled Fight' && !boxer.injuries.some(i => i.recoveryDays > 0) && (
+                      {boxer.id !== undefined &&
+                       !events.some(e => e.type === 'fight' && e.boxerIds.includes(boxer.id!) && e.date >= today) &&
+                       !boxer.injuries.some(i => i.recoveryDays > 0) && (
                         <button
                           className={styles.scheduleBtn}
                           onClick={() => navigate(`/league/schedule?boxerId=${boxer.id}`)}
