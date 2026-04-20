@@ -46,3 +46,13 @@
 .noFight {
   color: var(--text-muted);
 }
+
+.scheduleBtn {
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  border-radius: 3px;
+  cursor: pointer;
+}

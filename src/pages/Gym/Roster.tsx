@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import type { Boxer, CalendarEvent, Fight, Federation, FightRecord, FederationName } from '../../db/db';
 import { getGym } from '../../db/gymStore';
@@ -119,6 +119,7 @@ export default function Roster() {
   const [boxersMap, setBoxersMap] = useState<Map<number, Boxer>>(new Map());
   const [loading, setLoading] = useState(true);
 
+  const navigate = useNavigate();
   const [today] = useState(() => new Date().toISOString().slice(0, 10));
 
   useEffect(() => {
@@ -191,6 +192,7 @@ export default function Roster() {
                 <th>Record</th>
                 <th>Status</th>
                 <th>Next Fight</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -217,6 +219,16 @@ export default function Roster() {
                         ? <span className={styles.nextFight}>{nextFight}</span>
                         : <span className={styles.noFight}>—</span>
                       }
+                    </td>
+                    <td>
+                      {status.label !== 'Scheduled Fight' && !boxer.injuries.some(i => i.recoveryDays > 0) && (
+                        <button
+                          className={styles.scheduleBtn}
+                          onClick={() => navigate(`/league/schedule?boxerId=${boxer.id}`)}
+                        >
+                          Schedule Fight
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
