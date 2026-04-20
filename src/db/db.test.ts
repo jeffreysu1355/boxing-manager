@@ -109,4 +109,11 @@ describe('getDB', () => {
     const storeNames = Array.from(db.objectStoreNames);
     expect(storeNames).toContain('federationEvents');
   });
+
+  it('creates federationId and date indexes on federationEvents store', async () => {
+    const db = await getDB();
+    const tx = db.transaction('federationEvents', 'readonly');
+    expect(tx.store.indexNames.contains('federationId')).toBe(true);
+    expect(tx.store.indexNames.contains('date')).toBe(true);
+  });
 });
