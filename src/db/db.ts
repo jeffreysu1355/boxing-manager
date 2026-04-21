@@ -189,6 +189,8 @@ export interface FightContract {
   isTitleFight: boolean;
   status: ContractStatus;
   counterOfferPayout: number | null; // set when opponent counter-offers
+  counterOfferPpvSplit: number | null; // opponent's counter PPV split; null = not changed
+  roundsUsed: number; // 0..3, incremented each time player submits
   scheduledDate: string | null;
   fightId: number | null; // set after fight completes
 }
@@ -273,7 +275,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 5, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 6, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -348,6 +350,12 @@ export async function getDB(): Promise<DB> {
         });
         fedEventStore.createIndex('federationId', 'federationId');
         fedEventStore.createIndex('date', 'date');
+      }
+
+      if (oldVersion < 6) {
+        // counterOfferPpvSplit and roundsUsed added to fightContracts
+        // idb returns undefined for missing fields on existing records;
+        // runtime code treats undefined as null / 0 respectively
       }
     },
   });
