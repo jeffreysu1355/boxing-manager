@@ -34,6 +34,27 @@ export function snapToIncrement(n: number): number {
 }
 
 /**
+ * Snaps n DOWN to the nearest valid payout increment.
+ * Used when the AI counter-offers a lower value.
+ */
+export function snapToIncrementDown(n: number): number {
+  if (n <= 0) return 1000;
+  if (n > 1_000_000) return 1_000_000;
+  if (n <= 10_000) return Math.max(1_000, Math.floor(n / 1_000) * 1_000);
+  if (n <= 100_000) return Math.max(10_000, Math.floor(n / 10_000) * 10_000);
+  return Math.max(100_000, Math.floor(n / 100_000) * 100_000);
+}
+
+/**
+ * Snaps n DOWN to the nearest multiple of 5, clamped 0–100.
+ * Used when the AI counter-offers a lower PPV split.
+ */
+export function snapTo5Down(n: number): number {
+  const snapped = Math.floor(n / 5) * 5;
+  return Math.min(100, Math.max(0, snapped));
+}
+
+/**
  * Snaps n up to the nearest multiple of 5, clamped 0–100.
  */
 export function snapTo5(n: number): number {
@@ -43,6 +64,20 @@ export function snapTo5(n: number): number {
 
 /**
  * Evaluates a player's contract offer and returns the AI's decision.
+ *
+ * The opponent is selfish: they accept when the player asks for little,
+ * and reject/counter when the player demands too much.
+ *
+ * fairPayout and fairPpvSplit represent what the player would receive in a
+ * "balanced" deal given the reputation gap:
+ *   - Bigger name opponent (positive repGap) → lower fair values (you need them more)
+ *   - Lesser opponent (negative repGap) → higher fair values (they need you more)
+ *
+ * offerScore = (playerPayout / fairPayout) + (playerPpvSplit / fairPpvSplit)
+ *   Low score (< 0.8)  → opponent happy, accepts
+ *   High score (> 1.8) → opponent unhappy, mostly rejects
+ *
+ * Counter direction: AI pushes fields DOWN toward fair value (you're asking too much).
  */
 export function evaluateOffer(params: {
   playerPayout: number;
@@ -55,29 +90,23 @@ export function evaluateOffer(params: {
   const { playerPayout, playerPpvSplit, gymBoxerRepIndex, opponentRepIndex, roundsUsed } = params;
   const rand = params.random ?? Math.random();
 
+  // repGap > 0 means opponent is bigger name → player should accept lower terms
   const repGap = opponentRepIndex - gymBoxerRepIndex; // -9..+9
-  const fairPayout = 10_000 * (0.5 + ((repGap + 9) / 18) * 2.5);
-  const fairPpvSplit = Math.min(90, Math.max(10, 50 + repGap * 3));
+  const fairPayout = 10_000 * (0.5 + ((9 - repGap) / 18) * 2.5);
+  const fairPpvSplit = Math.min(90, Math.max(10, 50 - repGap * 3));
 
   const offerScore = (playerPayout / fairPayout) + (playerPpvSplit / fairPpvSplit);
 
-  // Base probabilities per band
+  // Base probabilities: low score = good for opponent = accept
   let pAccept: number;
   let pCounter: number;
   // pReject = 1 - pAccept - pCounter
 
-  if (offerScore >= 1.8) {
+  if (offerScore <= 0.8) {
     pAccept = 1.0; pCounter = 0;
-  } else if (offerScore >= 1.2) {
-    // If payout is very low (< 50% of fair) but ppv is fair/high, counter more readily
-    const payoutComponent = playerPayout / fairPayout;
-    const ppvComponent = playerPpvSplit / fairPpvSplit;
-    if (payoutComponent < 0.5 && ppvComponent >= 1.0) {
-      pAccept = 0.4; pCounter = 0.6;
-    } else {
-      pAccept = 0.8; pCounter = 0.2;
-    }
-  } else if (offerScore >= 0.8) {
+  } else if (offerScore <= 1.2) {
+    pAccept = 0.8; pCounter = 0.2;
+  } else if (offerScore <= 1.8) {
     pAccept = 0; pCounter = 0.9;
   } else {
     pAccept = 0; pCounter = 0.3;
@@ -104,12 +133,12 @@ export function evaluateOffer(params: {
   if (outcome === 'accept') return { outcome: 'accept' };
   if (outcome === 'reject') return { outcome: 'reject' };
 
-  // Counter: adjust fields below fair value toward midpoint
-  const counterPayout = playerPayout < fairPayout
-    ? snapToIncrement(playerPayout + (fairPayout - playerPayout) / 2)
+  // Counter: push fields DOWN toward fair value (player is demanding too much)
+  const counterPayout = playerPayout > fairPayout
+    ? snapToIncrementDown(playerPayout - (playerPayout - fairPayout) / 2)
     : null;
-  const counterPpvSplit = playerPpvSplit < fairPpvSplit
-    ? snapTo5(playerPpvSplit + (fairPpvSplit - playerPpvSplit) / 2)
+  const counterPpvSplit = playerPpvSplit > fairPpvSplit
+    ? snapTo5Down(playerPpvSplit - (playerPpvSplit - fairPpvSplit) / 2)
     : null;
 
   return { outcome: 'counter', payout: counterPayout, ppvSplit: counterPpvSplit };
@@ -158,6 +187,7 @@ export default function ContractNegotiation() {
   const [offerPpvSplit, setOfferPpvSplit] = useState<number>(50);
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [fightScheduled, setFightScheduled] = useState(false);
 
   const payoutOptions = buildPayoutOptions();
 
@@ -247,7 +277,7 @@ export default function ContractNegotiation() {
         if (matchingEvent?.id !== undefined) {
           await updateFederationEventFights(matchingEvent.id, fightId);
         }
-        navigate('/league/calendar');
+        setFightScheduled(true);
 
       } else if (decision.outcome === 'counter' && newRoundsUsed < 3) {
         await putFightContract({
@@ -297,6 +327,22 @@ export default function ContractNegotiation() {
     );
   }
 
+  if (fightScheduled) {
+    return (
+      <div className={styles.page}>
+        <PageHeader title="Contract Negotiation" subtitle="" />
+        <div className={styles.successBox}>
+          <strong>Fight scheduled!</strong> Your contract has been signed.
+          <div style={{ marginTop: 14 }}>
+            <button className={styles.primaryBtn} onClick={() => navigate('/league/calendar')}>
+              Go to Calendar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const { contract, gymBoxer, opponent, federation } = data;
   const roundsUsed = contract.roundsUsed ?? 0;
   const submitLabel = roundsUsed === 0 ? 'Submit Offer' : roundsUsed === 1 ? 'Counter' : 'Final Offer';
@@ -331,7 +377,7 @@ export default function ContractNegotiation() {
 
       <div className={styles.form}>
         <div className={styles.field}>
-          <label htmlFor="payout">Guaranteed Payout</label>
+          <label htmlFor="payout">Your Guaranteed Payout</label>
           <select
             id="payout"
             value={offerPayout}
