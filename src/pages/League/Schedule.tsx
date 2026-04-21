@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import type { Boxer, CalendarEvent, Federation, FederationEvent, FederationName, FightingStyle, FightRecord, ReputationLevel, BoxerStats, Title } from '../../db/db';
 import { getAllFights, putFight } from '../../db/fightStore';
-import { putFightContract } from '../../db/fightContractStore';
+import { putFightContract, getFightContractsByStatus } from '../../db/fightContractStore';
 import { putCalendarEvent, getAllCalendarEvents } from '../../db/calendarEventStore';
 import { getAllFederationEvents, putFederationEvent, updateFederationEventFights } from '../../db/federationEventStore';
 import { getAllFederations } from '../../db/federationStore';
@@ -98,6 +98,7 @@ interface ScheduleData {
   federations: Federation[];
   fights: Awaited<ReturnType<typeof getAllFights>>;
   titles: Title[];
+  inFlightBoxerIds: Set<number>;
 }
 
 // --- Component ---
@@ -165,9 +166,17 @@ export default function Schedule() {
         }
       }
 
+      const [pendingContracts, counteredContracts] = await Promise.all([
+        getFightContractsByStatus('pending'),
+        getFightContractsByStatus('countered'),
+      ]);
       if (cancelled) return;
+      const inFlightBoxerIds = new Set<number>();
+      for (const c of [...pendingContracts, ...counteredContracts]) {
+        inFlightBoxerIds.add(c.boxerId);
+      }
 
-      setData({ gym, boxers, calendarEvents, federationEvents: updatedFederationEvents, federations, fights, titles });
+      setData({ gym, boxers, calendarEvents, federationEvents: updatedFederationEvents, federations, fights, titles, inFlightBoxerIds });
 
       // Pre-select boxer from query param
       const paramBoxerId = searchParams.get('boxerId');
@@ -192,7 +201,7 @@ export default function Schedule() {
     );
   }
 
-  const { gym, boxers, calendarEvents, federationEvents, federations, fights, titles } = data;
+  const { gym, boxers, calendarEvents, federationEvents, federations, fights, titles, inFlightBoxerIds } = data;
 
   if (!gym) {
     return (
@@ -213,6 +222,9 @@ export default function Schedule() {
     for (const bid of ev.boxerIds) {
       bookedBoxerIds.add(bid);
     }
+  }
+  for (const bid of inFlightBoxerIds) {
+    bookedBoxerIds.add(bid);
   }
 
   // Determine which boxers have an active injury
@@ -305,73 +317,29 @@ export default function Schedule() {
     if (!canConfirm || !selectedGymBoxer || !selectedEvent || !selectedOpponent) return;
     if (selectedGymBoxer.id === undefined) return;
     if (selectedOpponent.id === undefined) return;
-    if (selectedEvent.id === undefined) return;
 
     const gymBoxerId = selectedGymBoxer.id;
     const opponentId = selectedOpponent.id;
-    const eventId = selectedEvent.id;
 
     setConfirming(true);
     try {
-      // 1. Create contract
       const contractId = await putFightContract({
         boxerId: gymBoxerId,
         opponentId,
         federationId: selectedEvent.federationId,
         weightClass: selectedGymBoxer.weightClass,
         guaranteedPayout: 0,
-        ppvSplitPercentage: 0,
+        ppvSplitPercentage: 50,
         ppvNetworkId: null,
         isTitleFight,
-        status: 'accepted',
+        status: 'pending',
         counterOfferPayout: null,
+        counterOfferPpvSplit: null,
+        roundsUsed: 0,
         scheduledDate: selectedEvent.date,
         fightId: null,
       });
-
-      // 2. Create fight
-      const fightId = await putFight({
-        date: selectedEvent.date,
-        federationId: selectedEvent.federationId,
-        weightClass: selectedGymBoxer.weightClass,
-        boxerIds: [gymBoxerId, opponentId],
-        winnerId: null,
-        method: 'Decision',
-        finishingMove: null,
-        round: null,
-        time: null,
-        isTitleFight,
-        contractId,
-      });
-
-      // 3. Re-put contract with fightId
-      await putFightContract({
-        id: contractId,
-        boxerId: gymBoxerId,
-        opponentId,
-        federationId: selectedEvent.federationId,
-        weightClass: selectedGymBoxer.weightClass,
-        guaranteedPayout: 0,
-        ppvSplitPercentage: 0,
-        ppvNetworkId: null,
-        isTitleFight,
-        status: 'accepted',
-        counterOfferPayout: null,
-        scheduledDate: selectedEvent.date,
-        fightId,
-      });
-
-      // 4. Calendar event for gym boxer
-      await putCalendarEvent({ type: 'fight', date: selectedEvent.date, boxerIds: [gymBoxerId], fightId });
-
-      // 5. Calendar event for opponent
-      await putCalendarEvent({ type: 'fight', date: selectedEvent.date, boxerIds: [opponentId], fightId });
-
-      // 6. Update federation event fights
-      await updateFederationEventFights(eventId, fightId);
-
-      // 7. Navigate
-      navigate('/league/calendar');
+      navigate(`/league/contracts/${contractId}`);
     } finally {
       setConfirming(false);
     }
