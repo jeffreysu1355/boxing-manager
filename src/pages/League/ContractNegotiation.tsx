@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import type { FightContract, Boxer, Federation } from '../../db/db';
@@ -188,6 +188,7 @@ export default function ContractNegotiation() {
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [fightScheduled, setFightScheduled] = useState(false);
+  const fightScheduledRef = useRef(false);
 
   const payoutOptions = buildPayoutOptions();
 
@@ -200,7 +201,8 @@ export default function ContractNegotiation() {
         return;
       }
       const contract = await getFightContract(contractId);
-      if (!contract || contract.status === 'accepted' || contract.status === 'completed') {
+      // If we just accepted this contract in the same session, don't redirect — show success state
+      if (!contract || (contract.status === 'accepted' && !fightScheduledRef.current) || contract.status === 'completed') {
         if (!cancelled) navigate('/league/calendar', { replace: true });
         return;
       }
@@ -277,6 +279,7 @@ export default function ContractNegotiation() {
         if (matchingEvent?.id !== undefined) {
           await updateFederationEventFights(matchingEvent.id, fightId);
         }
+        fightScheduledRef.current = true;
         setFightScheduled(true);
 
       } else if (decision.outcome === 'counter' && newRoundsUsed < 3) {
