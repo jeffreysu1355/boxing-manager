@@ -149,19 +149,26 @@ interface PageData {
   federation: Federation | undefined;
 }
 
-// --- Component placeholder (filled in Task 6) ---
-
 export default function ContractNegotiation() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
   const [data, setData] = useState<PageData | null>(null);
+  const [offerPayout, setOfferPayout] = useState<number>(1_000);
+  const [offerPpvSplit, setOfferPpvSplit] = useState<number>(50);
+  const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const payoutOptions = buildPayoutOptions();
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       const contractId = id ? parseInt(id, 10) : NaN;
-      if (isNaN(contractId)) { setLoadError('Invalid contract ID.'); return; }
+      if (isNaN(contractId)) {
+        setLoadError('Invalid contract ID.');
+        return;
+      }
       const contract = await getFightContract(contractId);
       if (!contract || contract.status === 'accepted' || contract.status === 'completed') {
         if (!cancelled) navigate('/league/calendar', { replace: true });
@@ -173,16 +180,199 @@ export default function ContractNegotiation() {
         contract.federationId != null ? getFederation(contract.federationId) : Promise.resolve(undefined),
       ]);
       if (cancelled) return;
-      if (!gymBoxer || !opponent) { setLoadError('Boxer data not found.'); return; }
+      if (!gymBoxer || !opponent) {
+        setLoadError('Boxer data not found.');
+        return;
+      }
+
+      if (contract.status === 'countered') {
+        setOfferPayout(contract.counterOfferPayout ?? contract.guaranteedPayout ?? 1_000);
+        setOfferPpvSplit(contract.counterOfferPpvSplit ?? contract.ppvSplitPercentage ?? 50);
+      }
+
       setData({ contract, gymBoxer, opponent, federation });
     }
     load();
     return () => { cancelled = true; };
   }, [id, navigate]);
 
-  // suppress unused warning — full component implemented in Task 6
-  void [data, loadError, REPUTATION_INDEX, putFight, putCalendarEvent, updateFederationEventFights,
-        getFederationEventsByFederation, putFightContract, deleteFightContract, buildPayoutOptions, styles];
+  async function handleCancel() {
+    if (!data?.contract?.id) { navigate('/league/schedule'); return; }
+    await deleteFightContract(data.contract.id);
+    navigate(`/league/schedule?boxerId=${data.contract.boxerId}`);
+  }
 
-  return <div>Contract Negotiation — coming soon</div>;
+  async function handleSubmit() {
+    if (!data || submitting) return;
+    const { contract, gymBoxer, opponent } = data;
+    if (contract.id === undefined) return;
+
+    setSubmitting(true);
+    try {
+      const newRoundsUsed = (contract.roundsUsed ?? 0) + 1;
+      const decision = evaluateOffer({
+        playerPayout: offerPayout,
+        playerPpvSplit: offerPpvSplit,
+        gymBoxerRepIndex: REPUTATION_INDEX[gymBoxer.reputation],
+        opponentRepIndex: REPUTATION_INDEX[opponent.reputation],
+        roundsUsed: newRoundsUsed - 1,
+      });
+
+      if (decision.outcome === 'accept') {
+        const fightId = await putFight({
+          date: contract.scheduledDate!,
+          federationId: contract.federationId,
+          weightClass: contract.weightClass,
+          boxerIds: [contract.boxerId, contract.opponentId],
+          winnerId: null,
+          method: 'Decision',
+          finishingMove: null,
+          round: null,
+          time: null,
+          isTitleFight: contract.isTitleFight,
+          contractId: contract.id,
+        });
+        await putFightContract({
+          ...contract,
+          status: 'accepted',
+          guaranteedPayout: offerPayout,
+          ppvSplitPercentage: offerPpvSplit,
+          fightId,
+          roundsUsed: newRoundsUsed,
+        });
+        await putCalendarEvent({ type: 'fight', date: contract.scheduledDate!, boxerIds: [contract.boxerId], fightId });
+        await putCalendarEvent({ type: 'fight', date: contract.scheduledDate!, boxerIds: [contract.opponentId], fightId });
+        const fedEvents = await getFederationEventsByFederation(contract.federationId);
+        const matchingEvent = fedEvents.find(e => e.date === contract.scheduledDate);
+        if (matchingEvent?.id !== undefined) {
+          await updateFederationEventFights(matchingEvent.id, fightId);
+        }
+        navigate('/league/calendar');
+
+      } else if (decision.outcome === 'counter' && newRoundsUsed < 3) {
+        await putFightContract({
+          ...contract,
+          status: 'countered',
+          roundsUsed: newRoundsUsed,
+          counterOfferPayout: decision.payout,
+          counterOfferPpvSplit: decision.ppvSplit,
+        });
+        setOfferPayout(decision.payout ?? offerPayout);
+        setOfferPpvSplit(decision.ppvSplit ?? offerPpvSplit);
+        setData(prev => prev ? {
+          ...prev,
+          contract: {
+            ...prev.contract,
+            status: 'countered',
+            roundsUsed: newRoundsUsed,
+            counterOfferPayout: decision.payout,
+            counterOfferPpvSplit: decision.ppvSplit,
+          },
+        } : prev);
+
+      } else {
+        await deleteFightContract(contract.id);
+        navigate(`/league/schedule?boxerId=${contract.boxerId}`);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (loadError) {
+    return (
+      <div className={styles.page}>
+        <PageHeader title="Contract Negotiation" subtitle="" />
+        <p className={styles.error}>{loadError}</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className={styles.page}>
+        <PageHeader title="Contract Negotiation" subtitle="" />
+        <p className={styles.loading}>Loading...</p>
+      </div>
+    );
+  }
+
+  const { contract, gymBoxer, opponent, federation } = data;
+  const roundsUsed = contract.roundsUsed ?? 0;
+  const submitLabel = roundsUsed === 0 ? 'Submit Offer' : roundsUsed === 1 ? 'Counter' : 'Final Offer';
+
+  const subtitle = [
+    gymBoxer.name,
+    'vs',
+    opponent.name,
+    federation ? `· ${federation.name}` : '',
+    contract.scheduledDate ? `· ${contract.scheduledDate}` : '',
+    `· ${contract.weightClass}`,
+  ].filter(Boolean).join(' ');
+
+  const counterPayoutDisplay = contract.counterOfferPayout ?? contract.guaranteedPayout;
+  const counterPpvDisplay = contract.counterOfferPpvSplit ?? contract.ppvSplitPercentage;
+
+  return (
+    <div className={styles.page}>
+      <PageHeader title="Contract Negotiation" subtitle={subtitle} />
+
+      {contract.status === 'pending' && (
+        <div className={styles.statusBox}>
+          Make your opening offer.
+        </div>
+      )}
+      {contract.status === 'countered' && (
+        <div className={styles.statusBox}>
+          <strong>Opponent counters:</strong> ${counterPayoutDisplay?.toLocaleString()} guaranteed / {counterPpvDisplay}% PPV split.{' '}
+          Round {roundsUsed + 1} of 3.
+        </div>
+      )}
+
+      <div className={styles.form}>
+        <div className={styles.field}>
+          <label htmlFor="payout">Guaranteed Payout</label>
+          <select
+            id="payout"
+            value={offerPayout}
+            onChange={e => setOfferPayout(Number(e.target.value))}
+          >
+            {payoutOptions.map(v => (
+              <option key={v} value={v}>${v.toLocaleString()}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="ppvSplit">Your PPV Split %</label>
+          <input
+            id="ppvSplit"
+            type="number"
+            min={0}
+            max={100}
+            step={5}
+            value={offerPpvSplit}
+            onChange={e => setOfferPpvSplit(Math.min(100, Math.max(0, Number(e.target.value))))}
+          />
+        </div>
+      </div>
+
+      <div className={styles.actions}>
+        <button
+          className={styles.primaryBtn}
+          onClick={handleSubmit}
+          disabled={submitting}
+        >
+          {submitting ? 'Submitting...' : submitLabel}
+        </button>
+        <button
+          className={styles.cancelBtn}
+          onClick={handleCancel}
+          disabled={submitting}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
 }
