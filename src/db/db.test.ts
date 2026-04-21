@@ -103,9 +103,9 @@ describe('getDB', () => {
     expect(tx.store.indexNames.contains('fightId')).toBe(true);
   });
 
-  it('opens DB at version 5 with federationEvents store', async () => {
+  it('opens DB at version 6 with federationEvents store', async () => {
     const db = await getDB();
-    expect(db.version).toBe(5);
+    expect(db.version).toBe(6);
     const storeNames = Array.from(db.objectStoreNames);
     expect(storeNames).toContain('federationEvents');
   });
