@@ -14,7 +14,7 @@ GYM SYSTEM
 [x] Gym levels 1–10 (level 10 costs $100,000,000)
 [ ] Higher gym levels attract better recruits and coaches
 [ ] All money flows to the gym (individual boxers earn nothing directly)
-[ ] Gym upgrade UI (Finances tab)
+[x] Gym upgrade UI (Finances tab)
 
 
 BOXER SYSTEM
@@ -75,14 +75,14 @@ FIGHT SYSTEM
 [x] Each federation has titles for every weight class
 [x] Fight data model (method, round, time, title fight flag, etc.)
 
-[ ] Each federation hosts 4 events per year
-[ ] Fight scheduling UI — select opponent + event slot
-[ ] Contract negotiation:
-    [ ] Guaranteed payout ($1k–$10k in $1k steps, $10k–$100k in $10k steps,
+[x] Each federation hosts 4 events per year
+[x] Fight scheduling UI — select opponent + event slot
+[x] Contract negotiation:
+    [x] Guaranteed payout ($1k–$10k in $1k steps, $10k–$100k in $10k steps,
         $100k–$1M in $100k steps)
-    [ ] PPV/Network split percentage (player's share)
-    [ ] Title fight option (winner takes title)
-    [ ] Opponent AI: can counter-offer (lower payout), negotiate PPV %, or reject
+    [x] PPV/Network split percentage (player's share)
+    [x] Title fight option (winner takes title)
+    [x] Opponent AI: can counter-offer (lower payout), negotiate PPV %, or reject
         (rejects if challenger rep too low or offer too poor)
 [ ] PPV network signup (after scheduling, before fight):
     [ ] Networks have base viewership; expect 60% of viewers to watch
@@ -144,8 +144,8 @@ Players:
 Tools:
   [x] God Mode page (stub — no data displayed yet)
 
-[ ] Standings: display current title holders and contenders by federation/weight class
-[ ] Calendar: show upcoming fights for gym members
+[x] Standings: display current title holders and contenders by federation/weight class
+[x] Calendar: show upcoming fights for gym members
 [x] Roster: list gym members with next fight and status; click name → detailed boxer view
 [x] Finances: show gym level, balance, upgrade option
 [x] Coaches: show coaches and assigned boxers

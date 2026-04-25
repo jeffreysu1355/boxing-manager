@@ -194,6 +194,7 @@ export default function ContractNegotiation() {
 
   useEffect(() => {
     let cancelled = false;
+
     async function load() {
       const contractId = id ? parseInt(id, 10) : NaN;
       if (isNaN(contractId)) {
@@ -201,6 +202,7 @@ export default function ContractNegotiation() {
         return;
       }
       const contract = await getFightContract(contractId);
+
       // If we just accepted this contract in the same session, don't redirect — show success state
       if (!contract || (contract.status === 'accepted' && !fightScheduledRef.current) || contract.status === 'completed') {
         if (!cancelled) navigate('/league/calendar', { replace: true });
@@ -249,6 +251,7 @@ export default function ContractNegotiation() {
         opponentRepIndex: REPUTATION_INDEX[opponent.reputation],
         roundsUsed: newRoundsUsed - 1,
       });
+
 
       if (decision.outcome === 'accept') {
         const fightId = await putFight({
