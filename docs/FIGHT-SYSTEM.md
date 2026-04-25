@@ -1,5 +1,7 @@
 # Fight System — Implementation Roadmap
 
+> **Progress tracking:** See [PRD.md](../PRD.md) (Section 7) for the canonical completion status of all fight system items.
+
 ## Overview
 
 The fight system covers everything from scheduling a fight to resolving it and collecting the payout. It is split into four sequential sub-projects, each producing working software on its own.
@@ -20,13 +22,13 @@ Player picks a gym boxer, an opponent, a federation, and a date. A `Fight`, `Fig
 ---
 
 ### Sub-project 2: Contract Negotiation
-**Status:** Not started
+**Status:** Complete
 
 Adds a payout/PPV split UI and opponent AI logic (counter-offer, reject based on reputation gap and offer quality).
 
-- [ ] Spec written
-- [ ] Plan written
-- [ ] Implementation complete
+- [x] Spec written
+- [x] Plan written
+- [x] Implementation complete
 
 ---
 

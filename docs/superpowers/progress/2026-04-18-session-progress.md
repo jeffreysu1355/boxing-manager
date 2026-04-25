@@ -1,5 +1,7 @@
 # Session Progress — 2026-04-18
 
+> **Progress tracking:** See [PRD.md](../../../PRD.md) for canonical completion status. This file is a snapshot of what was accomplished in this session only.
+
 ## What Was Completed This Session
 
 ### React Boilerplate (fully done)

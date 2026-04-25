@@ -1,8 +1,8 @@
 # Boxing Manager - Project Requirements Document
 
-> **Status**: Pre-Development
-> **Last Updated**: April 18, 2026
-> **Source**: BoxingManagerRequirements.txt
+> **Status**: In Development
+> **Last Updated**: April 24, 2026
+> **Progress Tracking**: This file is the source of truth for feature completion. See the Completion Tracking section in each feature area.
 > **UI Inspiration**: [Football GM](https://play.football-gm.com/), World Boxing Manager
 > **Reference Screenshots**: See `references/` directory
 
@@ -36,9 +36,9 @@ Boxing Manager is a browser-based simulation game where the player acts as a gym
 ### Completion Tracking
 
 - [x] Project scaffolding and tech stack setup
-- [ ] IndexedDB storage layer
+- [x] IndexedDB storage layer
 - [ ] Core game engine / state management
-- [ ] UI shell and navigation
+- [x] UI shell and navigation
 - [ ] Game loop (time progression)
 
 ---
@@ -54,8 +54,8 @@ Boxing Manager is a browser-based simulation game where the player acts as a gym
 
 - [x] Choose SPA framework / tooling
 - [x] Set up project build pipeline
-- [ ] Implement IndexedDB service layer (CRUD operations for all entities)
-- [ ] Evaluate and decide on shared worker architecture
+- [x] Implement IndexedDB service layer (CRUD operations for all entities)
+- [x] Evaluate and decide on shared worker architecture (decided against — not needed)
 - [ ] Implement cache layer for frequently accessed data (if worker pattern adopted)
 - [ ] Set up game state management
 - [ ] Implement save/load game functionality
@@ -68,17 +68,17 @@ All core entities that need to be defined and stored.
 
 ### Completion Tracking
 
-- [ ] Boxer model
-- [ ] Coach model
-- [ ] Gym model
-- [ ] Federation model
-- [ ] Fight record model
-- [ ] Fight contract model
-- [ ] PPV network model
-- [ ] Title model
-- [ ] Injury model
-- [ ] Calendar / event model
-- [ ] Natural talent model
+- [x] Boxer model
+- [x] Coach model
+- [x] Gym model
+- [x] Federation model
+- [x] Fight record model
+- [x] Fight contract model
+- [x] PPV network model
+- [x] Title model
+- [x] Injury model
+- [x] Calendar / event model
+- [x] Natural talent model
 
 ---
 
@@ -97,10 +97,10 @@ The gym is the player's central entity. All money flows to the gym. Gym level af
 
 ### Completion Tracking
 
-- [ ] Gym data model and initialization
-- [ ] Gym upgrade logic with cost scaling
-- [ ] Gym level affects recruit quality generation
-- [ ] Gym level affects coach attraction
+- [x] Gym data model and initialization
+- [x] Gym upgrade logic with cost scaling
+- [x] Gym level affects recruit quality generation
+- [x] Gym level affects coach attraction
 - [ ] Gym level affects training equipment effectiveness
 - [ ] Gym finances tracking (income, expenses, balance)
 
@@ -120,7 +120,7 @@ The gym is the player's central entity. All money flows to the gym. Gym level af
 
 #### Completion Tracking
 
-- [ ] Weight class definitions and assignment
+- [x] Weight class definitions and assignment
 
 ### 5.2 Reputation Levels
 
@@ -139,7 +139,7 @@ Ordered lowest to highest. Higher reputation = more prize money and ad revenue.
 
 #### Completion Tracking
 
-- [ ] Reputation level definitions
+- [x] Reputation level definitions
 - [ ] Reputation progression logic
 - [ ] Reputation affects fight earnings
 
@@ -156,9 +156,9 @@ Four styles with a rock-paper-scissors counter system:
 
 #### Completion Tracking
 
-- [ ] Style definitions and counter relationships
+- [x] Style definitions and counter relationships
 - [ ] Style affects fight outcome calculations
-- [ ] Style determines focus stats for training
+- [x] Style determines focus stats for training
 
 ### 5.4 Stats
 
@@ -175,10 +175,10 @@ Stats range from 1-20 (max 25 with natural talent). Organized into 4 categories:
 
 #### Completion Tracking
 
-- [ ] Stat definitions and categories
-- [ ] Stat value capping (1-20 normal, 1-25 with natural talent)
-- [ ] Stat display UI (inspired by football-gm, not exact copy of reference screenshots)
-- [ ] Stat generation for new boxers
+- [x] Stat definitions and categories
+- [x] Stat value capping (1-20 normal, 1-25 with natural talent)
+- [x] Stat display UI (inspired by football-gm, not exact copy of reference screenshots)
+- [x] Stat generation for new boxers
 
 ### 5.5 Natural Talents
 
@@ -189,10 +189,10 @@ Randomly generated special abilities. A talent raises the max stat value from 20
 
 #### Completion Tracking
 
-- [ ] Natural talent definitions and pool
-- [ ] Random talent assignment at generation
+- [x] Natural talent definitions and pool
+- [x] Random talent assignment at generation
 - [ ] Random talent gain from training
-- [ ] Talent affects stat caps
+- [x] Talent affects stat caps
 
 ### 5.6 Injuries
 
@@ -200,7 +200,7 @@ Boxers can be injured during training or fights. Injuries must be tracked.
 
 #### Completion Tracking
 
-- [ ] Injury types and definitions
+- [x] Injury types and definitions
 - [ ] Injury generation during training
 - [ ] Injury generation during fights
 - [ ] Injury recovery system
@@ -217,9 +217,9 @@ Record fields: Result (Win/Loss/Draw), Opponent Name, Method (KO/TKO/Decision/et
 
 #### Completion Tracking
 
-- [ ] Fight record data model
+- [x] Fight record data model
 - [ ] Record auto-generated after each fight
-- [ ] Record display UI on boxer detail page
+- [x] Record display UI on boxer detail page
 
 ### 5.8 Titles
 
@@ -227,7 +227,7 @@ Boxers can hold federation titles. Track which titles are held and the date rang
 
 #### Completion Tracking
 
-- [ ] Title data model (federation, weight class, holder, date acquired, date lost)
+- [x] Title data model (federation, weight class, holder, date acquired, date lost)
 - [ ] Title assignment on fight win (when title fight)
 - [ ] Title history display on boxer profile
 
@@ -237,10 +237,10 @@ Prospects are under-18 with visible stats and youth boxing history.
 
 #### Completion Tracking
 
-- [ ] Prospect generation system
-- [ ] Youth stats and history generation
-- [ ] Recruitment UI (Players > Recruiting tab)
-- [ ] Gym level affects prospect quality
+- [x] Prospect generation system
+- [x] Youth stats and history generation
+- [x] Recruitment UI (Players > Recruiting tab)
+- [x] Gym level affects prospect quality
 
 ---
 
@@ -261,14 +261,14 @@ Coaches must be recruited like boxers. Better gyms attract better coaches.
 
 ### Completion Tracking
 
-- [ ] Coach data model (name, skill level, style specialty)
-- [ ] Coach recruitment system
-- [ ] Gym level affects available coach quality
-- [ ] Coach assignment to boxers
+- [x] Coach data model (name, skill level, style specialty)
+- [x] Coach recruitment system
+- [x] Gym level affects available coach quality
+- [x] Coach assignment to boxers
 - [ ] Season training: daily EXP gain calculation
 - [ ] Pre-fight training: temporary 300% stat boost calculation
 - [ ] Pre-fight boost scales with training days
-- [ ] Coach management UI (Gym > Coaches tab)
+- [x] Coach management UI (Gym > Coaches tab)
 
 ---
 
@@ -289,13 +289,13 @@ Players challenge boxers in federations for fights at federation events.
 
 #### Completion Tracking
 
-- [ ] Fight scheduling UI
-- [ ] Guaranteed payout tier selection
-- [ ] PPV percentage negotiation
-- [ ] Title fight option
-- [ ] AI opponent negotiation logic
-- [ ] AI opponent acceptance/rejection logic
-- [ ] Calendar integration for scheduled fights
+- [x] Fight scheduling UI
+- [x] Guaranteed payout tier selection
+- [x] PPV percentage negotiation
+- [x] Title fight option
+- [x] AI opponent negotiation logic
+- [x] AI opponent acceptance/rejection logic
+- [x] Calendar integration for scheduled fights
 
 ### 7.2 PPV Networks
 
@@ -310,7 +310,7 @@ After scheduling but before the fight, the player can sign up with a PPV network
 
 #### Completion Tracking
 
-- [ ] PPV network data model and generation
+- [x] PPV network data model and generation
 - [ ] Network signup UI (post-scheduling, pre-fight)
 - [ ] Viewer calculation (60% base, bonus for title fights)
 - [ ] PPV revenue calculation and payout
@@ -341,6 +341,7 @@ Fight result must produce a record entry with: winner, method (KO, TKO, Decision
 - [ ] Post-fight title transfer (if title fight)
 - [ ] Post-fight financial payout
 
+
 ---
 
 ## 8. Federation & Organization System
@@ -364,12 +365,12 @@ Each federation:
 
 ### Completion Tracking
 
-- [ ] Federation data model
-- [ ] 4 events per year per federation (event scheduling/calendar)
-- [ ] Title belt per weight class per federation
-- [ ] Federation standings/rankings
-- [ ] AI boxer pool per federation
-- [ ] International Boxing Federation prestige modifier
+- [x] Federation data model
+- [x] 4 events per year per federation (event scheduling/calendar)
+- [x] Title belt per weight class per federation
+- [x] Federation standings/rankings
+- [x] AI boxer pool per federation
+- [x] International Boxing Federation prestige modifier
 
 ---
 
@@ -393,8 +394,8 @@ All revenue flows to the gym.
 - [ ] Revenue from guaranteed payouts
 - [ ] Revenue from PPV splits
 - [ ] Ad revenue scaling with reputation
-- [ ] Gym upgrade purchase flow
-- [ ] Financial summary UI (Gym > Finances tab)
+- [x] Gym upgrade purchase flow
+- [x] Financial summary UI (Gym > Finances tab)
 
 ---
 
@@ -405,16 +406,16 @@ Text-based, data-dense UI inspired by Football GM. See `references/football-gm-u
 ### Main Navigation Tabs
 
 #### League
-- [ ] **Standings**: Titles and contender rankings by federation and weight class. Title holder at top, contenders below.
-- [ ] **Calendar**: Upcoming fights for gym members
+- [x] **Standings**: Titles and contender rankings by federation and weight class. Title holder at top, contenders below.
+- [x] **Calendar**: Upcoming fights for gym members
 
 #### Gym
-- [ ] **Roster**: Current gym members with summary info (next fight, status). Click name for detailed boxer profile.
-- [ ] **Finances**: Gym level, balance, income/expense overview
-- [ ] **Coaches**: Current coaches, their specialties, and assigned boxers
+- [x] **Roster**: Current gym members with summary info (next fight, status). Click name for detailed boxer profile.
+- [x] **Finances**: Gym level, balance, income/expense overview
+- [x] **Coaches**: Current coaches, their specialties, and assigned boxers
 
 #### Players
-- [ ] **Recruiting**: Under-18 prospects with stats and youth boxing history
+- [x] **Recruiting**: Under-18 prospects with stats and youth boxing history
 - [ ] **Compare**: Side-by-side comparison of two selected fighters
 
 #### Tools
@@ -424,7 +425,7 @@ Text-based, data-dense UI inspired by Football GM. See `references/football-gm-u
 
 - [x] App shell with top-level tab navigation
 - [x] Sub-tab navigation within each section
-- [ ] Boxer detail/profile page (stats, record, titles, injuries, talents)
+- [x] Boxer detail/profile page (stats, record, titles, injuries, talents)
 - [ ] Responsive text-based layout
 - [x] Dashboard / home page
 
@@ -448,13 +449,13 @@ These are NOT in scope for the initial build but are noted for future considerat
 |---|---|
 | Project Scaffolding | **Complete** |
 | Technical Architecture | **In Progress** |
-| Data Models | Not Started |
-| Gym System | Not Started |
-| Boxer System | Not Started |
-| Coach System | Not Started |
-| Fight System | Not Started |
-| Federation System | Not Started |
-| Financial System | Not Started |
+| Data Models | **Complete** |
+| Gym System | **In Progress** |
+| Boxer System | **In Progress** |
+| Coach System | **In Progress** |
+| Fight System | **In Progress** |
+| Federation System | **Complete** |
+| Financial System | **In Progress** |
 | UI & Navigation | **In Progress** |
 
 > Update this table as sections are completed. Use **Not Started**, **In Progress**, or **Complete**.
