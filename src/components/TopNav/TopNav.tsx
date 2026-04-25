@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import { getGym, saveGym } from '../../db/gymStore';
 import { getAllCalendarEvents } from '../../db/calendarEventStore';
 import { getAllBoxers } from '../../db/boxerStore';
@@ -32,6 +32,7 @@ export function TopNav() {
   const [fightStop, setFightStop] = useState<CalendarEvent | null>(null);
   const [isSimming, setIsSimming] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     Promise.all([getGym(), getAllCalendarEvents(), getAllBoxers()]).then(
@@ -107,6 +108,42 @@ export function TopNav() {
   }
 
   const currentDate = gym?.currentDate ?? '2026-01-01';
+  const todayFightEvents = events.filter(
+    e => e.type === 'fight' && e.date === currentDate && e.boxerIds.some(id => gymBoxerIds.has(id))
+  );
+  const isOnFightDay = todayFightEvents.length > 0;
+
+  function handlePlayFight() {
+    if (todayFightEvents.length === 0) return;
+    setDropdownOpen(false);
+    navigate(`/fight/${todayFightEvents[0].fightId}`);
+  }
+
+  async function handleSimFight() {
+    if (!gym || isSimming) return;
+    setIsSimming(true);
+    setDropdownOpen(false);
+    try {
+      const updated: Gym = { ...gym, currentDate: addDays(currentDate, 1) };
+      await saveGym(updated);
+      setGym(updated);
+      setFightStop(null);
+      const [freshEvts, freshBoxers] = await Promise.all([
+        getAllCalendarEvents(),
+        getAllBoxers(),
+      ]);
+      setEvents(freshEvts);
+      const freshGymId = updated.id ?? 1;
+      const freshIds = new Set(
+        freshBoxers
+          .filter(b => b.gymId === freshGymId && b.id !== undefined)
+          .map(b => b.id!)
+      );
+      setGymBoxerIds(freshIds);
+    } finally {
+      setIsSimming(false);
+    }
+  }
 
   return (
     <div className={styles.topNavWrapper}>
@@ -124,15 +161,28 @@ export function TopNav() {
           </button>
           {dropdownOpen && (
             <div className={styles.dropdown}>
-              <button className={styles.dropdownItem} onClick={() => handleSim(7)}>
-                Sim 1 Week
-              </button>
-              <button className={styles.dropdownItem} onClick={() => handleSim(21)}>
-                Sim 1 Month
-              </button>
-              <button className={styles.dropdownItem} onClick={() => handleSim('next')}>
-                Sim to Next Event
-              </button>
+              {isOnFightDay ? (
+                <>
+                  <button className={styles.dropdownItem} onClick={handlePlayFight}>
+                    Play Fight
+                  </button>
+                  <button className={styles.dropdownItem} onClick={handleSimFight}>
+                    Sim Fight
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className={styles.dropdownItem} onClick={() => handleSim(7)}>
+                    Sim 1 Week
+                  </button>
+                  <button className={styles.dropdownItem} onClick={() => handleSim(21)}>
+                    Sim 1 Month
+                  </button>
+                  <button className={styles.dropdownItem} onClick={() => handleSim('next')}>
+                    Sim to Next Event
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
