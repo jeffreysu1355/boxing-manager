@@ -30,6 +30,7 @@ export function TopNav() {
   const [gymBoxerIds, setGymBoxerIds] = useState<Set<number>>(new Set());
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [fightStop, setFightStop] = useState<CalendarEvent | null>(null);
+  const [isSimming, setIsSimming] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,29 +61,49 @@ export function TopNav() {
   }, []);
 
   async function handleSim(days: number | 'next') {
-    if (!gym) return;
+    if (!gym || isSimming) return;
+    setIsSimming(true);
+    setFightStop(null);  // clear stale banner before new sim
     setDropdownOpen(false);
 
-    const currentDate = gym.currentDate ?? '2026-01-01';
-    let result;
+    try {
+      const currentDate = gym.currentDate ?? '2026-01-01';
+      let result;
 
-    if (days === 'next') {
-      const nextDate = nextEventDate(currentDate, events, gymBoxerIds);
-      const target = nextDate ?? addDays(currentDate, 7);
-      const fightAtTarget = nextDate
-        ? events.find(
-            e => e.date === nextDate && e.boxerIds.some(id => gymBoxerIds.has(id))
-          ) ?? null
-        : null;
-      result = { newDate: target, stoppedAt: fightAtTarget };
-    } else {
-      result = simForward(currentDate, days, events, gymBoxerIds);
+      if (days === 'next') {
+        const nextDate = nextEventDate(currentDate, events, gymBoxerIds);
+        const target = nextDate ?? addDays(currentDate, 7);
+        const fightAtTarget = nextDate
+          ? events.find(
+              e => e.date === nextDate && e.boxerIds.some(id => gymBoxerIds.has(id))
+            ) ?? null
+          : null;
+        result = { newDate: target, stoppedAt: fightAtTarget };
+      } else {
+        result = simForward(currentDate, days, events, gymBoxerIds);
+      }
+
+      const updated: Gym = { ...gym, currentDate: result.newDate };
+      await saveGym(updated);
+      setGym(updated);
+      setFightStop(result.stoppedAt);
+
+      // Re-fetch events so newly scheduled fights are visible to future sims
+      const [freshEvts, freshBoxers] = await Promise.all([
+        getAllCalendarEvents(),
+        getAllBoxers(),
+      ]);
+      setEvents(freshEvts);
+      const freshGymId = updated.id ?? 1;
+      const freshIds = new Set(
+        freshBoxers
+          .filter(b => b.gymId === freshGymId && b.id !== undefined)
+          .map(b => b.id!)
+      );
+      setGymBoxerIds(freshIds);
+    } finally {
+      setIsSimming(false);
     }
-
-    const updated: Gym = { ...gym, currentDate: result.newDate };
-    await saveGym(updated);
-    setGym(updated);
-    setFightStop(result.stoppedAt);
   }
 
   const currentDate = gym?.currentDate ?? '2026-01-01';
@@ -97,8 +118,9 @@ export function TopNav() {
           <button
             className={styles.playBtn}
             onClick={() => setDropdownOpen(o => !o)}
+            disabled={isSimming}
           >
-            Play ▾
+            {isSimming ? 'Simming...' : 'Play ▾'}
           </button>
           {dropdownOpen && (
             <div className={styles.dropdown}>
