@@ -103,9 +103,9 @@ describe('getDB', () => {
     expect(tx.store.indexNames.contains('fightId')).toBe(true);
   });
 
-  it('opens DB at version 6 with federationEvents store', async () => {
+  it('opens DB at version 7 with federationEvents store', async () => {
     const db = await getDB();
-    expect(db.version).toBe(6);
+    expect(db.version).toBe(7);
     const storeNames = Array.from(db.objectStoreNames);
     expect(storeNames).toContain('federationEvents');
   });
@@ -115,5 +115,10 @@ describe('getDB', () => {
     const tx = db.transaction('federationEvents', 'readonly');
     expect(tx.store.indexNames.contains('federationId')).toBe(true);
     expect(tx.store.indexNames.contains('date')).toBe(true);
+  });
+
+  it('opens DB at version 7 with currentDate field support on gym', async () => {
+    const db = await getDB();
+    expect(db.version).toBe(7);
   });
 });

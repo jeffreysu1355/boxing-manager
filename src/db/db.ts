@@ -154,6 +154,7 @@ export interface Gym {
   balance: number;
   rosterIds: number[];
   coachIds: number[];
+  currentDate: string; // ISO date, e.g. '2026-01-01'
 }
 
 export interface Federation {
@@ -275,7 +276,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 6, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 7, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -356,6 +357,11 @@ export async function getDB(): Promise<DB> {
         // counterOfferPpvSplit and roundsUsed added to fightContracts
         // idb returns undefined for missing fields on existing records;
         // runtime code treats undefined as null / 0 respectively
+      }
+
+      if (oldVersion < 7) {
+        // currentDate added to Gym; existing records without this field
+        // will return undefined — runtime code defaults to '2026-01-01'
       }
     },
   });
