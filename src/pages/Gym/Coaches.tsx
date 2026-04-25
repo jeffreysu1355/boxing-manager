@@ -14,6 +14,20 @@ const SKILL_LABELS: Record<CoachSkillLevel, string> = {
   'all-time-great': 'All-Time Great',
 };
 
+export const COACH_SKILL_INDEX: Record<CoachSkillLevel, number> = {
+  'local': 0,
+  'contender': 1,
+  'championship-caliber': 2,
+  'all-time-great': 3,
+};
+
+export const GYM_LEVEL_MAX_COACH_SKILL: Record<number, CoachSkillLevel> = {
+  1: 'local', 2: 'local', 3: 'local',
+  4: 'contender', 5: 'contender', 6: 'contender',
+  7: 'championship-caliber', 8: 'championship-caliber', 9: 'championship-caliber',
+  10: 'all-time-great',
+};
+
 function styleLabel(style: string): string {
   return style.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join('-');
 }
@@ -21,6 +35,7 @@ function styleLabel(style: string): string {
 export default function Coaches() {
   const [roster, setRoster] = useState<Boxer[]>([]);
   const [coaches, setCoaches] = useState<Coach[]>([]);
+  const [gymLevel, setGymLevel] = useState<number>(1);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,6 +51,7 @@ export default function Coaches() {
         const gymRoster = allBoxers.filter(b => b.gymId === (gym?.id ?? 1));
         setRoster(gymRoster);
         setCoaches(allCoaches);
+        setGymLevel(gym?.level ?? 1);
         setLoading(false);
       }
     }
@@ -68,7 +84,11 @@ export default function Coaches() {
     setCoaches(updatedCoaches);
   }
 
-  const availableCoaches = coaches.filter(c => c.assignedBoxerId === null);
+  const maxCoachSkill = GYM_LEVEL_MAX_COACH_SKILL[gymLevel] ?? 'local';
+  const maxCoachSkillIdx = COACH_SKILL_INDEX[maxCoachSkill];
+  const availableCoaches = coaches.filter(
+    c => c.assignedBoxerId === null && COACH_SKILL_INDEX[c.skillLevel] <= maxCoachSkillIdx
+  );
 
   if (loading) {
     return (
