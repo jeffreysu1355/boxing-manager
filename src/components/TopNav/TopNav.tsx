@@ -1,4 +1,10 @@
+import { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router';
+import { getGym, saveGym } from '../../db/gymStore';
+import { getAllCalendarEvents } from '../../db/calendarEventStore';
+import { getAllBoxers } from '../../db/boxerStore';
+import { simForward, nextEventDate, addDays } from '../../lib/simTime';
+import type { CalendarEvent, Gym } from '../../db/db';
 import styles from './TopNav.module.css';
 
 const tabs = [
@@ -9,22 +15,132 @@ const tabs = [
   { to: '/tools', label: 'Tools' },
 ];
 
+function formatGameDate(iso: string): string {
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 export function TopNav() {
+  const [gym, setGym] = useState<Gym | null>(null);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [gymBoxerIds, setGymBoxerIds] = useState<Set<number>>(new Set());
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [fightStop, setFightStop] = useState<CalendarEvent | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    Promise.all([getGym(), getAllCalendarEvents(), getAllBoxers()]).then(
+      ([g, evts, boxers]) => {
+        setGym(g ?? null);
+        setEvents(evts);
+        const gymId = g?.id ?? 1;
+        const ids = new Set(
+          boxers
+            .filter(b => b.gymId === gymId && b.id !== undefined)
+            .map(b => b.id!)
+        );
+        setGymBoxerIds(ids);
+      }
+    );
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  async function handleSim(days: number | 'next') {
+    if (!gym) return;
+    setDropdownOpen(false);
+
+    const currentDate = gym.currentDate ?? '2026-01-01';
+    let result;
+
+    if (days === 'next') {
+      const nextDate = nextEventDate(currentDate, events, gymBoxerIds);
+      const target = nextDate ?? addDays(currentDate, 7);
+      const fightAtTarget = nextDate
+        ? events.find(
+            e => e.date === nextDate && e.boxerIds.some(id => gymBoxerIds.has(id))
+          ) ?? null
+        : null;
+      result = { newDate: target, stoppedAt: fightAtTarget };
+    } else {
+      result = simForward(currentDate, days, events, gymBoxerIds);
+    }
+
+    const updated: Gym = { ...gym, currentDate: result.newDate };
+    await saveGym(updated);
+    setGym(updated);
+    setFightStop(result.stoppedAt);
+  }
+
+  const currentDate = gym?.currentDate ?? '2026-01-01';
+
   return (
-    <nav className={styles.topNav}>
-      <span className={styles.brand}>Boxing Manager</span>
-      {tabs.map((tab) => (
-        <NavLink
-          key={tab.to}
-          to={tab.to}
-          end={tab.to === '/'}
-          className={({ isActive }) =>
-            isActive ? styles.activeTab : styles.tab
-          }
-        >
-          {tab.label}
-        </NavLink>
-      ))}
-    </nav>
+    <div className={styles.topNavWrapper}>
+      <nav className={styles.topNav}>
+        <span className={styles.brand}>Boxing Manager</span>
+
+        <div className={styles.playArea} ref={dropdownRef}>
+          <span className={styles.dateDisplay}>{formatGameDate(currentDate)}</span>
+          <button
+            className={styles.playBtn}
+            onClick={() => setDropdownOpen(o => !o)}
+          >
+            Play ▾
+          </button>
+          {dropdownOpen && (
+            <div className={styles.dropdown}>
+              <button className={styles.dropdownItem} onClick={() => handleSim(7)}>
+                Sim 1 Week
+              </button>
+              <button className={styles.dropdownItem} onClick={() => handleSim(21)}>
+                Sim 1 Month
+              </button>
+              <button className={styles.dropdownItem} onClick={() => handleSim('next')}>
+                Sim to Next Event
+              </button>
+            </div>
+          )}
+        </div>
+
+        {tabs.map((tab) => (
+          <NavLink
+            key={tab.to}
+            to={tab.to}
+            end={tab.to === '/'}
+            className={({ isActive }) =>
+              isActive ? styles.activeTab : styles.tab
+            }
+          >
+            {tab.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {fightStop && (
+        <div className={styles.fightBanner}>
+          <strong>Fight Day!</strong> A scheduled fight has arrived on{' '}
+          {formatGameDate(fightStop.date)}.{' '}
+          <button
+            className={styles.dismissBtn}
+            onClick={() => setFightStop(null)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,5 +1,10 @@
-.topNav {
+.topNavWrapper {
   grid-area: nav;
+  display: flex;
+  flex-direction: column;
+}
+
+.topNav {
   display: flex;
   align-items: center;
   background-color: var(--bg-secondary);
@@ -12,8 +17,66 @@
   font-weight: 700;
   font-size: 14px;
   color: var(--accent);
-  margin-right: 24px;
+  margin-right: 16px;
   white-space: nowrap;
+}
+
+.playArea {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 16px;
+}
+
+.dateDisplay {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.playBtn {
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.playBtn:hover {
+  opacity: 0.85;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  min-width: 180px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 13px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.dropdownItem:hover {
+  background-color: var(--bg-hover);
 }
 
 .tab {
@@ -34,4 +97,29 @@
   composes: tab;
   color: var(--text-primary);
   background-color: var(--bg-surface);
+}
+
+.fightBanner {
+  background-color: var(--accent);
+  color: #fff;
+  padding: 8px 16px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dismissBtn {
+  margin-left: auto;
+  padding: 3px 10px;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.dismissBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
