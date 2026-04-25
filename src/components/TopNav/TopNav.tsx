@@ -120,6 +120,7 @@ export function TopNav() {
   }
 
   async function handleSimFight() {
+    const currentDate = gym?.currentDate ?? '2026-01-01';
     if (!gym || isSimming) return;
     setIsSimming(true);
     setDropdownOpen(false);
