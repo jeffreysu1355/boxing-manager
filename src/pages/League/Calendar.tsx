@@ -127,7 +127,7 @@ export default function Calendar() {
         if (fed.id !== undefined) fedMap.set(fed.id, fed);
       }
 
-      const derived = deriveRows(allEvents, fMap, gymBoxerIds, fedMap, today);
+      const derived = deriveRows(allEvents, fMap, gymBoxerIds, fedMap, gameDate);
       setBoxerMap(bMap);
       setRows(derived);
     });

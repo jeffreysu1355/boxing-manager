@@ -131,15 +131,17 @@ export default function Schedule() {
 
       if (cancelled) return;
 
+      const gameDate = gym?.currentDate ?? '2026-01-01';
+
       // Auto-generate events: check if any federation has fewer than 2 future events
-      const nextYear = new Date(today).getFullYear() + 1;
+      const nextYear = new Date(gameDate).getFullYear() + 1;
       let updatedFederationEvents = [...federationEvents];
 
       for (const fed of federations) {
         if (fed.id === undefined) continue;
         const fedId = fed.id;
         const futureFedEvents = federationEvents.filter(
-          e => e.federationId === fedId && e.date > today
+          e => e.federationId === fedId && e.date > gameDate
         );
         if (futureFedEvents.length < 2) {
           const abbr = FEDERATION_ABBR[fed.name] ?? fed.name;
@@ -174,7 +176,7 @@ export default function Schedule() {
       }
 
       setData({ gym, boxers, calendarEvents, federationEvents: updatedFederationEvents, federations, fights, titles, inFlightBoxerIds });
-      setToday(gym?.currentDate ?? '2026-01-01');
+      setToday(gameDate);
 
       // Pre-select boxer from query param
       const paramBoxerId = searchParams.get('boxerId');
