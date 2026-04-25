@@ -87,7 +87,7 @@ export function formatDate(isoDate: string): string {
 // --- Component ---
 
 export default function Calendar() {
-  const [today] = useState(() => new Date().toISOString().slice(0, 10));
+  const [today, setToday] = useState<string>('2026-01-01');
   const [rows, setRows] = useState<CalendarRow[] | null>(null);
   const [boxerMap, setBoxerMap] = useState<Map<number, Boxer>>(new Map());
 
@@ -102,6 +102,8 @@ export default function Calendar() {
       getAllFederations(),
     ]).then(([gym, allBoxers, allEvents, allFights, allFederations]) => {
       if (cancelled) return;
+      const gameDate = gym?.currentDate ?? '2026-01-01';
+      setToday(gameDate);
 
       const gymId = gym?.id;
       const gymBoxerIds = new Set<number>(
@@ -133,7 +135,7 @@ export default function Calendar() {
     return () => {
       cancelled = true;
     };
-  }, [today]);
+  }, []);
 
   if (rows === null) {
     return (

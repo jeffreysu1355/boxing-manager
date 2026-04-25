@@ -104,10 +104,7 @@ interface ScheduleData {
 // --- Component ---
 
 export default function Schedule() {
-  const [today] = useState(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  });
+  const [today, setToday] = useState<string>('2026-01-01');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -177,6 +174,7 @@ export default function Schedule() {
       }
 
       setData({ gym, boxers, calendarEvents, federationEvents: updatedFederationEvents, federations, fights, titles, inFlightBoxerIds });
+      setToday(gym?.currentDate ?? '2026-01-01');
 
       // Pre-select boxer from query param
       const paramBoxerId = searchParams.get('boxerId');
@@ -190,7 +188,7 @@ export default function Schedule() {
 
     load();
     return () => { cancelled = true; };
-  }, [today, searchParams]);
+  }, [searchParams]);
 
   if (data === null) {
     return (
