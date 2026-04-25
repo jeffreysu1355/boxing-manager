@@ -12,7 +12,7 @@ and upgrade the gym. The goal is to develop fighters to become world champions.
 GYM SYSTEM
 ----------
 [x] Gym levels 1–10 (level 10 costs $100,000,000)
-[ ] Higher gym levels attract better recruits and coaches
+[x] Higher gym levels attract better recruits and coaches
 [ ] All money flows to the gym (individual boxers earn nothing directly)
 [x] Gym upgrade UI (Finances tab)
 
