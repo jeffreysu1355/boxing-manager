@@ -1,12 +1,6 @@
 import { describe, it, expect } from 'vitest';
-
-// Extracted pure logic from Recruiting.tsx for testability
-const GYM_LEVEL_MAX_REP: Record<number, number> = {
-  1: 0, 2: 0,
-  3: 1, 4: 1,
-  5: 2, 6: 2, 7: 2,
-  8: 4, 9: 4, 10: 4,
-};
+import { GYM_LEVEL_MAX_REP, REPUTATION_INDEX } from './Recruiting';
+import type { ReputationLevel } from '../../db/db';
 
 describe('GYM_LEVEL_MAX_REP', () => {
   it('gym level 1 → max rep index 0 (Unknown only)', () => {
@@ -29,6 +23,10 @@ describe('GYM_LEVEL_MAX_REP', () => {
     expect(GYM_LEVEL_MAX_REP[5]).toBe(2);
   });
 
+  it('gym level 6 → max rep index 2 (Rising Star)', () => {
+    expect(GYM_LEVEL_MAX_REP[6]).toBe(2);
+  });
+
   it('gym level 7 → max rep index 2 (Rising Star)', () => {
     expect(GYM_LEVEL_MAX_REP[7]).toBe(2);
   });
@@ -39,5 +37,40 @@ describe('GYM_LEVEL_MAX_REP', () => {
 
   it('gym level 10 → max rep index 4 (up to Contender)', () => {
     expect(GYM_LEVEL_MAX_REP[10]).toBe(4);
+  });
+});
+
+describe('recruit filtering by gym level', () => {
+  const freeAgents: { id: number; reputation: ReputationLevel }[] = [
+    { id: 1, reputation: 'Unknown' },
+    { id: 2, reputation: 'Local Star' },
+    { id: 3, reputation: 'Rising Star' },
+    { id: 4, reputation: 'Respectable Opponent' },
+    { id: 5, reputation: 'Contender' },
+  ];
+
+  function filterFreeAgents(gymLevel: number) {
+    const maxRepIndex = GYM_LEVEL_MAX_REP[gymLevel] ?? 0;
+    return freeAgents.filter(b => REPUTATION_INDEX[b.reputation] <= maxRepIndex);
+  }
+
+  it('gym level 1 shows only Unknown', () => {
+    expect(filterFreeAgents(1).map(b => b.id)).toEqual([1]);
+  });
+
+  it('gym level 3 shows up to Local Star', () => {
+    expect(filterFreeAgents(3).map(b => b.id)).toEqual([1, 2]);
+  });
+
+  it('gym level 5 shows up to Rising Star', () => {
+    expect(filterFreeAgents(5).map(b => b.id)).toEqual([1, 2, 3]);
+  });
+
+  it('gym level 8 shows up to Contender (includes Respectable Opponent)', () => {
+    expect(filterFreeAgents(8).map(b => b.id)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('gym level 10 shows up to Contender', () => {
+    expect(filterFreeAgents(10).map(b => b.id)).toEqual([1, 2, 3, 4, 5]);
   });
 });

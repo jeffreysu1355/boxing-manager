@@ -133,11 +133,16 @@ export default function Coaches() {
                           onChange={e => handleAssign(boxer, e.target.value)}
                         >
                           <option value="">None</option>
-                          {coaches.map(coach => (
-                            <option key={coach.id} value={coach.id?.toString()}>
-                              {coach.name} ({SKILL_LABELS[coach.skillLevel]})
-                            </option>
-                          ))}
+                          {coaches
+                            .filter(c =>
+                              COACH_SKILL_INDEX[c.skillLevel] <= maxCoachSkillIdx ||
+                              c.assignedBoxerId === boxer.id
+                            )
+                            .map(coach => (
+                              <option key={coach.id} value={coach.id?.toString()}>
+                                {coach.name} ({SKILL_LABELS[coach.skillLevel]})
+                              </option>
+                            ))}
                         </select>
                       </td>
                     </tr>

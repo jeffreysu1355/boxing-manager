@@ -20,14 +20,14 @@ const SIGNING_BONUS: Record<ReputationLevel, number> = {
   'All-Time Great':        0,
 };
 
-const GYM_LEVEL_MAX_REP: Record<number, number> = {
+export const GYM_LEVEL_MAX_REP: Record<number, number> = {
   1: 0, 2: 0,   // Unknown only (index 0)
   3: 1, 4: 1,   // Local Star (index 1)
   5: 2, 6: 2, 7: 2,  // Rising Star (index 2)
   8: 4, 9: 4, 10: 4, // Respectable Opponent + Contender (index 4)
 };
 
-const REPUTATION_INDEX: Record<ReputationLevel, number> = {
+export const REPUTATION_INDEX: Record<ReputationLevel, number> = {
   'Unknown': 0,
   'Local Star': 1,
   'Rising Star': 2,
