@@ -525,6 +525,7 @@ export async function generateWorld(): Promise<void> {
     balance: 500_000_000,
     rosterIds: [],
     coachIds: [],
+    currentDate: '2026-01-01',
   });
 
   // 7. Seed coaches and update gym

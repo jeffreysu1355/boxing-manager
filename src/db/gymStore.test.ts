@@ -9,6 +9,7 @@ const baseGym: Omit<Gym, 'id'> = {
   balance: 10000,
   rosterIds: [],
   coachIds: [],
+  currentDate: '2026-01-01',
 };
 
 describe('gymStore', () => {
@@ -69,5 +70,19 @@ describe('gymStore', () => {
     await saveGym({ ...created!, coachIds: [10] });
     const updated = await getGym();
     expect(updated?.coachIds).toEqual([10]);
+  });
+
+  it('saveGym persists and retrieves currentDate', async () => {
+    await saveGym(baseGym);
+    const gym = await getGym();
+    expect(gym?.currentDate).toBe('2026-01-01');
+  });
+
+  it('saveGym updates currentDate', async () => {
+    await saveGym(baseGym);
+    const created = await getGym();
+    await saveGym({ ...created!, currentDate: '2026-03-15' });
+    const updated = await getGym();
+    expect(updated?.currentDate).toBe('2026-03-15');
   });
 });
