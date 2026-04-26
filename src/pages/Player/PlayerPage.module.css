@@ -147,3 +147,36 @@
   color: var(--text-secondary);
   font-style: italic;
 }
+
+/* Training progress bar */
+.statBarWrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 80px;
+}
+
+.statBar {
+  position: relative;
+  width: 60px;
+  height: 10px;
+  background: var(--danger);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.statBarFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--success);
+}
+
+.statBarValue {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}

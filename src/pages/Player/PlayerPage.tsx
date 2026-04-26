@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { getBoxer, getAllBoxers } from '../../db/boxerStore';
-import type { Boxer, BoxerStats, FightRecord } from '../../db/db';
+import { getAllCoaches } from '../../db/coachStore';
+import { STYLE_STATS } from '../../lib/training';
+import type { Boxer, BoxerStats, Coach, FightRecord } from '../../db/db';
 import styles from './PlayerPage.module.css';
 
 // --- Stat group definitions ---
@@ -69,11 +71,12 @@ export default function PlayerPage() {
   const { id } = useParams<{ id: string }>();
   const [boxer, setBoxer] = useState<Boxer | null | undefined>(undefined);
   const [opponentIndex, setOpponentIndex] = useState<Map<string, number>>(new Map());
+  const [coach, setCoach] = useState<Coach | null | undefined>(undefined);
 
   useEffect(() => {
-    if (!id) { setBoxer(null); return; }
+    if (!id) { setBoxer(null); setCoach(null); return; }
     let cancelled = false;
-    Promise.all([getBoxer(Number(id)), getAllBoxers()]).then(([b, all]) => {
+    Promise.all([getBoxer(Number(id)), getAllBoxers(), getAllCoaches()]).then(([b, all, coaches]) => {
       if (cancelled) return;
       setBoxer(b ?? null);
       const index = new Map<string, number>();
@@ -81,6 +84,8 @@ export default function PlayerPage() {
         if (boxer.id !== undefined) index.set(boxer.name, boxer.id);
       }
       setOpponentIndex(index);
+      const assignedCoach = coaches.find(c => c.assignedBoxerId === Number(id)) ?? null;
+      setCoach(assignedCoach);
     });
     return () => { cancelled = true; };
   }, [id]);
@@ -104,6 +109,9 @@ export default function PlayerPage() {
   }
 
   const activeTitles = boxer.titles.filter(t => t.dateLost === null);
+  const trainedStats = new Set<keyof BoxerStats>(
+    coach ? STYLE_STATS[coach.style] : []
+  );
   const sortedRecord = [...boxer.record].reverse();
 
   return (
@@ -138,12 +146,27 @@ export default function PlayerPage() {
           {STAT_GROUPS.map(group => (
             <div key={group.label} className={styles.statPanel}>
               <div className={styles.panelTitle}>{group.label}</div>
-              {group.stats.map(stat => (
-                <div key={stat} className={styles.statRow}>
-                  <span className={styles.statName}>{STAT_LABELS[stat]}</span>
-                  <span className={styles.statValue}>{boxer.stats[stat]}</span>
-                </div>
-              ))}
+              {group.stats.map(stat => {
+                const isTrained = trainedStats.has(stat);
+                const currentExp = boxer.trainingExp?.[stat] ?? 0;
+                const threshold = boxer.stats[stat] * 10;
+                const pct = threshold > 0 ? Math.min(100, (currentExp / threshold) * 100) : 0;
+                return (
+                  <div key={stat} className={styles.statRow}>
+                    <span className={styles.statName}>{STAT_LABELS[stat]}</span>
+                    {isTrained ? (
+                      <div className={styles.statBarWrapper}>
+                        <div className={styles.statBar}>
+                          <div className={styles.statBarFill} style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className={styles.statBarValue}>{boxer.stats[stat]}</span>
+                      </div>
+                    ) : (
+                      <span className={styles.statValue}>{boxer.stats[stat]}</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
