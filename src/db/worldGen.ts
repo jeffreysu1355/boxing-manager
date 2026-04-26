@@ -4,6 +4,7 @@ import { putCoach } from './coachStore';
 import { putFederation } from './federationStore';
 import { putFederationEvent } from './federationEventStore';
 import { getGym, saveGym } from './gymStore';
+import { putPpvNetwork } from './ppvNetworkStore';
 import { putTitle } from './titleStore';
 import type {
   Boxer,
@@ -272,6 +273,64 @@ const FEDERATION_PRESTIGE: Record<FederationName, number> = {
   'International Boxing Federation': 10,
 };
 
+// --- PPV Network seed data ---
+
+const PPV_NETWORK_NAMES: Record<FederationName, string[]> = {
+  'North America Boxing Federation': [
+    'NABF Sports', 'NABF Fight Night', 'America Boxing Live',
+    'North America Championship Boxing', 'Prime Sports PPV',
+  ],
+  'South America Boxing Federation': [
+    'SABF Sports', 'SABF Fight Night', 'South America Boxing Live',
+    'Copa Boxing Network', 'Latin Premium PPV',
+  ],
+  'African Boxing Federation': [
+    'ABF Sports', 'ABF Fight Night', 'Africa Boxing Live',
+    'Pan-Africa Boxing Network', 'African Championship PPV',
+  ],
+  'European Boxing Federation': [
+    'EBF Sports', 'European Fight Night', 'Euro Boxing Live',
+    'Continental Championship Boxing', 'European Premium PPV',
+  ],
+  'Asia Boxing Federation': [
+    'AsBF Sports', 'AsBF Fight Night', 'Asia Boxing Live',
+    'Pan-Asia Championship Boxing', 'Asia Premium PPV',
+  ],
+  'Oceania Boxing Federation': [
+    'OBF Sports', 'OBF Fight Night', 'Pacific Boxing Live',
+    'Oceania Championship Boxing', 'Pacific Premium PPV',
+  ],
+  'International Boxing Federation': [
+    'IBF Sports', 'IBF Fight Night', 'World Boxing Live',
+    'International Championship Boxing', 'World Premium PPV', 'IBF Elite Network',
+  ],
+};
+
+interface PpvNetworkTier {
+  minBoxerRank: number;
+  baseViewershipMin: number;
+  baseViewershipMax: number;
+  titleFightMultiplierMin: number;
+  titleFightMultiplierMax: number;
+}
+
+const STANDARD_PPV_TIERS: PpvNetworkTier[] = [
+  { minBoxerRank: 0, baseViewershipMin: 50_000,    baseViewershipMax: 200_000,  titleFightMultiplierMin: 1.2, titleFightMultiplierMax: 1.3 },
+  { minBoxerRank: 0, baseViewershipMin: 50_000,    baseViewershipMax: 200_000,  titleFightMultiplierMin: 1.2, titleFightMultiplierMax: 1.3 },
+  { minBoxerRank: 3, baseViewershipMin: 300_000,   baseViewershipMax: 800_000,  titleFightMultiplierMin: 1.3, titleFightMultiplierMax: 1.5 },
+  { minBoxerRank: 3, baseViewershipMin: 300_000,   baseViewershipMax: 800_000,  titleFightMultiplierMin: 1.3, titleFightMultiplierMax: 1.5 },
+  { minBoxerRank: 5, baseViewershipMin: 1_000_000, baseViewershipMax: 3_000_000, titleFightMultiplierMin: 1.5, titleFightMultiplierMax: 1.6 },
+  { minBoxerRank: 7, baseViewershipMin: 5_000_000, baseViewershipMax: 15_000_000, titleFightMultiplierMin: 1.6, titleFightMultiplierMax: 1.8 },
+];
+
+const IBF_EXTRA_TIER: PpvNetworkTier = {
+  minBoxerRank: 8,
+  baseViewershipMin: 20_000_000,
+  baseViewershipMax: 50_000_000,
+  titleFightMultiplierMin: 1.8,
+  titleFightMultiplierMax: 2.0,
+};
+
 // --- Prospect / Free Agent pool generation ---
 
 const FREE_AGENT_REPUTATION_DISTRIBUTION: [ReputationLevel, number][] = [
@@ -404,6 +463,33 @@ async function generateCoaches(): Promise<number[]> {
   coachIds.push(contenderId);
 
   return coachIds;
+}
+
+async function generatePpvNetworks(
+  federationIds: Record<FederationName, number>
+): Promise<void> {
+  for (const fedName of FEDERATION_NAMES) {
+    const fedId = federationIds[fedName];
+    const names = PPV_NETWORK_NAMES[fedName];
+    const tiers = fedName === 'International Boxing Federation'
+      ? [...STANDARD_PPV_TIERS, IBF_EXTRA_TIER]
+      : STANDARD_PPV_TIERS;
+
+    for (let i = 0; i < tiers.length; i++) {
+      const tier = tiers[i];
+      const baseViewership = rand(tier.baseViewershipMin, tier.baseViewershipMax);
+      const titleFightMultiplier = parseFloat(
+        (tier.titleFightMultiplierMin + Math.random() * (tier.titleFightMultiplierMax - tier.titleFightMultiplierMin)).toFixed(2)
+      );
+      await putPpvNetwork({
+        name: names[i] ?? `${fedName} Network ${i + 1}`,
+        federationId: fedId,
+        minBoxerRank: tier.minBoxerRank,
+        baseViewership,
+        titleFightMultiplier,
+      });
+    }
+  }
 }
 
 // Quarter week offsets: weeks 10, 23, 36, 49 (roughly Mar, Jun, Sep, Dec)
@@ -608,7 +694,10 @@ export async function generateWorld(): Promise<void> {
     await saveGym({ ...gym, coachIds });
   }
 
-  // 8. Generate federation event slots for current year
+  // 8. Seed PPV networks per federation
+  await generatePpvNetworks(federationIds);
+
+  // 9. Generate federation event slots for current year
   const currentYear = new Date().getFullYear();
   const fedList = (Object.entries(federationIds) as [FederationName, number][]).map(
     ([name, id]) => ({ id, name })
