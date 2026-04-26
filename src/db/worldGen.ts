@@ -278,31 +278,31 @@ const FEDERATION_PRESTIGE: Record<FederationName, number> = {
 const PPV_NETWORK_NAMES: Record<FederationName, string[]> = {
   'North America Boxing Federation': [
     'NABF Sports', 'NABF Fight Night', 'America Boxing Live',
-    'North America Championship Boxing', 'Prime Sports PPV',
+    'North America Championship Boxing', 'Prime Sports PPV', 'NABF Elite PPV',
   ],
   'South America Boxing Federation': [
     'SABF Sports', 'SABF Fight Night', 'South America Boxing Live',
-    'Copa Boxing Network', 'Latin Premium PPV',
+    'Copa Boxing Network', 'Latin Premium PPV', 'SABF Elite PPV',
   ],
   'African Boxing Federation': [
     'ABF Sports', 'ABF Fight Night', 'Africa Boxing Live',
-    'Pan-Africa Boxing Network', 'African Championship PPV',
+    'Pan-Africa Boxing Network', 'African Championship PPV', 'ABF Elite PPV',
   ],
   'European Boxing Federation': [
     'EBF Sports', 'European Fight Night', 'Euro Boxing Live',
-    'Continental Championship Boxing', 'European Premium PPV',
+    'Continental Championship Boxing', 'European Premium PPV', 'EBF Elite PPV',
   ],
   'Asia Boxing Federation': [
     'AsBF Sports', 'AsBF Fight Night', 'Asia Boxing Live',
-    'Pan-Asia Championship Boxing', 'Asia Premium PPV',
+    'Pan-Asia Championship Boxing', 'Asia Premium PPV', 'AsBF Elite PPV',
   ],
   'Oceania Boxing Federation': [
     'OBF Sports', 'OBF Fight Night', 'Pacific Boxing Live',
-    'Oceania Championship Boxing', 'Pacific Premium PPV',
+    'Oceania Championship Boxing', 'Pacific Premium PPV', 'OBF Elite PPV',
   ],
   'International Boxing Federation': [
     'IBF Sports', 'IBF Fight Night', 'World Boxing Live',
-    'International Championship Boxing', 'World Premium PPV', 'IBF Elite Network',
+    'International Championship Boxing', 'World Premium PPV', 'IBF Elite Network', 'IBF World Championship PPV',
   ],
 };
 

@@ -153,12 +153,15 @@ export default function PpvSignup() {
           const eligible = bestRank >= network.minBoxerRank;
           const isSelected = selectedNetworkId === network.id;
 
+          // networks are pre-filtered to fight.federationId, so this is always true on this page
+          const isSameFederation = network.federationId === fight.federationId;
+
           const viewers = calcViewers({
             network,
             gymBoxerRank: gymRank,
             opponentRank: oppRank,
             isTitleFight: fight.isTitleFight,
-            isSameFederation: true,
+            isSameFederation,
           });
           const payout = calcPpvPayout(viewers, contract.ppvSplitPercentage);
 
