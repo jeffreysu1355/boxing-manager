@@ -144,6 +144,7 @@ export function simulateFight(
     time,
     federation: federationName,
     date: fight.date,
+    isTitleFight: fight.isTitleFight,
   };
 
   const loserRecord: FightRecord = {
@@ -156,6 +157,7 @@ export function simulateFight(
     time,
     federation: federationName,
     date: fight.date,
+    isTitleFight: fight.isTitleFight,
   };
 
   return {

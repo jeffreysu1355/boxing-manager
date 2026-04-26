@@ -93,6 +93,7 @@ export interface FightRecord {
   time: string;
   federation: string;
   date: string;
+  isTitleFight?: boolean;
 }
 
 export interface TitleReign {

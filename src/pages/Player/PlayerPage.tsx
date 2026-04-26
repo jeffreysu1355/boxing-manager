@@ -3,9 +3,21 @@ import { useParams, Link } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { getBoxer } from '../../db/boxerStore';
 import { getAllCoaches } from '../../db/coachStore';
+import { getTitle } from '../../db/titleStore';
+import { getFederation } from '../../db/federationStore';
 import { STYLE_STATS } from '../../lib/training';
-import type { Boxer, BoxerStats, Coach, FightRecord } from '../../db/db';
+import type { Boxer, BoxerStats, Coach, FightRecord, Federation } from '../../db/db';
 import styles from './PlayerPage.module.css';
+
+const FEDERATION_ABBR: Record<string, string> = {
+  'North America Boxing Federation': 'NABF',
+  'South America Boxing Federation': 'SABF',
+  'African Boxing Federation': 'ABF',
+  'European Boxing Federation': 'EBF',
+  'Asia Boxing Federation': 'AsBF',
+  'Oceania Boxing Federation': 'OBF',
+  'International Boxing Federation': 'IBF',
+};
 
 // --- Stat group definitions ---
 
@@ -77,15 +89,36 @@ export default function PlayerPage() {
   const { id } = useParams<{ id: string }>();
   const [boxer, setBoxer] = useState<Boxer | null | undefined>(undefined);
   const [coach, setCoach] = useState<Coach | null | undefined>(undefined);
+  const [titleFedMap, setTitleFedMap] = useState<Map<number, { abbr: string; weightClass: string }>>(new Map());
 
   useEffect(() => {
     if (!id) { setBoxer(null); setCoach(null); return; }
     let cancelled = false;
-    Promise.all([getBoxer(Number(id)), getAllCoaches()]).then(([b, coaches]) => {
+    Promise.all([getBoxer(Number(id)), getAllCoaches()]).then(async ([b, coaches]) => {
       if (cancelled) return;
       setBoxer(b ?? null);
       const assignedCoach = coaches.find(c => c.assignedBoxerId === Number(id)) ?? null;
       setCoach(assignedCoach);
+
+      // Load federation info for each title this boxer holds or has held
+      if (b && b.titles.length > 0) {
+        const titleObjs = await Promise.all(b.titles.map(t => getTitle(t.titleId)));
+        const fedIds = [...new Set(titleObjs.filter(Boolean).map(t => t!.federationId))];
+        const feds = await Promise.all(fedIds.map(fid => getFederation(fid)));
+        const fedById = new Map<number, Federation>();
+        for (const fed of feds) {
+          if (fed?.id !== undefined) fedById.set(fed.id, fed);
+        }
+        // Build titleId → { abbr, weightClass } for badge display
+        const map = new Map<number, { abbr: string; weightClass: string }>();
+        for (const [i, titleObj] of titleObjs.entries()) {
+          if (!titleObj) continue;
+          const fed = fedById.get(titleObj.federationId);
+          const abbr = fed ? (FEDERATION_ABBR[fed.name] ?? fed.name) : '?';
+          map.set(b.titles[i].titleId, { abbr, weightClass: titleObj.weightClass });
+        }
+        if (!cancelled) setTitleFedMap(map);
+      }
     });
     return () => { cancelled = true; };
   }, [id]);
@@ -129,9 +162,13 @@ export default function PlayerPage() {
           <div className={styles.record}>{calcRecord(boxer.record)} ({boxer.record.length} fights)</div>
           {(activeTitles.length > 0 || boxer.naturalTalents.length > 0) && (
             <div className={styles.tags}>
-              {activeTitles.map(t => (
-                <span key={t.titleId} className={styles.titleBadge}>Champion</span>
-              ))}
+              {activeTitles.map(t => {
+                const info = titleFedMap.get(t.titleId);
+                const label = info
+                  ? `${info.abbr} ${capitalize(info.weightClass)} Champion`
+                  : 'Champion';
+                return <span key={t.titleId} className={styles.titleBadge}>{label}</span>;
+              })}
               {boxer.naturalTalents.map((t, i) => (
                 <span key={i} className={styles.talentTag}>
                   Super {STAT_LABELS[t.stat]}
@@ -188,6 +225,7 @@ export default function PlayerPage() {
                   <th>Time</th>
                   <th>Federation</th>
                   <th>Date</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -213,6 +251,11 @@ export default function PlayerPage() {
                     <td>{fight.time}</td>
                     <td>{fight.federation}</td>
                     <td>{formatFightDate(fight.date)}</td>
+                    <td>
+                      {fight.isTitleFight && (
+                        <span className={styles.titleBadge}>Title Fight</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
