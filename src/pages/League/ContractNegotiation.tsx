@@ -26,7 +26,8 @@ export type AiDecision =
  * Caps at $1,000,000.
  */
 export function snapToIncrement(n: number): number {
-  if (n <= 0) return 1000;
+  if (n < 0) return 0;
+  if (n === 0) return 0;
   if (n > 1_000_000) return 1_000_000;
   if (n <= 10_000) return Math.ceil(n / 1_000) * 1_000;
   if (n <= 100_000) return Math.ceil(n / 10_000) * 10_000;
@@ -38,7 +39,8 @@ export function snapToIncrement(n: number): number {
  * Used when the AI counter-offers a lower value.
  */
 export function snapToIncrementDown(n: number): number {
-  if (n <= 0) return 1000;
+  if (n < 0) return 0;
+  if (n === 0) return 0;
   if (n > 1_000_000) return 1_000_000;
   if (n <= 10_000) return Math.max(1_000, Math.floor(n / 1_000) * 1_000);
   if (n <= 100_000) return Math.max(10_000, Math.floor(n / 10_000) * 10_000);
@@ -147,7 +149,7 @@ export function evaluateOffer(params: {
 // --- Payout options ---
 
 export function buildPayoutOptions(): number[] {
-  const options: number[] = [];
+  const options: number[] = [0];
   for (let v = 1_000; v <= 10_000; v += 1_000) options.push(v);
   for (let v = 20_000; v <= 100_000; v += 10_000) options.push(v);
   for (let v = 200_000; v <= 1_000_000; v += 100_000) options.push(v);
@@ -229,6 +231,50 @@ export default function ContractNegotiation() {
     load();
     return () => { cancelled = true; };
   }, [id, navigate]);
+
+  async function handleAcceptCounter() {
+    if (!data || submitting) return;
+    const { contract } = data;
+    if (contract.id === undefined) return;
+
+    const acceptPayout = contract.counterOfferPayout ?? contract.guaranteedPayout ?? 0;
+    const acceptPpvSplit = contract.counterOfferPpvSplit ?? contract.ppvSplitPercentage ?? 50;
+
+    setSubmitting(true);
+    try {
+      const fightId = await putFight({
+        date: contract.scheduledDate!,
+        federationId: contract.federationId,
+        weightClass: contract.weightClass,
+        boxerIds: [contract.boxerId, contract.opponentId],
+        winnerId: null,
+        method: 'Decision',
+        finishingMove: null,
+        round: null,
+        time: null,
+        isTitleFight: contract.isTitleFight,
+        contractId: contract.id,
+      });
+      await putFightContract({
+        ...contract,
+        status: 'accepted',
+        guaranteedPayout: acceptPayout,
+        ppvSplitPercentage: acceptPpvSplit,
+        fightId,
+      });
+      await putCalendarEvent({ type: 'fight', date: contract.scheduledDate!, boxerIds: [contract.boxerId], fightId });
+      await putCalendarEvent({ type: 'fight', date: contract.scheduledDate!, boxerIds: [contract.opponentId], fightId });
+      const fedEvents = await getFederationEventsByFederation(contract.federationId);
+      const matchingEvent = fedEvents.find(e => e.date === contract.scheduledDate);
+      if (matchingEvent?.id !== undefined) {
+        await updateFederationEventFights(matchingEvent.id, fightId);
+      }
+      fightScheduledRef.current = true;
+      setFightScheduled(true);
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   async function handleCancel() {
     if (!data?.contract?.id) { navigate('/league/schedule'); return; }
@@ -378,6 +424,15 @@ export default function ContractNegotiation() {
         <div className={styles.statusBox}>
           <strong>Opponent counters:</strong> ${counterPayoutDisplay?.toLocaleString()} guaranteed / {counterPpvDisplay}% PPV split.{' '}
           Round {roundsUsed + 1} of 3.
+          <div style={{ marginTop: 10 }}>
+            <button
+              className={styles.primaryBtn}
+              onClick={handleAcceptCounter}
+              disabled={submitting}
+            >
+              Accept Counter
+            </button>
+          </div>
         </div>
       )}
 

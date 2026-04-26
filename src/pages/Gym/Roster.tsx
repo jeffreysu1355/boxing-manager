@@ -107,12 +107,9 @@ export default function Roster() {
   const [federationsMap, setFederationsMap] = useState<Map<number, Federation>>(new Map());
   const [boxersMap, setBoxersMap] = useState<Map<number, Boxer>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [today, setToday] = useState('');
 
   const navigate = useNavigate();
-  const [today] = useState(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  });
 
   useEffect(() => {
     let cancelled = false;
@@ -151,11 +148,16 @@ export default function Roster() {
       setFightsMap(fMap);
       setFederationsMap(fedMap);
       setBoxersMap(bMap);
+      setToday(gym?.currentDate ?? '');
       setLoading(false);
     }
 
     load();
-    return () => { cancelled = true; };
+    window.addEventListener('game:sim', load);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('game:sim', load);
+    };
   }, []);
 
   if (loading) {
