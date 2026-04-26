@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { getGym, saveGym } from '../../db/gymStore';
 import { getAllCalendarEvents } from '../../db/calendarEventStore';
-import { getAllBoxers } from '../../db/boxerStore';
+import { getAllBoxers, putBoxer } from '../../db/boxerStore';
+import { getAllCoaches } from '../../db/coachStore';
 import { simForward, nextEventDate, addDays } from '../../lib/simTime';
+import { applyTraining } from '../../lib/training';
 import type { CalendarEvent, Gym } from '../../db/db';
 import styles from './TopNav.module.css';
 
@@ -22,6 +24,14 @@ function formatGameDate(iso: string): string {
     day: 'numeric',
     year: 'numeric',
   });
+}
+
+function dateDiffDays(from: string, to: string): number {
+  const [fy, fm, fd] = from.split('-').map(Number);
+  const [ty, tm, td] = to.split('-').map(Number);
+  const a = new Date(fy, fm - 1, fd).getTime();
+  const b = new Date(ty, tm - 1, td).getTime();
+  return Math.round((b - a) / 86_400_000);
 }
 
 export function TopNav() {
@@ -89,6 +99,8 @@ export function TopNav() {
       setGym(updated);
       setFightStop(result.stoppedAt);
 
+      await runTraining(currentDate, result.newDate, updated.id ?? 1);
+
       // Re-fetch events so newly scheduled fights are visible to future sims
       const [freshEvts, freshBoxers] = await Promise.all([
         getAllCalendarEvents(),
@@ -119,6 +131,22 @@ export function TopNav() {
     navigate(`/fight/${todayFightEvents[0].fightId}`);
   }
 
+  async function runTraining(fromDate: string, toDate: string, gymId: number) {
+    const [allBoxers, allCoaches] = await Promise.all([getAllBoxers(), getAllCoaches()]);
+    const gymBoxers = allBoxers.filter(b => b.gymId === gymId && b.id !== undefined);
+    const days = Math.max(0, dateDiffDays(fromDate, toDate));
+    if (days === 0) return;
+
+    await Promise.all(
+      gymBoxers.map(boxer => {
+        const coach = allCoaches.find(c => c.assignedBoxerId === boxer.id);
+        if (!coach) return Promise.resolve();
+        const updated = applyTraining(boxer, coach, days);
+        return putBoxer(updated);
+      })
+    );
+  }
+
   async function handleSimFight() {
     const currentDate = gym?.currentDate ?? '2026-01-01';
     if (!gym || isSimming) return;
@@ -129,6 +157,9 @@ export function TopNav() {
       await saveGym(updated);
       setGym(updated);
       setFightStop(null);
+
+      await runTraining(currentDate, updated.currentDate, updated.id ?? 1);
+
       const [freshEvts, freshBoxers] = await Promise.all([
         getAllCalendarEvents(),
         getAllBoxers(),
