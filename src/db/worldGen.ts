@@ -575,6 +575,9 @@ export async function generateWorld(): Promise<void> {
         await putBoxer(champ);
       }
     }
+
+    // 5. Cross-reference fights between real boxers in this federation
+    await crossReferenceFights(fedId, boxerIds);
   }
 
   // 5. Generate recruiting pool (prospects + free agents)
