@@ -100,14 +100,16 @@ export function simulateFight(
   const tierGap = Math.abs(REPUTATION_INDEX[boxerA.reputation] - REPUTATION_INDEX[boxerB.reputation]);
   const randomWeight = computeRandomWeight(tierGap);
 
-  // statRatio is the primary driver: A's stat share of the combined pool.
-  // styleAdj shifts winProb up/down by up to ±10% based on style matchup.
-  // randAdj adds a small continuous noise scaled by randomWeight (smaller at large tier gaps).
-  const statRatio = (statA + statB) === 0 ? 0.5 : statA / (statA + statB);
+  // statDiff is the primary driver: absolute normalized stat gap, scaled so
+  // that realistic elite-vs-unknown matchups produce ~2-5% win probability
+  // for the underdog rather than the ~25% floor produced by a ratio approach.
+  // k=0.85 means a full stat gap (1.0 vs 0.0) guarantees a win; equal stats
+  // give exactly 0.5; Tai (0.31) vs Michael (0.89) gives ~3%.
+  const statDiff  = statA - statB;
   const styleAdj  = (styleScore - 0.5) * 0.20;
   const randAdj   = (Math.random() - 0.5) * randomWeight;
 
-  const winProbA = Math.min(1, Math.max(0, statRatio + styleAdj + randAdj));
+  const winProbA = Math.min(1, Math.max(0, 0.5 + statDiff * 0.85 + styleAdj + randAdj));
   const aWins    = Math.random() < winProbA;
 
   const winner = aWins ? boxerA : boxerB;
