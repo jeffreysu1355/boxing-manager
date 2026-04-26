@@ -117,8 +117,8 @@ describe('applyTraining', () => {
   });
 
   it('can level up multiple times in one sim step', () => {
-    // stat=1, threshold=10, all-time-great=8/day
-    // 3 days = 24 exp → level-up at 10 (stat→2, rem=14), level-up at 10 again (stat→3, rem=4)
+    // 3 days = 24 exp; threshold fixed at 10 (initial stat=1)
+    // 24 >= 10 → stat→2, rem=14; 14 >= 10 → stat→3, rem=4; 4 < 10 → stop
     const boxer = makeBoxer({
       stats: { jab: 1, cross: 10, leadHook: 10, rearHook: 10, uppercut: 10,
                headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
