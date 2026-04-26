@@ -8,6 +8,7 @@ import Standings from './pages/League/Standings';
 import Calendar from './pages/League/Calendar';
 import Schedule from './pages/League/Schedule';
 import ContractNegotiation from './pages/League/ContractNegotiation';
+import PpvSignup from './pages/League/PpvSignup';
 import GymLayout from './pages/Gym/GymLayout';
 import Roster from './pages/Gym/Roster';
 import Finances from './pages/Gym/Finances';
@@ -35,6 +36,7 @@ export const routes: RouteObject[] = [
           { path: 'calendar', element: <Calendar /> },
           { path: 'schedule', element: <Schedule /> },
           { path: 'contracts/:id', element: <ContractNegotiation /> },
+          { path: 'ppv/:fightId', element: <PpvSignup /> },
         ],
       },
       {
