@@ -167,6 +167,9 @@ function generateFightRecord(reputation: ReputationLevel, style: FightingStyle):
   let month = rand(1, 12);
 
   for (let i = 0; i < total; i++) {
+    // Stop generating once we've reached the game start year
+    if (year >= 2026) break;
+
     const isWin = Math.random() < winRate;
     const method = pick([...FIGHT_METHODS]);
     const isDecision = method === 'Decision' || method === 'Split Decision';
@@ -286,6 +289,8 @@ function generateAmateurRecord(style: FightingStyle): FightRecord[] {
   let month = rand(1, 12);
 
   for (let i = 0; i < total; i++) {
+    if (year >= 2026) break;
+
     const isWin = Math.random() < 0.55;
     const method = pick(['Decision', 'TKO', 'KO'] as const);
     const isDecision = method === 'Decision';

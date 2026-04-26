@@ -106,7 +106,7 @@ export default function PlayerPage() {
   const trainedStats = new Set<keyof BoxerStats>(
     coach ? STYLE_STATS[coach.style] : []
   );
-  const sortedRecord = [...boxer.record].reverse();
+  const sortedRecord = [...boxer.record].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div>
