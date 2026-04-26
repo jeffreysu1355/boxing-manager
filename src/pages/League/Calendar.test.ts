@@ -54,6 +54,7 @@ describe('deriveRows', () => {
     expect(rows[0].federationAbbr).toBe('NABF');
     expect(rows[0].isTitleFight).toBe(false);
     expect(rows[0].date).toBe('2026-05-01');
+    expect(rows[0].fightId).toBe(10);
   });
 
   it('includes events on today', () => {

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { getGym } from '../../db/gymStore';
 import { getAllBoxers } from '../../db/boxerStore';
 import { getAllCalendarEvents } from '../../db/calendarEventStore';
 import { getAllFights } from '../../db/fightStore';
 import { getAllFederations } from '../../db/federationStore';
-import type { Boxer, CalendarEvent, Fight, Federation, FederationName } from '../../db/db';
+import { getAllFightContracts } from '../../db/fightContractStore';
+import { getAllPpvNetworks } from '../../db/ppvNetworkStore';
+import type { Boxer, CalendarEvent, Fight, Federation, FederationName, FightContract, PpvNetwork } from '../../db/db';
 import styles from './Calendar.module.css';
 
 // --- Constants ---
@@ -25,6 +27,7 @@ export const FEDERATION_ABBR: Record<FederationName, string> = {
 
 export interface CalendarRow {
   eventId: number;
+  fightId: number;
   date: string;
   gymBoxerId: number;
   opponentId: number | undefined;
@@ -63,6 +66,7 @@ export function deriveRows(
 
     rows.push({
       eventId: event.id,
+      fightId: event.fightId,
       date: event.date,
       gymBoxerId,
       opponentId,
@@ -90,6 +94,9 @@ export default function Calendar() {
   const [today, setToday] = useState<string>('2026-01-01');
   const [rows, setRows] = useState<CalendarRow[] | null>(null);
   const [boxerMap, setBoxerMap] = useState<Map<number, Boxer>>(new Map());
+  const [contractMap, setContractMap] = useState<Map<number, FightContract>>(new Map());
+  const [networkMap, setNetworkMap] = useState<Map<number, PpvNetwork>>(new Map());
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -100,7 +107,9 @@ export default function Calendar() {
       getAllCalendarEvents(),
       getAllFights(),
       getAllFederations(),
-    ]).then(([gym, allBoxers, allEvents, allFights, allFederations]) => {
+      getAllFightContracts(),
+      getAllPpvNetworks(),
+    ]).then(([gym, allBoxers, allEvents, allFights, allFederations, allContracts, allNetworks]) => {
       if (cancelled) return;
       const gameDate = gym?.currentDate ?? '2026-01-01';
       setToday(gameDate);
@@ -126,6 +135,18 @@ export default function Calendar() {
       for (const fed of allFederations) {
         if (fed.id !== undefined) fedMap.set(fed.id, fed);
       }
+
+      const cMap = new Map<number, FightContract>();
+      for (const c of allContracts) {
+        if (c.fightId !== null) cMap.set(c.fightId, c);
+      }
+      setContractMap(cMap);
+
+      const nMap = new Map<number, PpvNetwork>();
+      for (const n of allNetworks) {
+        if (n.id !== undefined) nMap.set(n.id, n);
+      }
+      setNetworkMap(nMap);
 
       const derived = deriveRows(allEvents, fMap, gymBoxerIds, fedMap, gameDate);
       setBoxerMap(bMap);
@@ -160,6 +181,7 @@ export default function Calendar() {
               <th>Opponent</th>
               <th>Federation</th>
               <th></th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -189,6 +211,36 @@ export default function Calendar() {
                     {row.isTitleFight && (
                       <span className={styles.titleBadge}>Title Fight</span>
                     )}
+                  </td>
+                  <td>
+                    {(() => {
+                      const contract = contractMap.get(row.fightId);
+                      if (!contract) return null;
+                      if (contract.ppvNetworkId != null) {
+                        const network = networkMap.get(contract.ppvNetworkId);
+                        return (
+                          <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                            PPV: {network?.name ?? 'Signed'}
+                          </span>
+                        );
+                      }
+                      return (
+                        <button
+                          style={{
+                            fontSize: 12,
+                            padding: '2px 8px',
+                            background: 'none',
+                            border: '1px solid var(--accent)',
+                            borderRadius: 3,
+                            color: 'var(--accent)',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => navigate(`/league/ppv/${row.fightId}`)}
+                        >
+                          Sign PPV Deal
+                        </button>
+                      );
+                    })()}
                   </td>
                 </tr>
               );
