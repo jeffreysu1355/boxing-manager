@@ -180,6 +180,7 @@ function generateFightRecord(reputation: ReputationLevel, style: FightingStyle):
     records.push({
       result: isWin ? 'win' : 'loss',
       opponentName: generateName(federation),
+      opponentId: null,
       method,
       finishingMove: isDecision ? null : pick(FINISH_MOVES[style]),
       round,
@@ -296,6 +297,7 @@ function generateAmateurRecord(style: FightingStyle): FightRecord[] {
     records.push({
       result: isWin ? 'win' : 'loss',
       opponentName: generateName('North America Boxing Federation'),
+      opponentId: null,
       method,
       finishingMove: isDecision ? null : pick(FINISH_MOVES[style]),
       round,
