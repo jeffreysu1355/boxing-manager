@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
-import { getBoxer, getAllBoxers } from '../../db/boxerStore';
+import { getBoxer } from '../../db/boxerStore';
 import { getAllCoaches } from '../../db/coachStore';
 import { STYLE_STATS } from '../../lib/training';
 import type { Boxer, BoxerStats, Coach, FightRecord } from '../../db/db';
@@ -70,20 +70,14 @@ function capitalize(s: string): string {
 export default function PlayerPage() {
   const { id } = useParams<{ id: string }>();
   const [boxer, setBoxer] = useState<Boxer | null | undefined>(undefined);
-  const [opponentIndex, setOpponentIndex] = useState<Map<string, number>>(new Map());
   const [coach, setCoach] = useState<Coach | null | undefined>(undefined);
 
   useEffect(() => {
     if (!id) { setBoxer(null); setCoach(null); return; }
     let cancelled = false;
-    Promise.all([getBoxer(Number(id)), getAllBoxers(), getAllCoaches()]).then(([b, all, coaches]) => {
+    Promise.all([getBoxer(Number(id)), getAllCoaches()]).then(([b, coaches]) => {
       if (cancelled) return;
       setBoxer(b ?? null);
-      const index = new Map<string, number>();
-      for (const boxer of all) {
-        if (boxer.id !== undefined) index.set(boxer.name, boxer.id);
-      }
-      setOpponentIndex(index);
       const assignedCoach = coaches.find(c => c.assignedBoxerId === Number(id)) ?? null;
       setCoach(assignedCoach);
     });
@@ -201,8 +195,8 @@ export default function PlayerPage() {
                       {capitalize(fight.result)}
                     </td>
                     <td>
-                      {opponentIndex.has(fight.opponentName)
-                        ? <Link to={`/player/${opponentIndex.get(fight.opponentName)}`}>{fight.opponentName}</Link>
+                      {fight.opponentId != null
+                        ? <Link to={`/player/${fight.opponentId}`}>{fight.opponentName}</Link>
                         : fight.opponentName}
                     </td>
                     <td>
