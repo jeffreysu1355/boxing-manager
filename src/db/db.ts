@@ -137,6 +137,7 @@ export interface Boxer {
   injuries: Injury[];
   titles: TitleRecord[];
   record: FightRecord[];
+  trainingExp?: Partial<Record<keyof BoxerStats, number>>;
 }
 
 export interface Coach {
