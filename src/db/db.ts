@@ -86,6 +86,7 @@ export interface TitleRecord {
 export interface FightRecord {
   result: 'win' | 'loss' | 'draw';
   opponentName: string;
+  opponentId: number | null;
   method: string;
   finishingMove: string | null;
   round: number;
