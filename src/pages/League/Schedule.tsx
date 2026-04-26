@@ -182,7 +182,7 @@ export default function Schedule() {
       const paramBoxerId = searchParams.get('boxerId');
       if (paramBoxerId) {
         const id = parseInt(paramBoxerId, 10);
-        if (!isNaN(id) && gym.rosterIds.includes(id)) {
+        if (!isNaN(id) && boxers.some(b => b.id === id && b.gymId === (gym.id ?? 1))) {
           setSelectedBoxerId(id);
         }
       }
@@ -212,7 +212,9 @@ export default function Schedule() {
     );
   }
 
-  const gymBoxerIds = new Set(gym.rosterIds);
+  const gymBoxerIds = new Set(
+    boxers.filter(b => b.gymId === (gym.id ?? 1) && b.id !== undefined).map(b => b.id!)
+  );
   const gymBoxers = boxers.filter(b => b.id !== undefined && gymBoxerIds.has(b.id));
 
   // Determine which boxers have a future scheduled fight
