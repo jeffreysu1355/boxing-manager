@@ -2,10 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { getGym, saveGym } from '../../db/gymStore';
 import { getAllCalendarEvents } from '../../db/calendarEventStore';
-import { getAllBoxers, putBoxer } from '../../db/boxerStore';
+import { getAllBoxers, putBoxer, getBoxer } from '../../db/boxerStore';
 import { getAllCoaches } from '../../db/coachStore';
+import { getFight } from '../../db/fightStore';
+import { getFederation } from '../../db/federationStore';
 import { simForward, nextEventDate, addDays } from '../../lib/simTime';
 import { applyTraining } from '../../lib/training';
+import { simulateFight } from '../../lib/fightSim';
+import { applyFightResult } from './fightResultApplier';
 import type { CalendarEvent, Gym } from '../../db/db';
 import styles from './TopNav.module.css';
 
@@ -153,12 +157,48 @@ export function TopNav() {
     setIsSimming(true);
     setDropdownOpen(false);
     try {
+      // Find all fight events for today involving gym boxers
+      const todayFights = events.filter(
+        e => e.type === 'fight' && e.date === currentDate && e.boxerIds.some(id => gymBoxerIds.has(id))
+      );
+
+      for (const event of todayFights) {
+        const fight = await getFight(event.fightId);
+        if (!fight || fight.winnerId !== null) continue; // already resolved
+
+        const [boxerA, boxerB, federation] = await Promise.all([
+          getBoxer(fight.boxerIds[0]),
+          getBoxer(fight.boxerIds[1]),
+          getFederation(fight.federationId),
+        ]);
+        if (!boxerA || !boxerB || !federation) continue;
+
+        const simResult = simulateFight(boxerA, boxerB, fight, federation.name);
+
+        await applyFightResult({
+          fightId: fight.id!,
+          winnerId: simResult.winnerId,
+          loserId: simResult.loserId,
+          method: simResult.method,
+          finishingMove: simResult.finishingMove,
+          round: simResult.round,
+          time: simResult.time,
+          winnerRecord: simResult.winnerRecord,
+          loserRecord: simResult.loserRecord,
+          isTitleFight: fight.isTitleFight,
+          federationId: fight.federationId,
+          weightClass: fight.weightClass,
+          fightDate: fight.date,
+          contractId: fight.contractId,
+        });
+      }
+
+      // Advance date and run training
       const updated: Gym = { ...gym, currentDate: addDays(currentDate, 1) };
       await saveGym(updated);
       setGym(updated);
       setFightStop(null);
 
-      // 1 day of training applies on fight day — boxer still trains before the bout
       await runTraining(currentDate, updated.currentDate, updated.id ?? 1);
 
       const [freshEvts, freshBoxers] = await Promise.all([
