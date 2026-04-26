@@ -118,7 +118,7 @@ describe('applyTraining', () => {
 
   it('can level up multiple times in one sim step', () => {
     // stat=1, threshold=10, all-time-great=8/day
-    // 3 days = 24 exp → level-up at 10 (stat→2, rem=14), level-up at 20 (stat→3, rem=4)
+    // 3 days = 24 exp → level-up at 10 (stat→2, rem=14), level-up at 10 again (stat→3, rem=4)
     const boxer = makeBoxer({
       stats: { jab: 1, cross: 10, leadHook: 10, rearHook: 10, uppercut: 10,
                headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
@@ -195,5 +195,30 @@ describe('applyTraining', () => {
     expect(result.trainingExp!['toughness']).toBe(5);
     // out-boxer stats not touched
     expect(result.trainingExp!['jab']).toBeUndefined();
+  });
+
+  it('handles boxer with undefined trainingExp', () => {
+    const boxer = makeBoxer({ trainingExp: undefined });
+    const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
+    const result = applyTraining(boxer, coach, 5);
+    expect(result.trainingExp!['jab']).toBe(5);
+  });
+
+  it('can level up past 20 when boxer has natural talent for that stat', () => {
+    const boxer = makeBoxer({
+      stats: { jab: 20, cross: 10, leadHook: 10, rearHook: 10, uppercut: 10,
+               headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
+               timing: 10, adaptability: 10, discipline: 10,
+               speed: 10, power: 10, endurance: 10, recovery: 10, toughness: 10 },
+      trainingExp: { jab: 190 },
+      naturalTalents: [{ stat: 'jab' }],
+    });
+    const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
+    // 1 day × 8 = 8 exp, total 198 — threshold for stat=20 is 200, no level-up yet
+    const r1 = applyTraining(boxer, coach, 1);
+    expect(r1.stats.jab).toBe(20);
+    // 2 more days × 8 = 16 exp, total 214 — threshold 200 crossed → level up to 21
+    const r2 = applyTraining(r1, coach, 2);
+    expect(r2.stats.jab).toBe(21);
   });
 });
