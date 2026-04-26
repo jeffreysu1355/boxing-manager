@@ -433,6 +433,67 @@ export async function generateFederationEvents(
   }
 }
 
+// --- Cross-reference fights ---
+
+export async function crossReferenceFights(
+  federationId: number,
+  boxerIds: number[],
+  probability = 0.4,
+): Promise<void> {
+  const boxers = await Promise.all(boxerIds.map(id => getBoxer(id)));
+  const realBoxers = boxers.filter((b): b is Boxer => b !== undefined);
+
+  // Track which pairs have already been linked: "minId-maxId"
+  const paired = new Set<string>();
+
+  for (const boxerA of realBoxers) {
+    if (boxerA.id === undefined) continue;
+    let aModified = false;
+
+    for (let i = 0; i < boxerA.record.length; i++) {
+      const fight = boxerA.record[i];
+      if (fight.opponentId !== null) continue;
+      if (Math.random() >= probability) continue;
+
+      const eligible = realBoxers.filter(b => {
+        if (b.id === undefined || b.id === boxerA.id) return false;
+        if (b.federationId !== federationId) return false;
+        if (b.weightClass !== boxerA.weightClass) return false;
+        const key = [Math.min(boxerA.id!, b.id), Math.max(boxerA.id!, b.id)].join('-');
+        return !paired.has(key);
+      });
+
+      if (eligible.length === 0) continue;
+
+      const boxerB = eligible[Math.floor(Math.random() * eligible.length)];
+      const pairKey = [Math.min(boxerA.id!, boxerB.id!), Math.max(boxerA.id!, boxerB.id!)].join('-');
+      paired.add(pairKey);
+
+      boxerA.record[i] = {
+        ...fight,
+        opponentName: boxerB.name,
+        opponentId: boxerB.id!,
+      };
+      aModified = true;
+
+      const mirrorResult: FightRecord['result'] =
+        fight.result === 'win' ? 'loss' :
+        fight.result === 'loss' ? 'win' :
+        'draw';
+
+      boxerB.record.push({
+        ...fight,
+        result: mirrorResult,
+        opponentName: boxerA.name,
+        opponentId: boxerA.id!,
+      });
+      await putBoxer(boxerB);
+    }
+
+    if (aModified) await putBoxer(boxerA);
+  }
+}
+
 // --- Main world gen ---
 
 export async function generateWorld(): Promise<void> {
