@@ -10,6 +10,7 @@ import { simForward, nextEventDate, addDays } from '../../lib/simTime';
 import { applyTraining } from '../../lib/training';
 import { simulateFight } from '../../lib/fightSim';
 import { applyFightResult } from './fightResultApplier';
+import { refreshRecruitPool } from '../../db/worldGen';
 import type { CalendarEvent, Gym } from '../../db/db';
 import styles from './TopNav.module.css';
 
@@ -102,10 +103,11 @@ export function TopNav() {
       let result;
 
       if (days === 'next') {
-        const nextDate = nextEventDate(currentDate, events, gymBoxerIds);
+        const freshEvts = await getAllCalendarEvents();
+        const nextDate = nextEventDate(currentDate, freshEvts, gymBoxerIds);
         const target = nextDate ?? addDays(currentDate, 7);
         const fightAtTarget = nextDate
-          ? events.find(
+          ? freshEvts.find(
               e => e.date === nextDate && e.boxerIds.some(id => gymBoxerIds.has(id))
             ) ?? null
           : null;
@@ -114,12 +116,22 @@ export function TopNav() {
         result = simForward(currentDate, days, events, gymBoxerIds);
       }
 
-      const updated: Gym = { ...gym, currentDate: result.newDate };
+      const newMonth = result.newDate.slice(0, 7); // 'YYYY-MM'
+      const needsRecruitRefresh = (gym.recruitRefreshDate ?? '') !== newMonth;
+      const updated: Gym = {
+        ...gym,
+        currentDate: result.newDate,
+        ...(needsRecruitRefresh ? { recruitRefreshDate: newMonth } : {}),
+      };
       await saveGym(updated);
       setGym(updated);
       setFightStop(result.stoppedAt);
 
       await runTraining(currentDate, result.newDate, updated.id ?? 1);
+
+      if (needsRecruitRefresh) {
+        await refreshRecruitPool();
+      }
 
       // Re-fetch events so newly scheduled fights are visible to future sims
       const [freshEvts, freshBoxers] = await Promise.all([

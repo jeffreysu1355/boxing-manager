@@ -158,6 +158,7 @@ export interface Gym {
   rosterIds: number[];
   coachIds: number[];
   currentDate: string; // ISO date, e.g. '2026-01-01'
+  recruitRefreshDate?: string; // YYYY-MM (month of last recruit pool refresh)
 }
 
 export interface Federation {
@@ -277,7 +278,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 9, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 10, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -375,6 +376,11 @@ export async function getDB(): Promise<DB> {
         // added federationId/minBoxerRank). Clear and re-seed from worldGen.
         const store = transaction.objectStore('ppvNetworks');
         store.clear();
+      }
+
+      if (oldVersion < 10) {
+        // recruitRefreshDate added to Gym; existing records without this field
+        // will return undefined — runtime code treats undefined as absent (triggers refresh).
       }
     },
   });

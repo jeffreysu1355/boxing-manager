@@ -1,5 +1,5 @@
 import namesData from '../data/names.json';
-import { getBoxer, putBoxer } from './boxerStore';
+import { getBoxer, getAllBoxers, putBoxer, deleteBoxer } from './boxerStore';
 import { putCoach } from './coachStore';
 import { putFederation } from './federationStore';
 import { putFederationEvent } from './federationEventStore';
@@ -377,7 +377,7 @@ function generateAmateurRecord(style: FightingStyle): FightRecord[] {
   return records;
 }
 
-async function generateProspects(): Promise<void> {
+export async function generateProspects(): Promise<void> {
   const count = rand(13, 17);
   for (let i = 0; i < count; i++) {
     const style = pick(FIGHTING_STYLES);
@@ -400,7 +400,7 @@ async function generateProspects(): Promise<void> {
   }
 }
 
-async function generateFreeAgents(): Promise<void> {
+export async function generateFreeAgents(): Promise<void> {
   const count = rand(23, 27);
   for (let i = 0; i < count; i++) {
     const style = pick(FIGHTING_STYLES);
@@ -585,6 +585,16 @@ export async function crossReferenceFights(
 
     if (aModified) await putBoxer(boxerA);
   }
+}
+
+// --- Recruit pool refresh ---
+
+export async function refreshRecruitPool(): Promise<void> {
+  const all = await getAllBoxers();
+  const pool = all.filter(b => b.gymId === null && b.federationId === null && b.id !== undefined);
+  await Promise.all(pool.map(b => deleteBoxer(b.id!)));
+  await generateProspects();
+  await generateFreeAgents();
 }
 
 // --- Main world gen ---
