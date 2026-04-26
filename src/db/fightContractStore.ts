@@ -31,3 +31,8 @@ export async function deleteFightContract(id: number): Promise<void> {
   const db = await getDB();
   return db.delete('fightContracts', id);
 }
+
+export async function getFightContractByFightId(fightId: number): Promise<FightContract | undefined> {
+  const all = await getAllFightContracts();
+  return all.find(c => c.fightId === fightId);
+}

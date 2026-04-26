@@ -112,3 +112,9 @@
 .skipBtn:hover {
   border-color: var(--text-secondary);
 }
+
+.titleFightBadge {
+  margin-left: 8px;
+  color: var(--accent);
+  font-weight: 600;
+}

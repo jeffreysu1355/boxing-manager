@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import type { Fight, FightContract, Boxer, Federation, PpvNetwork } from '../../db/db';
 import { getFight } from '../../db/fightStore';
-import { getAllFightContracts, putFightContract } from '../../db/fightContractStore';
+import { getFightContractByFightId, putFightContract } from '../../db/fightContractStore';
 import { getBoxer } from '../../db/boxerStore';
 import { getFederation } from '../../db/federationStore';
 import { getPpvNetworksByFederation } from '../../db/ppvNetworkStore';
@@ -63,6 +63,7 @@ export default function PpvSignup() {
       const fight = await getFight(id);
       if (!fight || !fight.id) { setLoadError('Fight not found.'); return; }
 
+      // boxerIds[0] is the gym boxer (challenger), [1] is the opponent — by construction in putFight()
       const [gymBoxer, opponent, federation] = await Promise.all([
         getBoxer(fight.boxerIds[0]),
         getBoxer(fight.boxerIds[1]),
@@ -72,8 +73,7 @@ export default function PpvSignup() {
       if (!gymBoxer || !opponent) { setLoadError('Boxer data not found.'); return; }
       if (!federation) { setLoadError('Federation not found.'); return; }
 
-      const contractList = await getAllFightContracts();
-      const contract = contractList.find(c => c.fightId === id);
+      const contract = await getFightContractByFightId(id);
       if (!contract) { setLoadError('Contract not found.'); return; }
 
       const networks = await getPpvNetworksByFederation(fight.federationId);
@@ -81,7 +81,7 @@ export default function PpvSignup() {
 
       if (cancelled) return;
       setData({ fight, contract, gymBoxer, opponent, federation, networks });
-      if (contract.ppvNetworkId !== null) {
+      if (contract.ppvNetworkId != null) {
         setSelectedNetworkId(contract.ppvNetworkId);
       }
     }
@@ -144,7 +144,7 @@ export default function PpvSignup() {
         <strong>{gymBoxer.name}</strong> vs <strong>{opponent.name}</strong>
         {' · '}{federation.name}
         {' · '}{formatDate(fight.date)}
-        {fight.isTitleFight && <span style={{ marginLeft: 8, color: 'var(--accent)', fontWeight: 600 }}>Title Fight</span>}
+        {fight.isTitleFight && <span className={styles.titleFightBadge}>Title Fight</span>}
       </p>
 
       <div className={styles.networkList}>
@@ -152,14 +152,13 @@ export default function PpvSignup() {
           if (network.id === undefined) return null;
           const eligible = bestRank >= network.minBoxerRank;
           const isSelected = selectedNetworkId === network.id;
-          const isSameFederation = network.federationId === fight.federationId;
 
           const viewers = calcViewers({
             network,
             gymBoxerRank: gymRank,
             opponentRank: oppRank,
             isTitleFight: fight.isTitleFight,
-            isSameFederation,
+            isSameFederation: true,
           });
           const payout = calcPpvPayout(viewers, contract.ppvSplitPercentage);
 
