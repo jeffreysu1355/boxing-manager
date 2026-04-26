@@ -29,10 +29,8 @@ export function applyTraining(boxer: Boxer, coach: Coach, days: number): Boxer {
     if (stats[stat] >= cap) continue;
     if (stats[stat] === 0) continue; // stats are on 1-20 scale; 0 is invalid
 
-    // Threshold per level-up is fixed at the stat value when training begins
-    const threshold = stats[stat] * 10;
-
     while (stats[stat] < cap) {
+      const threshold = stats[stat] * 10;
       if ((exp[stat] ?? 0) < threshold) break;
       exp[stat] = (exp[stat] ?? 0) - threshold;
       stats[stat] += 1;
