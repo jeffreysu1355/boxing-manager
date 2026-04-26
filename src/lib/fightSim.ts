@@ -89,6 +89,10 @@ export function simulateFight(
   fight: Fight,
   federationName: string,
 ): FightSimResult {
+  if (boxerA.id == null || boxerB.id == null) {
+    throw new Error('simulateFight: both boxers must have a persisted id');
+  }
+
   const statA = computeStatScore(boxerA);
   const statB = computeStatScore(boxerB);
   const styleScore = computeStyleScore(boxerA.style, boxerB.style);
@@ -99,7 +103,7 @@ export function simulateFight(
   // statRatio is the primary driver: A's stat share of the combined pool.
   // styleAdj shifts winProb up/down by up to ±10% based on style matchup.
   // randAdj adds a small continuous noise scaled by randomWeight (smaller at large tier gaps).
-  const statRatio = statA / (statA + statB);
+  const statRatio = (statA + statB) === 0 ? 0.5 : statA / (statA + statB);
   const styleAdj  = (styleScore - 0.5) * 0.20;
   const randAdj   = (Math.random() - 0.5) * randomWeight;
 
