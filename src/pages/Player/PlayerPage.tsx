@@ -158,6 +158,7 @@ export default function PlayerPage() {
                       <div className={styles.statBarWrapper}>
                         <div className={styles.statBar}>
                           <div className={styles.statBarFill} style={{ width: `${pct}%` }} />
+                          <span className={styles.statBarPct}>{Math.round(pct)}%</span>
                         </div>
                         <span className={styles.statBarValue}>{boxer.stats[stat]}</span>
                       </div>
