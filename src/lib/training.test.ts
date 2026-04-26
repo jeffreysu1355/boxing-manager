@@ -67,11 +67,11 @@ describe('STYLE_STATS', () => {
 });
 
 describe('EXP_PER_DAY', () => {
-  it('local = 1, contender = 2, championship-caliber = 4, all-time-great = 8', () => {
-    expect(EXP_PER_DAY['local']).toBe(1);
-    expect(EXP_PER_DAY['contender']).toBe(2);
-    expect(EXP_PER_DAY['championship-caliber']).toBe(4);
-    expect(EXP_PER_DAY['all-time-great']).toBe(8);
+  it('local = 0.25, contender = 0.5, championship-caliber = 0.75, all-time-great = 1.0', () => {
+    expect(EXP_PER_DAY['local']).toBe(0.25);
+    expect(EXP_PER_DAY['contender']).toBe(0.5);
+    expect(EXP_PER_DAY['championship-caliber']).toBe(0.75);
+    expect(EXP_PER_DAY['all-time-great']).toBe(1.0);
   });
 });
 
@@ -80,11 +80,11 @@ describe('applyTraining', () => {
     const boxer = makeBoxer({ trainingExp: {} });
     const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
     const result = applyTraining(boxer, coach, 5);
-    // local coach = 1 exp/day, 5 days = 5 exp per stat
-    // threshold for stat=10 is 100; 5 < 100 so no level-up
-    expect(result.trainingExp!['jab']).toBe(5);
-    expect(result.trainingExp!['cross']).toBe(5);
-    expect(result.trainingExp!['speed']).toBe(5);
+    // local coach = 0.25 exp/day, 5 days = 1.25 exp per stat
+    // threshold for stat=10 is 100; 1.25 < 100 so no level-up
+    expect(result.trainingExp!['jab']).toBe(1.25);
+    expect(result.trainingExp!['cross']).toBe(1.25);
+    expect(result.trainingExp!['speed']).toBe(1.25);
     // non-coached stats unchanged
     expect(result.trainingExp!['leadHook']).toBeUndefined();
   });
@@ -97,28 +97,28 @@ describe('applyTraining', () => {
   });
 
   it('levels up a stat when exp reaches threshold', () => {
-    // stat=10, threshold=100, contender=2exp/day, 50 days = 100 exp → level up
+    // stat=10, threshold=100, contender=0.5exp/day, 200 days = 100 exp → level up
     const boxer = makeBoxer({ trainingExp: {} });
     const coach = makeCoach({ skillLevel: 'contender', style: 'out-boxer' });
-    const result = applyTraining(boxer, coach, 50);
+    const result = applyTraining(boxer, coach, 200);
     expect(result.stats.jab).toBe(11);
     // remainder: 100 exp used, 0 leftover
     expect(result.trainingExp!['jab']).toBe(0);
   });
 
   it('carries over remainder exp after level-up', () => {
-    // stat=10, threshold=100, contender=2/day, 55 days = 110 exp
-    // 100 used for level-up, 10 remainder
+    // stat=10, threshold=100, contender=0.5/day, 210 days = 105 exp
+    // 100 used for level-up, 5 remainder
     const boxer = makeBoxer({ trainingExp: {} });
     const coach = makeCoach({ skillLevel: 'contender', style: 'out-boxer' });
-    const result = applyTraining(boxer, coach, 55);
+    const result = applyTraining(boxer, coach, 210);
     expect(result.stats.jab).toBe(11);
-    expect(result.trainingExp!['jab']).toBe(10);
+    expect(result.trainingExp!['jab']).toBe(5);
   });
 
   it('can level up multiple times in one sim step', () => {
-    // stat=1, all-time-great=8/day, 3 days = 24 exp
-    // threshold=1×10=10 → stat→2, rem=14; threshold=2×10=20, 14<20 → stop
+    // stat=1, all-time-great=1.0/day, 11 days = 11 exp
+    // threshold=1×10=10 → stat→2, rem=1; threshold=2×10=20, 1<20 → stop
     const boxer = makeBoxer({
       stats: { jab: 1, cross: 10, leadHook: 10, rearHook: 10, uppercut: 10,
                headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
@@ -127,9 +127,9 @@ describe('applyTraining', () => {
       trainingExp: {},
     });
     const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
-    const result = applyTraining(boxer, coach, 3);
+    const result = applyTraining(boxer, coach, 11);
     expect(result.stats.jab).toBe(2);
-    expect(result.trainingExp!['jab']).toBe(14);
+    expect(result.trainingExp!['jab']).toBe(1);
   });
 
   it('caps stat at 20 without natural talent', () => {
@@ -142,10 +142,10 @@ describe('applyTraining', () => {
       naturalTalents: [],
     });
     const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
-    // 1 day × 8 = 8 exp, total 198 — still below threshold 200, no change
+    // 1 day × 1.0 = 1 exp, total 191 — still below threshold 200, no level-up
     const result = applyTraining(boxer, coach, 1);
     expect(result.stats.jab).toBe(20);
-    expect(result.trainingExp!['jab']).toBe(198);
+    expect(result.trainingExp!['jab']).toBe(191);
   });
 
   it('caps stat at 25 with natural talent for that stat', () => {
@@ -154,12 +154,12 @@ describe('applyTraining', () => {
                headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
                timing: 10, adaptability: 10, discipline: 10,
                speed: 10, power: 10, endurance: 10, recovery: 10, toughness: 10 },
-      trainingExp: { jab: 235 },
+      trainingExp: { jab: 234 },
       naturalTalents: [{ stat: 'jab' }],
     });
     const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
-    // 1 day × 8 = 8 exp, total 243 — threshold for stat=24 is 240 → level up to 25
-    const result = applyTraining(boxer, coach, 1);
+    // 6 days × 1.0 = 6 exp, total 240 — threshold for stat=24 is 240 → level up to 25
+    const result = applyTraining(boxer, coach, 6);
     expect(result.stats.jab).toBe(25);
   });
 
@@ -181,8 +181,8 @@ describe('applyTraining', () => {
     const boxer = makeBoxer({ trainingExp: { jab: 50 } });
     const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
     const result = applyTraining(boxer, coach, 10);
-    // 50 existing + 10 new = 60, threshold=100, no level-up
-    expect(result.trainingExp!['jab']).toBe(60);
+    // 50 existing + (0.25 × 10) = 52.5, threshold=100, no level-up
+    expect(result.trainingExp!['jab']).toBe(52.5);
     expect(result.stats.jab).toBe(10);
   });
 
@@ -191,8 +191,9 @@ describe('applyTraining', () => {
     const boxer = makeBoxer({ style: 'out-boxer', trainingExp: {} });
     const coach = makeCoach({ skillLevel: 'local', style: 'swarmer' });
     const result = applyTraining(boxer, coach, 5);
-    expect(result.trainingExp!['leadHook']).toBe(5);
-    expect(result.trainingExp!['toughness']).toBe(5);
+    // local = 0.25/day, 5 days = 1.25 exp
+    expect(result.trainingExp!['leadHook']).toBe(1.25);
+    expect(result.trainingExp!['toughness']).toBe(1.25);
     // out-boxer stats not touched
     expect(result.trainingExp!['jab']).toBeUndefined();
   });
@@ -201,7 +202,8 @@ describe('applyTraining', () => {
     const boxer = makeBoxer({ trainingExp: undefined });
     const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
     const result = applyTraining(boxer, coach, 5);
-    expect(result.trainingExp!['jab']).toBe(5);
+    // local = 0.25/day, 5 days = 1.25 exp
+    expect(result.trainingExp!['jab']).toBe(1.25);
   });
 
   it('can level up past 20 when boxer has natural talent for that stat', () => {
@@ -214,11 +216,11 @@ describe('applyTraining', () => {
       naturalTalents: [{ stat: 'jab' }],
     });
     const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
-    // 1 day × 8 = 8 exp, total 198 — threshold for stat=20 is 200, no level-up yet
+    // 1 day × 1.0 = 1 exp, total 191 — threshold for stat=20 is 200, no level-up yet
     const r1 = applyTraining(boxer, coach, 1);
     expect(r1.stats.jab).toBe(20);
-    // 2 more days × 8 = 16 exp, total 214 — threshold 200 crossed → level up to 21
-    const r2 = applyTraining(r1, coach, 2);
+    // 9 more days × 1.0 = 9 exp, total 200 — threshold 200 crossed → level up to 21
+    const r2 = applyTraining(r1, coach, 9);
     expect(r2.stats.jab).toBe(21);
   });
 });
