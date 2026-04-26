@@ -65,6 +65,12 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+function formatFightDate(date: string): string {
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return date;
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
 // --- Component ---
 
 export default function PlayerPage() {
@@ -206,7 +212,7 @@ export default function PlayerPage() {
                     <td>{fight.round}</td>
                     <td>{fight.time}</td>
                     <td>{fight.federation}</td>
-                    <td>{fight.date}</td>
+                    <td>{formatFightDate(fight.date)}</td>
                   </tr>
                 ))}
               </tbody>
