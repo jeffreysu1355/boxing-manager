@@ -94,13 +94,13 @@ export default function PlayerPage() {
   useEffect(() => {
     if (!id) { setBoxer(null); setCoach(null); return; }
     let cancelled = false;
-    Promise.all([getBoxer(Number(id)), getAllCoaches()]).then(async ([b, coaches]) => {
+
+    async function load() {
+      const [b, coaches] = await Promise.all([getBoxer(Number(id)), getAllCoaches()]);
       if (cancelled) return;
       setBoxer(b ?? null);
-      const assignedCoach = coaches.find(c => c.assignedBoxerId === Number(id)) ?? null;
-      setCoach(assignedCoach);
+      setCoach(coaches.find(c => c.assignedBoxerId === Number(id)) ?? null);
 
-      // Load federation info for each title this boxer holds or has held
       if (b && b.titles.length > 0) {
         const titleObjs = await Promise.all(b.titles.map(t => getTitle(t.titleId)));
         const fedIds = [...new Set(titleObjs.filter(Boolean).map(t => t!.federationId))];
@@ -109,7 +109,6 @@ export default function PlayerPage() {
         for (const fed of feds) {
           if (fed?.id !== undefined) fedById.set(fed.id, fed);
         }
-        // Build titleId → { abbr, weightClass } for badge display
         const map = new Map<number, { abbr: string; weightClass: string }>();
         for (const [i, titleObj] of titleObjs.entries()) {
           if (!titleObj) continue;
@@ -119,8 +118,15 @@ export default function PlayerPage() {
         }
         if (!cancelled) setTitleFedMap(map);
       }
-    });
-    return () => { cancelled = true; };
+    }
+
+    load();
+
+    window.addEventListener('game:sim', load);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('game:sim', load);
+    };
   }, [id]);
 
   if (boxer === undefined) {

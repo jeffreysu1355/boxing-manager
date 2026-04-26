@@ -134,6 +134,7 @@ export function TopNav() {
           .map(b => b.id!)
       );
       setGymBoxerIds(freshIds);
+      window.dispatchEvent(new CustomEvent('game:sim'));
     } finally {
       setIsSimming(false);
     }
@@ -213,6 +214,7 @@ export function TopNav() {
           .map(b => b.id!)
       );
       setGymBoxerIds(freshIds);
+      window.dispatchEvent(new CustomEvent('game:sim'));
     } finally {
       setIsSimming(false);
     }
