@@ -37,15 +37,15 @@ async function simCalc(idA: number, idB: number) {
   const REPUTATION_INDEX: Record<string, number> = { 'Unknown': 0, 'Local Star': 1, 'Rising Star': 2, 'Respectable Opponent': 3, 'Contender': 4, 'Championship Caliber': 5, 'Nationally Ranked': 6, 'World Class Fighter': 7, 'International Superstar': 8, 'All-Time Great': 9 };
   const tierGap = Math.abs(REPUTATION_INDEX[a.reputation] - REPUTATION_INDEX[b.reputation]);
   const randomWeight = computeRandomWeight(tierGap);
-  const statRatio = (statA + statB) === 0 ? 0.5 : statA / (statA + statB);
+  const statDiff = statA - statB;
   const styleAdj = (styleScore - 0.5) * 0.20;
-  const minWinProb = Math.min(1, Math.max(0, statRatio + styleAdj - randomWeight / 2));
-  const maxWinProb = Math.min(1, Math.max(0, statRatio + styleAdj + randomWeight / 2));
+  const minWinProb = Math.min(1, Math.max(0, 0.5 + statDiff * 0.85 + styleAdj - randomWeight / 2));
+  const maxWinProb = Math.min(1, Math.max(0, 0.5 + statDiff * 0.85 + styleAdj + randomWeight / 2));
 
   console.log(`\n=== Fight Sim: ${a.name} (A) vs ${b.name} (B) ===`);
   console.log(`A: ${a.reputation} ${a.style} | statScore=${statA.toFixed(4)}`);
   console.log(`B: ${b.reputation} ${b.style} | statScore=${statB.toFixed(4)}`);
-  console.log(`statRatio (A's share): ${statRatio.toFixed(4)}`);
+  console.log(`statDiff (A - B): ${statDiff.toFixed(4)}`);
   console.log(`styleScore (A): ${styleScore} → styleAdj=${styleAdj.toFixed(4)}`);
   console.log(`tierGap: ${tierGap} → randomWeight: ${randomWeight.toFixed(4)} (±${(randomWeight/2).toFixed(4)})`);
   console.log(`winProbA range: ${minWinProb.toFixed(4)} – ${maxWinProb.toFixed(4)}`);
