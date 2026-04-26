@@ -34,6 +34,22 @@ function dateDiffDays(from: string, to: string): number {
   return Math.round((b - a) / 86_400_000);
 }
 
+async function runTraining(fromDate: string, toDate: string, gymId: number) {
+  const [allBoxers, allCoaches] = await Promise.all([getAllBoxers(), getAllCoaches()]);
+  const gymBoxers = allBoxers.filter(b => b.gymId === gymId && b.id !== undefined);
+  const days = Math.max(0, dateDiffDays(fromDate, toDate));
+  if (days === 0) return;
+
+  await Promise.all(
+    gymBoxers.map(boxer => {
+      const coach = allCoaches.find(c => c.assignedBoxerId === boxer.id);
+      if (!coach) return Promise.resolve();
+      const updated = applyTraining(boxer, coach, days);
+      return putBoxer(updated);
+    })
+  );
+}
+
 export function TopNav() {
   const [gym, setGym] = useState<Gym | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -131,22 +147,6 @@ export function TopNav() {
     navigate(`/fight/${todayFightEvents[0].fightId}`);
   }
 
-  async function runTraining(fromDate: string, toDate: string, gymId: number) {
-    const [allBoxers, allCoaches] = await Promise.all([getAllBoxers(), getAllCoaches()]);
-    const gymBoxers = allBoxers.filter(b => b.gymId === gymId && b.id !== undefined);
-    const days = Math.max(0, dateDiffDays(fromDate, toDate));
-    if (days === 0) return;
-
-    await Promise.all(
-      gymBoxers.map(boxer => {
-        const coach = allCoaches.find(c => c.assignedBoxerId === boxer.id);
-        if (!coach) return Promise.resolve();
-        const updated = applyTraining(boxer, coach, days);
-        return putBoxer(updated);
-      })
-    );
-  }
-
   async function handleSimFight() {
     const currentDate = gym?.currentDate ?? '2026-01-01';
     if (!gym || isSimming) return;
@@ -158,6 +158,7 @@ export function TopNav() {
       setGym(updated);
       setFightStop(null);
 
+      // 1 day of training applies on fight day — boxer still trains before the bout
       await runTraining(currentDate, updated.currentDate, updated.id ?? 1);
 
       const [freshEvts, freshBoxers] = await Promise.all([
