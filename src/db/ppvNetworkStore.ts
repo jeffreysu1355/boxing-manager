@@ -21,3 +21,8 @@ export async function deletePpvNetwork(id: number): Promise<void> {
   const db = await getDB();
   return db.delete('ppvNetworks', id);
 }
+
+export async function getPpvNetworksByFederation(federationId: number): Promise<PpvNetwork[]> {
+  const all = await getAllPpvNetworks();
+  return all.filter(n => n.federationId === federationId);
+}
