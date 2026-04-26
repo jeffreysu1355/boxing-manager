@@ -202,12 +202,10 @@ export interface FightContract {
 export interface PpvNetwork {
   id?: number;
   name: string;
+  federationId: number;
+  minBoxerRank: number;         // 0–9; at least one boxer must meet this
   baseViewership: number;
-  titleFightMultiplier: number; // multiplier applied for title fights
-  playerRevenueShare: number; // percentage (0–100) player earns
-  contractedBoxerId: number | null;
-  contractStart: string | null;
-  contractEnd: string | null;
+  titleFightMultiplier: number;
 }
 
 export interface FederationEvent {
@@ -279,7 +277,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 8, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 9, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -370,6 +368,13 @@ export async function getDB(): Promise<DB> {
       if (oldVersion < 8) {
         // opponentId added to FightRecord (nested field on Boxer.record[].opponentId)
         // idb returns undefined for missing fields; runtime code treats undefined as null
+      }
+
+      if (oldVersion < 9) {
+        // PpvNetwork schema changed (removed contractedBoxerId/contractStart/contractEnd,
+        // added federationId/minBoxerRank). Clear and re-seed from worldGen.
+        const store = transaction.objectStore('ppvNetworks');
+        store.clear();
       }
     },
   });
