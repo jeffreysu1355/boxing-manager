@@ -96,12 +96,14 @@ export function simulateFight(
   const tierGap = Math.abs(REPUTATION_INDEX[boxerA.reputation] - REPUTATION_INDEX[boxerB.reputation]);
   const randomWeight = computeRandomWeight(tierGap);
 
-  const styleComponent  = styleScore * 0.20;
-  const statComponent   = (statA / (statA + statB)) * 0.70;
-  const randomComponent = (Math.random() < 0.5 ? 1 : 0) * randomWeight;
-  const total           = 0.20 + 0.70 + randomWeight;
+  // statRatio is the primary driver: A's stat share of the combined pool.
+  // styleAdj shifts winProb up/down by up to ±10% based on style matchup.
+  // randAdj adds a small continuous noise scaled by randomWeight (smaller at large tier gaps).
+  const statRatio = statA / (statA + statB);
+  const styleAdj  = (styleScore - 0.5) * 0.20;
+  const randAdj   = (Math.random() - 0.5) * randomWeight;
 
-  const winProbA = (styleComponent + statComponent + randomComponent) / total;
+  const winProbA = Math.min(1, Math.max(0, statRatio + styleAdj + randAdj));
   const aWins    = Math.random() < winProbA;
 
   const winner = aWins ? boxerA : boxerB;
