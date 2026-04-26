@@ -101,15 +101,16 @@ export default function Calendar() {
   useEffect(() => {
     let cancelled = false;
 
-    Promise.all([
-      getGym(),
-      getAllBoxers(),
-      getAllCalendarEvents(),
-      getAllFights(),
-      getAllFederations(),
-      getAllFightContracts(),
-      getAllPpvNetworks(),
-    ]).then(([gym, allBoxers, allEvents, allFights, allFederations, allContracts, allNetworks]) => {
+    async function load() {
+      const [gym, allBoxers, allEvents, allFights, allFederations, allContracts, allNetworks] = await Promise.all([
+        getGym(),
+        getAllBoxers(),
+        getAllCalendarEvents(),
+        getAllFights(),
+        getAllFederations(),
+        getAllFightContracts(),
+        getAllPpvNetworks(),
+      ]);
       if (cancelled) return;
       const gameDate = gym?.currentDate ?? '2026-01-01';
       setToday(gameDate);
@@ -151,10 +152,13 @@ export default function Calendar() {
       const derived = deriveRows(allEvents, fMap, gymBoxerIds, fedMap, gameDate);
       setBoxerMap(bMap);
       setRows(derived);
-    });
+    }
 
+    load();
+    window.addEventListener('game:sim', load);
     return () => {
       cancelled = true;
+      window.removeEventListener('game:sim', load);
     };
   }, []);
 
