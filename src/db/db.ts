@@ -278,7 +278,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 7, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 8, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -364,6 +364,11 @@ export async function getDB(): Promise<DB> {
       if (oldVersion < 7) {
         // currentDate added to Gym; existing records without this field
         // will return undefined — runtime code defaults to '2026-01-01'
+      }
+
+      if (oldVersion < 8) {
+        // opponentId added to FightRecord (nested field on Boxer.record[].opponentId)
+        // idb returns undefined for missing fields; runtime code treats undefined as null
       }
     },
   });

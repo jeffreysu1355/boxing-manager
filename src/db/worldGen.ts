@@ -452,6 +452,8 @@ export async function crossReferenceFights(
 
     for (let i = 0; i < boxerA.record.length; i++) {
       const fight = boxerA.record[i];
+      // Mirror records pushed onto boxerB (below) have opponentId set, so they
+      // are safely skipped when boxerB is later visited as boxerA in this loop.
       if (fight.opponentId !== null) continue;
       if (Math.random() >= probability) continue;
 
