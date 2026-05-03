@@ -383,22 +383,23 @@ export async function generateProspects(): Promise<void> {
   const count = rand(13, 17);
   for (let i = 0; i < count; i++) {
     const style = pick(FIGHTING_STYLES);
+    const reputation = 'Unknown' as const;
     const fedName = pick(FEDERATION_NAMES);
     const prospect: Omit<Boxer, 'id'> = {
       name: generateName(fedName),
       age: rand(14, 17),
       weightClass: 'welterweight',
       style,
-      reputation: 'Unknown',
+      reputation,
       gymId: null,
       federationId: null,
-      stats: generateStats('Unknown', style),
+      stats: generateStats(reputation, style),
       naturalTalents: generateNaturalTalents(style),
       injuries: [],
       titles: [],
       record: generateAmateurRecord(style),
       rankPoints: 0,
-      demotionBuffer: RANK_CONFIG['Unknown'].bufferMax,
+      demotionBuffer: RANK_CONFIG[reputation].bufferMax,
     };
     await putBoxer(prospect);
   }
