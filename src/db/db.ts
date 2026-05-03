@@ -142,6 +142,7 @@ export interface Boxer {
   trainingExp?: Partial<Record<keyof BoxerStats, number>>;
   rankPoints: number;
   demotionBuffer: number;
+  nextFightDate?: string; // ISO date — when this boxer is next scheduled to fight (NPC only)
   lastRankDelta?: {
     points: number;
     bufferPoints: number;
