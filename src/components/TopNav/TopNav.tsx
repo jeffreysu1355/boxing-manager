@@ -11,6 +11,7 @@ import { applyTraining } from '../../lib/training';
 import { simulateFight } from '../../lib/fightSim';
 import { applyFightResult } from './fightResultApplier';
 import { refreshRecruitPool } from '../../db/worldGen';
+import { simulateNpcFights } from '../../lib/npcFightSim';
 import type { CalendarEvent, Gym, Boxer } from '../../db/db';
 import styles from './TopNav.module.css';
 
@@ -130,6 +131,7 @@ export function TopNav() {
       setFightStop(result.stoppedAt);
 
       await runTraining(currentDate, result.newDate, updated.id ?? 1);
+      await simulateNpcFights(currentDate, result.newDate);
 
       if (needsRecruitRefresh) {
         await refreshRecruitPool();
