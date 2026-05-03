@@ -140,7 +140,7 @@ Ordered lowest to highest. Higher reputation = more prize money and ad revenue.
 #### Completion Tracking
 
 - [x] Reputation level definitions
-- [ ] Reputation progression logic
+- [x] Reputation progression logic
 - [ ] Reputation affects fight earnings
 
 ### 5.3 Fighting Styles
@@ -157,7 +157,7 @@ Four styles with a rock-paper-scissors counter system:
 #### Completion Tracking
 
 - [x] Style definitions and counter relationships
-- [ ] Style affects fight outcome calculations
+- [x] Style affects fight outcome calculations
 - [x] Style determines focus stats for training
 
 ### 5.4 Stats
@@ -218,7 +218,7 @@ Record fields: Result (Win/Loss/Draw), Opponent Name, Method (KO/TKO/Decision/et
 #### Completion Tracking
 
 - [x] Fight record data model
-- [ ] Record auto-generated after each fight
+- [x] Record auto-generated after each fight
 - [x] Record display UI on boxer detail page
 
 ### 5.8 Titles
@@ -228,8 +228,8 @@ Boxers can hold federation titles. Track which titles are held and the date rang
 #### Completion Tracking
 
 - [x] Title data model (federation, weight class, holder, date acquired, date lost)
-- [ ] Title assignment on fight win (when title fight)
-- [ ] Title history display on boxer profile
+- [x] Title assignment on fight win (when title fight)
+- [x] Title history display on boxer profile
 
 ### 5.9 Boxer Recruitment
 
@@ -265,7 +265,7 @@ Coaches must be recruited like boxers. Better gyms attract better coaches.
 - [x] Coach recruitment system
 - [x] Gym level affects available coach quality
 - [x] Coach assignment to boxers
-- [ ] Season training: daily EXP gain calculation
+- [x] Season training: daily EXP gain calculation
 - [ ] Pre-fight training: temporary 300% stat boost calculation
 - [ ] Pre-fight boost scales with training days
 - [x] Coach management UI (Gym > Coaches tab)
@@ -329,16 +329,16 @@ Fight result must produce a record entry with: winner, method (KO, TKO, Decision
 
 #### Completion Tracking
 
-- [ ] Fight simulation engine
-- [ ] Style matchup advantage calculation (20%)
-- [ ] Stats comparison calculation (70%)
-- [ ] Random factor (10%)
-- [ ] Determine fight method (KO, TKO, Decision, etc.)
-- [ ] Determine round and time of finish
-- [ ] Generate fight record entries for both boxers
-- [ ] Post-fight reputation updates
+- [x] Fight simulation engine
+- [x] Style matchup advantage calculation (20%)
+- [x] Stats comparison calculation (70%)
+- [x] Random factor (10%)
+- [x] Determine fight method (KO, TKO, Decision, etc.)
+- [x] Determine round and time of finish
+- [x] Generate fight record entries for both boxers
+- [x] Post-fight reputation updates
 - [ ] Post-fight injury generation
-- [ ] Post-fight title transfer (if title fight)
+- [x] Post-fight title transfer (if title fight)
 - [ ] Post-fight financial payout
 
 
@@ -455,7 +455,7 @@ These are NOT in scope for the initial build but are noted for future considerat
 | Coach System | **In Progress** |
 | Fight System | **In Progress** |
 | Federation System | **Complete** |
-| Financial System | **In Progress** |
+| Financial System | **Not Started** |
 | UI & Navigation | **In Progress** |
 
 > Update this table as sections are completed. Use **Not Started**, **In Progress**, or **Complete**.

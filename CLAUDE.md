@@ -105,3 +105,7 @@ Main navigation tabs (same level as League/Gym/Players):
 ## Reference Materials
 
 See `references/` directory for UI inspiration screenshots from football-gm and World Boxing Manager.
+
+## Development Workflow
+
+After completing any feature, update `PRD.md` to mark newly completed checklist items with `[x]`. Do this as part of the same commit or a follow-up commit before closing the work.
