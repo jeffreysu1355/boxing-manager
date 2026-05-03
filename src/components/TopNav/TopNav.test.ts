@@ -154,6 +154,57 @@ describe('applyFightResult', () => {
     expect(title!.reigns[1].dateLost).toBeNull();
   });
 
+  it('increases winner rankPoints and sets lastRankDelta after applyFightResult', async () => {
+    const fedId = await putFederation({ name: 'North America Boxing Federation', prestige: 8 });
+    const winnerId = await putBoxer({
+      name: 'RankWinner', age: 25, weightClass: 'welterweight', style: 'slugger',
+      reputation: 'Unknown', gymId: 1, federationId: fedId,
+      stats: makeStats(10), naturalTalents: [], injuries: [], titles: [], record: [],
+      rankPoints: 0, demotionBuffer: 10,
+    });
+    const loserId = await putBoxer({
+      name: 'RankLoser', age: 25, weightClass: 'welterweight', style: 'out-boxer',
+      reputation: 'Unknown', gymId: null, federationId: fedId,
+      stats: makeStats(10), naturalTalents: [], injuries: [], titles: [], record: [],
+      rankPoints: 0, demotionBuffer: 10,
+    });
+    const contractId = await putFightContract({
+      boxerId: winnerId, opponentId: loserId, federationId: fedId,
+      weightClass: 'welterweight', guaranteedPayout: 1000, ppvSplitPercentage: 50,
+      ppvNetworkId: null, isTitleFight: false, status: 'accepted',
+      counterOfferPayout: null, counterOfferPpvSplit: null, roundsUsed: 1,
+      scheduledDate: '2026-03-14', fightId: null,
+    });
+    const fightId = await putFight({
+      date: '2026-03-14', federationId: fedId, weightClass: 'welterweight',
+      boxerIds: [winnerId, loserId], winnerId: null,
+      method: 'Decision', finishingMove: null, round: null, time: null,
+      isTitleFight: false, contractId,
+    });
+
+    await applyFightResult({
+      fightId, winnerId, loserId, method: 'KO', finishingMove: 'Cross',
+      round: 5, time: '2:10',
+      winnerRecord: {
+        result: 'win', opponentName: 'RankLoser', opponentId: loserId,
+        method: 'KO', finishingMove: 'Cross', round: 5, time: '2:10',
+        federation: 'North America Boxing Federation', date: '2026-03-14',
+      },
+      loserRecord: {
+        result: 'loss', opponentName: 'RankWinner', opponentId: winnerId,
+        method: 'KO', finishingMove: 'Cross', round: 5, time: '2:10',
+        federation: 'North America Boxing Federation', date: '2026-03-14',
+      },
+      isTitleFight: false, federationId: fedId, weightClass: 'welterweight',
+      fightDate: '2026-03-14', contractId,
+    });
+
+    const { getBoxer } = await import('../../db/boxerStore');
+    const winner = await getBoxer(winnerId);
+    expect(winner!.rankPoints).toBeGreaterThan(0);
+    expect(winner!.lastRankDelta).toBeDefined();
+  });
+
   it('marks the fight contract as completed', async () => {
     const fedId = await putFederation({ name: 'North America Boxing Federation', prestige: 8 });
     const winnerId = await putBoxer({

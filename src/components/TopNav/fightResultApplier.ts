@@ -2,6 +2,7 @@ import { getFight, putFight } from '../../db/fightStore';
 import { getBoxer, putBoxer } from '../../db/boxerStore';
 import { getTitlesByFederation, putTitle } from '../../db/titleStore';
 import { getFightContract, putFightContract } from '../../db/fightContractStore';
+import { applyRankChange } from '../../lib/rankSystem';
 import type { FightMethod, FightRecord, WeightClass } from '../../db/db';
 
 export interface ApplyFightResultParams {
@@ -34,10 +35,26 @@ export async function applyFightResult(params: ApplyFightResultParams): Promise<
     await putFight({ ...fight, winnerId, method, finishingMove, round, time });
   }
 
-  // 2. Push records onto both boxers
+  // 2. Push records onto both boxers and apply rank changes
   const [winner, loser] = await Promise.all([getBoxer(winnerId), getBoxer(loserId)]);
-  if (winner) await putBoxer({ ...winner, record: [...winner.record, winnerRecord] });
-  if (loser)  await putBoxer({ ...loser,  record: [...loser.record,  loserRecord]  });
+  if (winner && loser) {
+    const updatedWinner = applyRankChange(
+      { ...winner, record: [...winner.record, winnerRecord] },
+      loser,
+      'win',
+      isTitleFight,
+    );
+    const updatedLoser = applyRankChange(
+      { ...loser, record: [...loser.record, loserRecord] },
+      winner,
+      'loss',
+      isTitleFight,
+    );
+    await Promise.all([putBoxer(updatedWinner), putBoxer(updatedLoser)]);
+  } else {
+    if (winner) await putBoxer({ ...winner, record: [...winner.record, winnerRecord] });
+    if (loser)  await putBoxer({ ...loser,  record: [...loser.record,  loserRecord]  });
+  }
 
   // 3. Title transfer
   if (isTitleFight) {
