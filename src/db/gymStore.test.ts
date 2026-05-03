@@ -8,7 +8,6 @@ const baseGym: Omit<Gym, 'id'> = {
   level: 1,
   balance: 10000,
   rosterIds: [],
-  coachIds: [],
   currentDate: '2026-01-01',
 };
 
@@ -62,14 +61,6 @@ describe('gymStore', () => {
     const updated = await getGym();
     expect(updated?.name).toBe('Champions Gym');
     expect(updated?.rosterIds).toEqual([1, 2, 3]);
-  });
-
-  it('saveGym can add coachIds', async () => {
-    await saveGym(baseGym);
-    const created = await getGym();
-    await saveGym({ ...created!, coachIds: [10] });
-    const updated = await getGym();
-    expect(updated?.coachIds).toEqual([10]);
   });
 
   it('saveGym persists and retrieves currentDate', async () => {
