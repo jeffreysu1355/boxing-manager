@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
-import { getGym, saveGym } from '../../db/gymStore';
+import { getGym } from '../../db/gymStore';
 import { getAllCoaches, putCoach } from '../../db/coachStore';
 import { getAllBoxers } from '../../db/boxerStore';
 import type { Boxer, Coach, CoachSkillLevel, Gym } from '../../db/db';
