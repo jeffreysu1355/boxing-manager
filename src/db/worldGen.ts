@@ -8,6 +8,7 @@ import { getGym, saveGym } from './gymStore';
 import { putPpvNetwork } from './ppvNetworkStore';
 import { putTitle } from './titleStore';
 import { RANK_CONFIG } from '../lib/rankSystem';
+import { COACH_MONTHLY_SALARY } from './db';
 import type {
   Boxer,
   BoxerStats,
@@ -511,43 +512,31 @@ export async function generateFreeAgents(): Promise<void> {
 
 // --- Coach generation ---
 
-async function generateCoaches(): Promise<number[]> {
+async function generateCoaches(): Promise<void> {
   const styles: FightingStyle[] = ['out-boxer', 'swarmer', 'slugger', 'counterpuncher'];
 
-  // Distribute 10 local coaches across 4 styles: 3 + 3 + 2 + 2
-  const localStyleAssignments: FightingStyle[] = [
-    ...Array(3).fill(styles[0]),
-    ...Array(3).fill(styles[1]),
-    ...Array(2).fill(styles[2]),
-    ...Array(2).fill(styles[3]),
-  ];
-  // Shuffle so it's not always the same order
-  localStyleAssignments.sort(() => Math.random() - 0.5);
-
-  const coachIds: number[] = [];
-
-  for (const style of localStyleAssignments) {
-    const coach: Omit<Coach, 'id'> = {
-      name: generateName(pick(FEDERATION_NAMES)),
-      skillLevel: 'local',
-      style,
-      assignedBoxerId: null,
-    };
-    const id = await putCoach(coach);
-    coachIds.push(id);
+  // 2 Local + 2 Contender + 1 Championship Caliber + 1 All-Time Great per style = 24 total
+  const entries: Array<{ skillLevel: 'local' | 'contender' | 'championship-caliber' | 'all-time-great'; style: FightingStyle }> = [];
+  for (const style of styles) {
+    entries.push({ skillLevel: 'local', style });
+    entries.push({ skillLevel: 'local', style });
+    entries.push({ skillLevel: 'contender', style });
+    entries.push({ skillLevel: 'contender', style });
+    entries.push({ skillLevel: 'championship-caliber', style });
+    entries.push({ skillLevel: 'all-time-great', style });
   }
 
-  // 1 contender coach with random style
-  const contender: Omit<Coach, 'id'> = {
-    name: generateName(pick(FEDERATION_NAMES)),
-    skillLevel: 'contender',
-    style: pick(styles),
-    assignedBoxerId: null,
-  };
-  const contenderId = await putCoach(contender);
-  coachIds.push(contenderId);
-
-  return coachIds;
+  for (const { skillLevel, style } of entries) {
+    const coach: Omit<Coach, 'id'> = {
+      name: generateName(pick(FEDERATION_NAMES)),
+      skillLevel,
+      style,
+      assignedBoxerId: null,
+      gymId: null,
+      monthlySalary: COACH_MONTHLY_SALARY[skillLevel],
+    };
+    await putCoach(coach);
+  }
 }
 
 async function generatePpvNetworks(
@@ -782,16 +771,11 @@ export async function generateWorld(): Promise<void> {
     level: 1,
     balance: 500_000_000,
     rosterIds: [],
-    coachIds: [],
     currentDate: '2026-01-01',
   });
 
-  // 7. Seed coaches and update gym
-  const coachIds = await generateCoaches();
-  const gym = await getGym();
-  if (gym) {
-    await saveGym({ ...gym, coachIds });
-  }
+  // 7. Seed coaches into recruiting pool (all gymId: null)
+  await generateCoaches();
 
   // 8. Seed PPV networks per federation
   await generatePpvNetworks(federationIds);
