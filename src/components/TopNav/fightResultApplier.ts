@@ -19,7 +19,7 @@ export interface ApplyFightResultParams {
   federationId: number;
   weightClass: WeightClass;
   fightDate: string;
-  contractId: number;
+  contractId: number | null;
 }
 
 export async function applyFightResult(params: ApplyFightResultParams): Promise<void> {
@@ -70,9 +70,11 @@ export async function applyFightResult(params: ApplyFightResultParams): Promise<
     }
   }
 
-  // 4. Mark contract completed
-  const contract = await getFightContract(contractId);
-  if (contract) {
-    await putFightContract({ ...contract, status: 'completed' });
+  // 4. Mark contract completed (skip for NPC fights which have no contract)
+  if (contractId !== null) {
+    const contract = await getFightContract(contractId);
+    if (contract) {
+      await putFightContract({ ...contract, status: 'completed' });
+    }
   }
 }

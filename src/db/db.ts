@@ -178,7 +178,7 @@ export interface Federation {
 export interface Fight {
   id?: number;
   date: string;
-  federationId: number;
+  federationId: number; // -1 for cross-federation NPC fights (no single federation host)
   weightClass: WeightClass;
   boxerIds: number[]; // [boxer1Id, boxer2Id], multiEntry indexed
   winnerId: number | null; // null = draw
@@ -187,7 +187,7 @@ export interface Fight {
   round: number | null; // null for decisions
   time: string | null; // null for decisions
   isTitleFight: boolean;
-  contractId: number;
+  contractId: number | null; // null = NPC-simulated fight with no player contract
 }
 
 export interface FightContract {
@@ -286,7 +286,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 11, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 12, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -396,6 +396,12 @@ export async function getDB(): Promise<DB> {
         // idb returns undefined for missing fields on existing records;
         // runtime code in rankSystem.ts defaults rankPoints to 0 and
         // demotionBuffer to bufferMax for the boxer's current reputation.
+      }
+
+      if (oldVersion < 12) {
+        // contractId on Fight changed from number to number | null.
+        // Existing fights have a numeric contractId and remain valid.
+        // New NPC fights will have contractId: null.
       }
     },
   });
