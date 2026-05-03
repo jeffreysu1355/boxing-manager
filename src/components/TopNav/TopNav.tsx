@@ -97,6 +97,7 @@ export function TopNav() {
     if (!gym || isSimming) return;
     setIsSimming(true);
     setFightStop(null);  // clear stale banner before new sim
+    setRankChanges([]);
     setDropdownOpen(false);
 
     try {
