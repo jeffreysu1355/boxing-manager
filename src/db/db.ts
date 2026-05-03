@@ -140,6 +140,14 @@ export interface Boxer {
   titles: TitleRecord[];
   record: FightRecord[];
   trainingExp?: Partial<Record<keyof BoxerStats, number>>;
+  rankPoints: number;
+  demotionBuffer: number;
+  lastRankDelta?: {
+    points: number;
+    bufferPoints: number;
+    promoted: boolean;
+    demoted: boolean;
+  };
 }
 
 export interface Coach {
@@ -278,7 +286,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 10, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 11, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -381,6 +389,13 @@ export async function getDB(): Promise<DB> {
       if (oldVersion < 10) {
         // recruitRefreshDate added to Gym; existing records without this field
         // will return undefined — runtime code treats undefined as absent (triggers refresh).
+      }
+
+      if (oldVersion < 11) {
+        // rankPoints, demotionBuffer, lastRankDelta added to Boxer.
+        // idb returns undefined for missing fields on existing records;
+        // runtime code in rankSystem.ts defaults rankPoints to 0 and
+        // demotionBuffer to bufferMax for the boxer's current reputation.
       }
     },
   });

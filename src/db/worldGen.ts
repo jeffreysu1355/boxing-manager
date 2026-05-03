@@ -159,12 +159,13 @@ const RECORD_COUNTS: Record<ReputationLevel, { min: number; max: number; winRate
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-function generateFightRecord(reputation: ReputationLevel, style: FightingStyle): FightRecord[] {
+function generateFightRecord(reputation: ReputationLevel, style: FightingStyle, age: number): FightRecord[] {
   const { min, max, winRate } = RECORD_COUNTS[reputation];
   const total = rand(min, max);
   const records: FightRecord[] = [];
 
-  let year = 2026 - Math.ceil(total / 4);
+  const earliestYear = 2026 - (age - 18); // can't have fought before turning 18
+  let year = Math.max(earliestYear, 2026 - Math.ceil(total / 4));
   let month = rand(1, 12);
 
   for (let i = 0; i < total; i++) {
@@ -395,6 +396,8 @@ export async function generateProspects(): Promise<void> {
       injuries: [],
       titles: [],
       record: generateAmateurRecord(style),
+      rankPoints: 0,
+      demotionBuffer: 10,
     };
     await putBoxer(prospect);
   }
@@ -406,9 +409,10 @@ export async function generateFreeAgents(): Promise<void> {
     const style = pick(FIGHTING_STYLES);
     const reputation = weightedPick(FREE_AGENT_REPUTATION_DISTRIBUTION);
     const fedName = pick(FEDERATION_NAMES);
+    const age = rand(22, 35);
     const freeAgent: Omit<Boxer, 'id'> = {
       name: generateName(fedName),
-      age: rand(22, 35),
+      age,
       weightClass: 'welterweight',
       style,
       reputation,
@@ -418,7 +422,9 @@ export async function generateFreeAgents(): Promise<void> {
       naturalTalents: generateNaturalTalents(style),
       injuries: [],
       titles: [],
-      record: generateFightRecord(reputation, style),
+      record: generateFightRecord(reputation, style, age),
+      rankPoints: 0,
+      demotionBuffer: 10,
     };
     await putBoxer(freeAgent);
   }
@@ -621,9 +627,10 @@ export async function generateWorld(): Promise<void> {
 
     for (const reputation of shuffled) {
       const style = pick(FIGHTING_STYLES);
+      const age = rand(18, 36);
       const boxer: Omit<Boxer, 'id'> = {
         name: generateName(fedName),
-        age: rand(18, 36),
+        age,
         weightClass: 'welterweight',
         style,
         reputation,
@@ -633,7 +640,9 @@ export async function generateWorld(): Promise<void> {
         naturalTalents: generateNaturalTalents(style),
         injuries: [],
         titles: [],
-        record: generateFightRecord(reputation, style),
+        record: generateFightRecord(reputation, style, age),
+        rankPoints: 0,
+        demotionBuffer: 10,
       };
 
       const boxerId = await putBoxer(boxer);
