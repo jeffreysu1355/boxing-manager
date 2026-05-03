@@ -32,6 +32,8 @@ function makeCoach(overrides: Partial<Coach> = {}): Coach {
     skillLevel: 'local',
     style: 'out-boxer',
     assignedBoxerId: null,
+    gymId: 1,
+    monthlySalary: 500,
     ...overrides,
   };
 }

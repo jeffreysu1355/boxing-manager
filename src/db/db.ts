@@ -157,6 +157,8 @@ export interface Coach {
   skillLevel: CoachSkillLevel;
   style: FightingStyle;
   assignedBoxerId: number | null;
+  gymId: number | null;      // null = available in recruiting pool
+  monthlySalary: number;     // deducted monthly from gym balance
 }
 
 export interface Gym {
@@ -165,10 +167,31 @@ export interface Gym {
   level: number;
   balance: number;
   rosterIds: number[];
-  coachIds: number[];
   currentDate: string; // ISO date, e.g. '2026-01-01'
   recruitRefreshDate?: string; // YYYY-MM (month of last recruit pool refresh)
 }
+
+export const GYM_LEVEL_COACH_CAP: Record<number, number> = {
+  1: 5,  2: 5,
+  3: 6,  4: 7,
+  5: 9,  6: 11,
+  7: 13, 8: 15,
+  9: 17, 10: 20,
+};
+
+export const COACH_HIRING_FEE: Record<CoachSkillLevel, number> = {
+  'local':                   5_000,
+  'contender':              50_000,
+  'championship-caliber':  400_000,
+  'all-time-great':      2_000_000,
+};
+
+export const COACH_MONTHLY_SALARY: Record<CoachSkillLevel, number> = {
+  'local':                    500,
+  'contender':              3_000,
+  'championship-caliber':  15_000,
+  'all-time-great':        75_000,
+};
 
 export interface Federation {
   id?: number;
@@ -287,7 +310,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 12, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 13, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -403,6 +426,13 @@ export async function getDB(): Promise<DB> {
         // contractId on Fight changed from number to number | null.
         // Existing fights have a numeric contractId and remain valid.
         // New NPC fights will have contractId: null.
+      }
+
+      if (oldVersion < 13) {
+        // Coach gained gymId and monthlySalary fields.
+        // Gym.coachIds field is abandoned (coach ownership tracked via Coach.gymId).
+        // Existing coach records without gymId/monthlySalary return undefined;
+        // runtime code treats gymId undefined as null (available pool).
       }
     },
   });
