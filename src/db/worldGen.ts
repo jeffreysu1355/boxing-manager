@@ -1,6 +1,7 @@
 import namesData from '../data/names.json';
 import { getBoxer, getAllBoxers, putBoxer, deleteBoxer } from './boxerStore';
 import { putCoach } from './coachStore';
+import { addDays } from '../lib/simTime';
 import { putFederation } from './federationStore';
 import { putFederationEvent } from './federationEventStore';
 import { getGym, saveGym } from './gymStore';
@@ -400,6 +401,7 @@ export async function generateProspects(): Promise<void> {
       record: generateAmateurRecord(style),
       rankPoints: 0,
       demotionBuffer: RANK_CONFIG[reputation].bufferMax,
+      nextFightDate: addDays('2026-01-01', rand(0, 180)),
     };
     await putBoxer(prospect);
   }
@@ -427,6 +429,7 @@ export async function generateFreeAgents(): Promise<void> {
       record: generateFightRecord(reputation, style, age),
       rankPoints: 0,
       demotionBuffer: RANK_CONFIG[reputation].bufferMax,
+      nextFightDate: addDays('2026-01-01', rand(0, 180)),
     };
     await putBoxer(freeAgent);
   }
@@ -645,6 +648,7 @@ export async function generateWorld(): Promise<void> {
         record: generateFightRecord(reputation, style, age),
         rankPoints: 0,
         demotionBuffer: RANK_CONFIG[reputation].bufferMax,
+        nextFightDate: addDays('2026-01-01', rand(0, 180)),
       };
 
       const boxerId = await putBoxer(boxer);
