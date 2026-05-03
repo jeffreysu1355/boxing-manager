@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
-import { getGym } from '../../db/gymStore';
+import { getGym, saveGym } from '../../db/gymStore';
 import { getAllCoaches, putCoach } from '../../db/coachStore';
 import { getAllBoxers } from '../../db/boxerStore';
-import type { Boxer, Coach, CoachSkillLevel } from '../../db/db';
+import type { Boxer, Coach, CoachSkillLevel, Gym } from '../../db/db';
 import styles from './Coaches.module.css';
 
 const SKILL_LABELS: Record<CoachSkillLevel, string> = {
@@ -32,63 +32,72 @@ function styleLabel(style: string): string {
   return style.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join('-');
 }
 
+function formatMoney(amount: number): string {
+  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
+  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`;
+  return `$${amount}`;
+}
+
 export default function Coaches() {
   const [roster, setRoster] = useState<Boxer[]>([]);
   const [coaches, setCoaches] = useState<Coach[]>([]);
-  const [gymLevel, setGymLevel] = useState<number>(1);
+  const [gym, setGym] = useState<Gym | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-
     async function load() {
-      const [gym, allCoaches, allBoxers] = await Promise.all([
+      const [gymData, allCoaches, allBoxers] = await Promise.all([
         getGym(),
         getAllCoaches(),
         getAllBoxers(),
       ]);
       if (!cancelled) {
-        const gymRoster = allBoxers.filter(b => b.gymId === (gym?.id ?? 1));
+        const gymId = gymData?.id ?? 1;
+        const gymRoster = allBoxers.filter(b => b.gymId === gymId);
+        const hiredCoaches = allCoaches.filter(c => c.gymId === gymId);
         setRoster(gymRoster);
-        setCoaches(allCoaches);
-        setGymLevel(gym?.level ?? 1);
+        setCoaches(hiredCoaches);
+        setGym(gymData ?? null);
         setLoading(false);
       }
     }
-
     load();
     return () => { cancelled = true; };
   }, []);
 
   async function handleAssign(boxer: Boxer, coachIdStr: string) {
-    const updatedCoaches = [...coaches];
+    const updated = [...coaches];
 
-    // Clear any existing coach assigned to this boxer
-    const prevCoachIdx = updatedCoaches.findIndex(c => c.assignedBoxerId === boxer.id);
-    if (prevCoachIdx !== -1) {
-      const prev = { ...updatedCoaches[prevCoachIdx], assignedBoxerId: null };
-      updatedCoaches[prevCoachIdx] = prev;
+    const prevIdx = updated.findIndex(c => c.assignedBoxerId === boxer.id);
+    if (prevIdx !== -1) {
+      const prev = { ...updated[prevIdx], assignedBoxerId: null };
+      updated[prevIdx] = prev;
       await putCoach(prev);
     }
 
     if (coachIdStr !== '') {
       const newCoachId = Number(coachIdStr);
-      const newCoachIdx = updatedCoaches.findIndex(c => c.id === newCoachId);
-      if (newCoachIdx !== -1) {
-        const updated = { ...updatedCoaches[newCoachIdx], assignedBoxerId: boxer.id! };
-        updatedCoaches[newCoachIdx] = updated;
-        await putCoach(updated);
+      const newIdx = updated.findIndex(c => c.id === newCoachId);
+      if (newIdx !== -1) {
+        const next = { ...updated[newIdx], assignedBoxerId: boxer.id! };
+        updated[newIdx] = next;
+        await putCoach(next);
       }
     }
 
-    setCoaches(updatedCoaches);
+    setCoaches(updated);
   }
 
-  const maxCoachSkill = GYM_LEVEL_MAX_COACH_SKILL[gymLevel] ?? 'local';
-  const maxCoachSkillIdx = COACH_SKILL_INDEX[maxCoachSkill];
-  const availableCoaches = coaches.filter(
-    c => c.assignedBoxerId === null && COACH_SKILL_INDEX[c.skillLevel] <= maxCoachSkillIdx
-  );
+  async function handleRelease(coach: Coach) {
+    const released = { ...coach, gymId: null as null, assignedBoxerId: null as null };
+    await putCoach(released);
+    setCoaches(prev => prev.filter(c => c.id !== coach.id));
+  }
+
+  const gymLevel = gym?.level ?? 1;
+  const maxSkillIdx = COACH_SKILL_INDEX[GYM_LEVEL_MAX_COACH_SKILL[gymLevel] ?? 'local'];
+  const unassigned = coaches.filter(c => c.assignedBoxerId === null);
 
   if (loading) {
     return (
@@ -135,7 +144,7 @@ export default function Coaches() {
                           <option value="">None</option>
                           {coaches
                             .filter(c =>
-                              COACH_SKILL_INDEX[c.skillLevel] <= maxCoachSkillIdx ||
+                              COACH_SKILL_INDEX[c.skillLevel] <= maxSkillIdx ||
                               c.assignedBoxerId === boxer.id
                             )
                             .map(coach => (
@@ -154,9 +163,9 @@ export default function Coaches() {
         </section>
 
         <section>
-          <h2 className={styles.sectionTitle}>Available Coaches</h2>
-          {availableCoaches.length === 0 ? (
-            <p className={styles.empty}>No coaches available.</p>
+          <h2 className={styles.sectionTitle}>Unassigned Coaches</h2>
+          {unassigned.length === 0 ? (
+            <p className={styles.empty}>All hired coaches are assigned.</p>
           ) : (
             <table>
               <thead>
@@ -164,14 +173,25 @@ export default function Coaches() {
                   <th>Name</th>
                   <th>Skill Level</th>
                   <th>Style</th>
+                  <th>Monthly Salary</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
-                {availableCoaches.map(coach => (
+                {unassigned.map(coach => (
                   <tr key={coach.id}>
                     <td>{coach.name}</td>
                     <td className={styles.skillTag}>{SKILL_LABELS[coach.skillLevel]}</td>
                     <td className={styles.styleTag}>{styleLabel(coach.style)}</td>
+                    <td>{formatMoney(coach.monthlySalary)}/mo</td>
+                    <td>
+                      <button
+                        className={styles.releaseBtn}
+                        onClick={() => handleRelease(coach)}
+                      >
+                        Release
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

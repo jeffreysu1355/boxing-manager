@@ -43,3 +43,18 @@
   color: var(--text-secondary);
   font-style: italic;
 }
+
+.releaseBtn {
+  background: transparent;
+  border: 1px solid var(--danger, #c0392b);
+  color: var(--danger, #c0392b);
+  padding: 2px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.releaseBtn:hover {
+  background: var(--danger, #c0392b);
+  color: #fff;
+}
