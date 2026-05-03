@@ -127,7 +127,7 @@ export default function RecentResults() {
                         : '—'}
                     </td>
                     <td>{fight.method}</td>
-                    <td>{fight.weightClass}</td>
+                    <td>{fight.weightClass.charAt(0).toUpperCase() + fight.weightClass.slice(1)}</td>
                     <td>{federationName}</td>
                     <td>
                       {fight.isTitleFight && (
