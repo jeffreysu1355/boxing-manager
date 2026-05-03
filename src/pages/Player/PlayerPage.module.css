@@ -193,3 +193,90 @@
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* Ranking section */
+.rankSection {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.rankRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.rankRow:last-child {
+  border-bottom: none;
+}
+
+.rankRowLabel {
+  color: var(--text-secondary);
+  font-size: 12px;
+  min-width: 80px;
+}
+
+.rankBarContainer {
+  flex: 1;
+  margin: 0 12px;
+  height: 8px;
+  background: var(--bg-surface);
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.rankBarBlue {
+  height: 100%;
+  background: #2196f3;
+  border-radius: 3px;
+  transition: width 0.2s;
+}
+
+.rankBarAmber {
+  height: 100%;
+  background: var(--warning);
+  border-radius: 3px;
+  transition: width 0.2s;
+}
+
+.rankBarNumbers {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.rankDeltaPositive {
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rankDeltaNegative {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rankDeltaNeutral {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.rankPromoted {
+  color: var(--success);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.rankDemoted {
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 13px;
+}

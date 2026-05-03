@@ -6,6 +6,7 @@ import { getAllCoaches } from '../../db/coachStore';
 import { getTitle } from '../../db/titleStore';
 import { getFederation } from '../../db/federationStore';
 import { STYLE_STATS } from '../../lib/training';
+import { RANK_CONFIG } from '../../lib/rankSystem';
 import type { Boxer, BoxerStats, Coach, FightRecord, Federation } from '../../db/db';
 import styles from './PlayerPage.module.css';
 
@@ -84,6 +85,63 @@ function formatFightDate(date: string): string {
 }
 
 // --- Component ---
+
+function RankingSection({ boxer }: { boxer: Boxer }) {
+  const config = RANK_CONFIG[boxer.reputation];
+  const rankPoints = boxer.rankPoints ?? 0;
+  const demotionBuffer = boxer.demotionBuffer ?? config.bufferMax;
+  const delta = boxer.lastRankDelta;
+
+  const progressPct = config.promotionThreshold === Infinity
+    ? 100
+    : Math.min(100, (rankPoints / config.promotionThreshold) * 100);
+  const bufferPct = Math.min(100, (demotionBuffer / config.bufferMax) * 100);
+
+  const progressLabel = config.promotionThreshold === Infinity
+    ? `${rankPoints} pts (max rank)`
+    : `${rankPoints} / ${config.promotionThreshold} pts`;
+
+  function renderDelta() {
+    if (!delta) return null;
+    if (delta.promoted) return <span className={styles.rankPromoted}>Promoted to {boxer.reputation}!</span>;
+    if (delta.demoted) return <span className={styles.rankDemoted}>Demoted to {boxer.reputation}</span>;
+    if (delta.points === 0 && delta.bufferPoints === 0) return <span className={styles.rankDeltaNeutral}>No rank change (title fight loss)</span>;
+    if (delta.bufferPoints > 0) return <span className={styles.rankDeltaNegative}>−{delta.bufferPoints} buffer pts</span>;
+    if (delta.points > 0 && !delta.promoted) return <span className={styles.rankDeltaPositive}>+{delta.points} pts</span>;
+    if (delta.points > 0 && delta.demoted) return <span className={styles.rankDeltaNegative}>−{delta.points} pts</span>;
+    return null;
+  }
+
+  return (
+    <div className={styles.rankSection}>
+      <div className={styles.sectionTitle}>Ranking</div>
+      <div className={styles.rankRow}>
+        <span className={styles.rankRowLabel}>Rank</span>
+        <span style={{ flex: 1 }}>{boxer.reputation}</span>
+      </div>
+      <div className={styles.rankRow}>
+        <span className={styles.rankRowLabel}>Progress</span>
+        <div className={styles.rankBarContainer}>
+          <div className={styles.rankBarBlue} style={{ width: `${progressPct}%` }} />
+        </div>
+        <span className={styles.rankBarNumbers}>{progressLabel}</span>
+      </div>
+      <div className={styles.rankRow}>
+        <span className={styles.rankRowLabel}>Buffer</span>
+        <div className={styles.rankBarContainer}>
+          <div className={styles.rankBarAmber} style={{ width: `${bufferPct}%` }} />
+        </div>
+        <span className={styles.rankBarNumbers}>{demotionBuffer} / {config.bufferMax}</span>
+      </div>
+      {delta && (
+        <div className={styles.rankRow}>
+          <span className={styles.rankRowLabel}>Last fight</span>
+          <span style={{ flex: 1 }}>{renderDelta()}</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function PlayerPage() {
   const { id } = useParams<{ id: string }>();
@@ -214,6 +272,8 @@ export default function PlayerPage() {
             </div>
           ))}
         </div>
+
+        <RankingSection boxer={boxer} />
 
         {/* Fight record */}
         <div className={styles.section}>
