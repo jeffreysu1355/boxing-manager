@@ -103,9 +103,9 @@ describe('getDB', () => {
     expect(tx.store.indexNames.contains('fightId')).toBe(true);
   });
 
-  it('opens DB at version 12 with federationEvents store', async () => {
+  it('opens DB at version 13 with federationEvents store', async () => {
     const db = await getDB();
-    expect(db.version).toBe(12);
+    expect(db.version).toBe(13);
     const storeNames = Array.from(db.objectStoreNames);
     expect(storeNames).toContain('federationEvents');
   });
@@ -117,8 +117,8 @@ describe('getDB', () => {
     expect(tx.store.indexNames.contains('date')).toBe(true);
   });
 
-  it('opens DB at version 12 with opponentId field support on FightRecord', async () => {
+  it('opens DB at version 13 with opponentId field support on FightRecord', async () => {
     const db = await getDB();
-    expect(db.version).toBe(12);
+    expect(db.version).toBe(13);
   });
 });
