@@ -116,7 +116,8 @@ function transferTitle(
 export async function simulateNpcFights(fromDate: string, toDate: string): Promise<void> {
   const [allBoxers, allTitles] = await Promise.all([getAllBoxers(), getAllTitles()]);
 
-  const pool = allBoxers.filter(b => b.gymId === null && b.id !== undefined);
+  // Only federation-affiliated boxers — free agents/prospects are regenerated monthly and their IDs become stale
+  const pool = allBoxers.filter(b => b.gymId === null && b.federationId !== null && b.id !== undefined);
 
   const eligible = pool.filter(b =>
     b.nextFightDate !== undefined &&

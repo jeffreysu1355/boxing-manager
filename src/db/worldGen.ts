@@ -205,44 +205,118 @@ function generateFightRecord(reputation: ReputationLevel, style: FightingStyle, 
 
 // --- Reputation distribution ---
 
-// Per-federation distribution of 10 welterweight fighters.
+// Per-federation distribution of ~50 welterweight fighters.
 // IBF skews higher; others follow standard pyramid.
 const STANDARD_DISTRIBUTION: ReputationLevel[] = [
+  'International Superstar',
+  'World Class Fighter',
   'World Class Fighter',
   'Nationally Ranked',
+  'Nationally Ranked',
+  'Nationally Ranked',
+  'Championship Caliber',
+  'Championship Caliber',
+  'Championship Caliber',
   'Championship Caliber',
   'Contender',
   'Contender',
+  'Contender',
+  'Contender',
+  'Contender',
+  'Contender',
+  'Respectable Opponent',
+  'Respectable Opponent',
+  'Respectable Opponent',
+  'Respectable Opponent',
+  'Respectable Opponent',
   'Respectable Opponent',
   'Respectable Opponent',
   'Rising Star',
+  'Rising Star',
+  'Rising Star',
+  'Rising Star',
+  'Rising Star',
+  'Rising Star',
+  'Rising Star',
+  'Rising Star',
   'Local Star',
+  'Local Star',
+  'Local Star',
+  'Local Star',
+  'Local Star',
+  'Local Star',
+  'Local Star',
+  'Local Star',
+  'Local Star',
+  'Unknown',
+  'Unknown',
+  'Unknown',
+  'Unknown',
+  'Unknown',
+  'Unknown',
+  'Unknown',
+  'Unknown',
+  'Unknown',
   'Unknown',
 ];
 
 const IBF_DISTRIBUTION: ReputationLevel[] = [
   'All-Time Great',
+  'All-Time Great',
+  'International Superstar',
+  'International Superstar',
   'International Superstar',
   'World Class Fighter',
+  'World Class Fighter',
+  'World Class Fighter',
+  'World Class Fighter',
+  'Nationally Ranked',
+  'Nationally Ranked',
+  'Nationally Ranked',
+  'Nationally Ranked',
   'Nationally Ranked',
   'Championship Caliber',
   'Championship Caliber',
+  'Championship Caliber',
+  'Championship Caliber',
+  'Championship Caliber',
+  'Championship Caliber',
+  'Contender',
+  'Contender',
+  'Contender',
+  'Contender',
+  'Contender',
   'Contender',
   'Contender',
   'Respectable Opponent',
+  'Respectable Opponent',
+  'Respectable Opponent',
+  'Respectable Opponent',
+  'Respectable Opponent',
+  'Respectable Opponent',
   'Rising Star',
+  'Rising Star',
+  'Rising Star',
+  'Rising Star',
+  'Rising Star',
+  'Rising Star',
+  'Rising Star',
+  'Local Star',
+  'Local Star',
+  'Local Star',
+  'Local Star',
+  'Unknown',
+  'Unknown',
+  'Unknown',
+  'Unknown',
+  'Unknown',
+  'Unknown',
 ];
 
-// Occasionally add an International Superstar to non-IBF federations
 function getDistribution(fedName: FederationName): ReputationLevel[] {
-  if (fedName === 'International Boxing Federation') return [...IBF_DISTRIBUTION];
-  const dist = [...STANDARD_DISTRIBUTION];
-  if (Math.random() < 0.4) {
-    // Replace a Nationally Ranked with an International Superstar
-    const idx = dist.indexOf('Nationally Ranked');
-    if (idx !== -1) dist[idx] = 'International Superstar';
-  }
-  return dist;
+  return fedName === 'International Boxing Federation'
+    ? [...IBF_DISTRIBUTION]
+    : [...STANDARD_DISTRIBUTION];
 }
 
 // Champion must be Championship Caliber or higher
