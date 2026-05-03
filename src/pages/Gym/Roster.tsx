@@ -9,6 +9,7 @@ import { getAllFights } from '../../db/fightStore';
 import { getAllFederations } from '../../db/federationStore';
 import { FEDERATION_ABBR } from '../League/Schedule';
 import styles from './Roster.module.css';
+import { RANK_CONFIG } from '../../lib/rankSystem';
 
 const SEVERITY_ORDER: Record<'minor' | 'moderate' | 'severe', number> = {
   minor: 0,
@@ -100,6 +101,31 @@ export function capitalize(s: string): string {
 
 // --- Component ---
 
+function RankMiniBar({ boxer }: { boxer: Boxer }) {
+  const config = RANK_CONFIG[boxer.reputation];
+  const rankPoints = boxer.rankPoints ?? 0;
+  const demotionBuffer = boxer.demotionBuffer ?? config.bufferMax;
+  const progressPct = config.promotionThreshold === Infinity
+    ? 100
+    : Math.min(100, (rankPoints / config.promotionThreshold) * 100);
+  const bufferPct = Math.min(100, (demotionBuffer / config.bufferMax) * 100);
+  const tooltip = config.promotionThreshold === Infinity
+    ? `${boxer.reputation} · Buffer: ${demotionBuffer} / ${config.bufferMax}`
+    : `${rankPoints} / ${config.promotionThreshold} pts to next rank · Buffer: ${demotionBuffer} / ${config.bufferMax}`;
+
+  return (
+    <div className={styles.rankCell} title={tooltip}>
+      <span className={styles.rankLabel}>{boxer.reputation}</span>
+      <div className={styles.rankBarTrack}>
+        <div className={styles.rankBarFill} style={{ width: `${progressPct}%` }} />
+      </div>
+      <div className={styles.rankBarTrack}>
+        <div className={styles.bufferBarFill} style={{ width: `${bufferPct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 export default function Roster() {
   const [roster, setRoster] = useState<Boxer[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -184,6 +210,7 @@ export default function Roster() {
                 <th>Weight Class</th>
                 <th>Style</th>
                 <th>Record</th>
+                <th>Rank</th>
                 <th>Status</th>
                 <th>Next Fight</th>
                 <th></th>
@@ -200,6 +227,7 @@ export default function Roster() {
                     <td>{capitalize(boxer.weightClass)}</td>
                     <td className={styles.styleTag}>{styleLabel(boxer.style)}</td>
                     <td>{calcRecord(boxer.record)}</td>
+                    <td><RankMiniBar boxer={boxer} /></td>
                     <td>
                       <span
                         className={styles.statusBadge}
