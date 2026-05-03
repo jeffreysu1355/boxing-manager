@@ -33,6 +33,7 @@ const sidebarConfig: Record<string, SidebarSection[]> = {
       label: 'Players',
       links: [
         { to: '/players/recruiting', label: 'Recruiting' },
+        { to: '/players/coaches', label: 'Coaches' },
         { to: '/players/compare', label: 'Compare' },
       ],
     },

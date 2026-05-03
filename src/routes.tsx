@@ -16,6 +16,7 @@ import Finances from './pages/Gym/Finances';
 import Coaches from './pages/Gym/Coaches';
 import PlayersLayout from './pages/Players/PlayersLayout';
 import Recruiting from './pages/Players/Recruiting';
+import CoachRecruiting from './pages/Players/CoachRecruiting';
 import Compare from './pages/Players/Compare';
 import ToolsLayout from './pages/Tools/ToolsLayout';
 import GodMode from './pages/Tools/GodMode';
@@ -57,6 +58,7 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: <Navigate to="recruiting" replace /> },
           { path: 'recruiting', element: <Recruiting /> },
+          { path: 'coaches', element: <CoachRecruiting /> },
           { path: 'compare', element: <Compare /> },
         ],
       },

@@ -1,0 +1,46 @@
+.page {
+  padding: 1rem;
+}
+
+.balanceCallout {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.coachCountCallout {
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.atCap {
+  color: var(--danger, #c0392b);
+  font-weight: bold;
+}
+
+.empty {
+  color: var(--text-muted, #888);
+  font-style: italic;
+}
+
+.hireBtn {
+  background: var(--accent, #2980b9);
+  color: #fff;
+  border: none;
+  padding: 3px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.hireBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.skillTag {
+  font-size: 0.8rem;
+}
+
+.styleTag {
+  font-size: 0.8rem;
+}
