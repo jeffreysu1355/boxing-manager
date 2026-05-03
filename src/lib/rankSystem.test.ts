@@ -153,8 +153,13 @@ describe('applyRankChange - losses', () => {
 });
 
 describe('applyRankChange - draws', () => {
-  it('draw makes no change to rank fields', () => {
-    const boxer = makeBoxer({ reputation: 'Rising Star', rankPoints: 15, demotionBuffer: 12 });
+  it('draw makes no change to rank fields and clears stale lastRankDelta', () => {
+    const boxer = makeBoxer({
+      reputation: 'Rising Star',
+      rankPoints: 15,
+      demotionBuffer: 12,
+      lastRankDelta: { points: 5, bufferPoints: 0, promoted: false, demoted: false },
+    });
     const opponent = makeBoxer({ reputation: 'Rising Star' });
     const result = applyRankChange(boxer, opponent, 'draw', false);
     expect(result.reputation).toBe('Rising Star');

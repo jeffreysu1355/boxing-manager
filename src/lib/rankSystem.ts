@@ -59,7 +59,10 @@ export function applyRankChange(
   result: 'win' | 'loss' | 'draw',
   isTitleFight: boolean,
 ): Boxer {
-  if (result === 'draw') return boxer;
+  if (result === 'draw') {
+    const { lastRankDelta: _, ...rest } = boxer;
+    return rest as Boxer;
+  }
 
   const boxerIndex = REPUTATION_ORDER.indexOf(boxer.reputation);
   const opponentIndex = REPUTATION_ORDER.indexOf(opponent.reputation);
