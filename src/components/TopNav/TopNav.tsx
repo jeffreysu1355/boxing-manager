@@ -11,7 +11,7 @@ import { applyTraining } from '../../lib/training';
 import { simulateFight } from '../../lib/fightSim';
 import { applyFightResult } from './fightResultApplier';
 import { refreshRecruitPool } from '../../db/worldGen';
-import type { CalendarEvent, Gym } from '../../db/db';
+import type { CalendarEvent, Gym, Boxer } from '../../db/db';
 import styles from './TopNav.module.css';
 
 const tabs = [
@@ -62,6 +62,7 @@ export function TopNav() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [fightStop, setFightStop] = useState<CalendarEvent | null>(null);
   const [isSimming, setIsSimming] = useState(false);
+  const [rankChanges, setRankChanges] = useState<Array<{ name: string; delta: NonNullable<Boxer['lastRankDelta']>; reputation: string }>>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -169,6 +170,7 @@ export function TopNav() {
     if (!gym || isSimming) return;
     setIsSimming(true);
     setDropdownOpen(false);
+    setRankChanges([]);
     try {
       // Find all fight events for today involving gym boxers
       const todayFights = events.filter(
@@ -204,6 +206,19 @@ export function TopNav() {
           fightDate: fight.date,
           contractId: fight.contractId,
         });
+
+        const [updatedWinner, updatedLoser] = await Promise.all([
+          getBoxer(simResult.winnerId),
+          getBoxer(simResult.loserId),
+        ]);
+        const changes: Array<{ name: string; delta: NonNullable<Boxer['lastRankDelta']>; reputation: string }> = [];
+        if (updatedWinner?.lastRankDelta) {
+          changes.push({ name: updatedWinner.name, delta: updatedWinner.lastRankDelta, reputation: updatedWinner.reputation });
+        }
+        if (updatedLoser?.lastRankDelta) {
+          changes.push({ name: updatedLoser.name, delta: updatedLoser.lastRankDelta, reputation: updatedLoser.reputation });
+        }
+        setRankChanges(prev => [...prev, ...changes]);
       }
 
       // Advance date and run training
@@ -298,6 +313,36 @@ export function TopNav() {
           >
             Dismiss
           </button>
+        </div>
+      )}
+
+      {rankChanges.length > 0 && (
+        <div className={styles.fightBanner}>
+          {rankChanges.map((change, i) => {
+            const { name, delta, reputation } = change;
+            if (delta.promoted) return (
+              <div key={i} className={styles.rankChangeLine}>
+                <span className={styles.rankChangePromoted}>{name}: Promoted to {reputation}!</span>
+              </div>
+            );
+            if (delta.demoted) return (
+              <div key={i} className={styles.rankChangeLine}>
+                <span className={styles.rankChangeDemoted}>{name}: Demoted to {reputation}</span>
+              </div>
+            );
+            if (delta.points > 0) return (
+              <div key={i} className={styles.rankChangeLine}>
+                {name}: <span className={styles.rankChangePromoted}>+{delta.points} rank pts</span> ({reputation})
+              </div>
+            );
+            if (delta.bufferPoints > 0) return (
+              <div key={i} className={styles.rankChangeLine}>
+                {name}: <span className={styles.rankChangeDemoted}>−{delta.bufferPoints} buffer pts</span> ({reputation})
+              </div>
+            );
+            return null;
+          })}
+          <button className={styles.dismissBtn} onClick={() => setRankChanges([])}>Dismiss</button>
         </div>
       )}
     </div>

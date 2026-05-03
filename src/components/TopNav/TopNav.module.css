@@ -123,3 +123,19 @@
 .dismissBtn:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+.rankChangeLine {
+  font-size: 12px;
+  margin-top: 4px;
+  color: var(--text-secondary);
+}
+
+.rankChangePromoted {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.rankChangeDemoted {
+  color: var(--danger);
+  font-weight: 700;
+}
