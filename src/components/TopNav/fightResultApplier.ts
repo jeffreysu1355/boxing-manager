@@ -52,6 +52,7 @@ export async function applyFightResult(params: ApplyFightResultParams): Promise<
     );
     await Promise.all([putBoxer(updatedWinner), putBoxer(updatedLoser)]);
   } else {
+    // Rank changes require both boxers present; save records only if one is missing
     if (winner) await putBoxer({ ...winner, record: [...winner.record, winnerRecord] });
     if (loser)  await putBoxer({ ...loser,  record: [...loser.record,  loserRecord]  });
   }
