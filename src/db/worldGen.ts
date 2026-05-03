@@ -6,6 +6,7 @@ import { putFederationEvent } from './federationEventStore';
 import { getGym, saveGym } from './gymStore';
 import { putPpvNetwork } from './ppvNetworkStore';
 import { putTitle } from './titleStore';
+import { RANK_CONFIG } from '../lib/rankSystem';
 import type {
   Boxer,
   BoxerStats,
@@ -397,7 +398,7 @@ export async function generateProspects(): Promise<void> {
       titles: [],
       record: generateAmateurRecord(style),
       rankPoints: 0,
-      demotionBuffer: 10,
+      demotionBuffer: RANK_CONFIG['Unknown'].bufferMax,
     };
     await putBoxer(prospect);
   }
@@ -424,7 +425,7 @@ export async function generateFreeAgents(): Promise<void> {
       titles: [],
       record: generateFightRecord(reputation, style, age),
       rankPoints: 0,
-      demotionBuffer: 10,
+      demotionBuffer: RANK_CONFIG[reputation].bufferMax,
     };
     await putBoxer(freeAgent);
   }
@@ -642,7 +643,7 @@ export async function generateWorld(): Promise<void> {
         titles: [],
         record: generateFightRecord(reputation, style, age),
         rankPoints: 0,
-        demotionBuffer: 10,
+        demotionBuffer: RANK_CONFIG[reputation].bufferMax,
       };
 
       const boxerId = await putBoxer(boxer);
