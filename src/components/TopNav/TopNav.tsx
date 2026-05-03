@@ -12,6 +12,7 @@ import { simulateFight } from '../../lib/fightSim';
 import { applyFightResult } from './fightResultApplier';
 import { refreshRecruitPool } from '../../db/worldGen';
 import { simulateNpcFights } from '../../lib/npcFightSim';
+import { runCoachSalaries } from '../../lib/coachSalaries';
 import type { CalendarEvent, Gym, Boxer } from '../../db/db';
 import styles from './TopNav.module.css';
 
@@ -132,6 +133,7 @@ export function TopNav() {
 
       await runTraining(currentDate, result.newDate, updated.id ?? 1);
       await simulateNpcFights(currentDate, result.newDate);
+      await runCoachSalaries(currentDate, result.newDate, updated.id ?? 1);
 
       if (needsRecruitRefresh) {
         await refreshRecruitPool();
