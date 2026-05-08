@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { applyTraining, STYLE_STATS, EXP_PER_DAY } from './training';
+import {
+  applyTraining,
+  STYLE_STATS,
+  EXP_PER_DAY,
+  computeTrainingCampBoost,
+  computeNpcBoost,
+  NPC_BOOST_BY_REPUTATION,
+  dateDiffDaysTraining,
+} from './training';
 import type { Boxer, Coach } from '../db/db';
 
 function makeBoxer(overrides: Partial<Boxer> = {}): Boxer {
@@ -224,5 +232,133 @@ describe('applyTraining', () => {
     // 9 more days × 1.0 = 9 exp, total 200 — threshold 200 crossed → level up to 21
     const r2 = applyTraining(r1, coach, 9);
     expect(r2.stats.jab).toBe(21);
+  });
+});
+
+describe('computeTrainingCampBoost', () => {
+  it('returns empty object when trainedDays is 0', () => {
+    const boxer = makeBoxer();
+    const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
+    const result = computeTrainingCampBoost(boxer, coach, '2026-05-01', '2026-07-01', '2026-05-01');
+    expect(Object.keys(result)).toHaveLength(0);
+  });
+
+  it('returns empty object when totalDays is 0 (fight is today)', () => {
+    const boxer = makeBoxer();
+    const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
+    const result = computeTrainingCampBoost(boxer, coach, '2026-05-01', '2026-05-01', '2026-05-01');
+    expect(Object.keys(result)).toHaveLength(0);
+  });
+
+  it('produces ~80% of max boost after training through the early segment only', () => {
+    const boxer = makeBoxer();
+    const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
+    const result = computeTrainingCampBoost(boxer, coach, '2026-05-01', '2026-07-01', '2026-06-16');
+    expect(result['jab']).toBe(4);
+    expect(result['cross']).toBe(4);
+    expect(result['speed']).toBe(4);
+    expect(result['leadHook']).toBeUndefined();
+  });
+
+  it('produces full 50% boost after 60 days of training', () => {
+    const boxer = makeBoxer();
+    const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
+    const result = computeTrainingCampBoost(boxer, coach, '2026-05-01', '2026-07-01', '2026-07-01');
+    expect(result['jab']).toBe(5);
+    expect(result['cross']).toBe(5);
+  });
+
+  it('clamps delta when stat is at cap (20) without natural talent', () => {
+    const boxer = makeBoxer({
+      stats: {
+        jab: 20, cross: 10, leadHook: 10, rearHook: 10, uppercut: 10,
+        headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
+        timing: 10, adaptability: 10, discipline: 10,
+        speed: 10, power: 10, endurance: 10, recovery: 10, toughness: 10,
+      },
+      naturalTalents: [],
+    });
+    const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
+    const result = computeTrainingCampBoost(boxer, coach, '2026-05-01', '2026-07-01', '2026-07-01');
+    expect(result['jab']).toBeUndefined();
+    expect(result['cross']).toBe(5);
+  });
+
+  it('clamps delta when natural talent stat is at 24 (cap=25, room=1)', () => {
+    const boxer = makeBoxer({
+      stats: {
+        jab: 24, cross: 10, leadHook: 10, rearHook: 10, uppercut: 10,
+        headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
+        timing: 10, adaptability: 10, discipline: 10,
+        speed: 10, power: 10, endurance: 10, recovery: 10, toughness: 10,
+      },
+      naturalTalents: [{ stat: 'jab' }],
+    });
+    const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
+    const result = computeTrainingCampBoost(boxer, coach, '2026-05-01', '2026-07-01', '2026-07-01');
+    expect(result['jab']).toBe(1);
+  });
+
+  it('only boosts stats in the coach style, not all stats', () => {
+    const boxer = makeBoxer();
+    const coach = makeCoach({ skillLevel: 'all-time-great', style: 'swarmer' });
+    const result = computeTrainingCampBoost(boxer, coach, '2026-05-01', '2026-07-01', '2026-07-01');
+    expect(result['leadHook']).toBe(5);
+    expect(result['rearHook']).toBe(5);
+    expect(result['jab']).toBeUndefined();
+    expect(result['cross']).toBeUndefined();
+  });
+
+  it('caps training days at 60 even if camp is longer', () => {
+    const boxer = makeBoxer();
+    const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
+    const result = computeTrainingCampBoost(boxer, coach, '2026-05-01', '2026-07-30', '2026-07-30');
+    expect(result['jab']).toBe(5);
+  });
+});
+
+describe('computeNpcBoost', () => {
+  it('returns empty object for Unknown reputation', () => {
+    const boxer = makeBoxer({ reputation: 'Unknown' });
+    const result = computeNpcBoost(boxer);
+    expect(Object.keys(result)).toHaveLength(0);
+  });
+
+  it('returns 5% boost for Local Star (floor of 10 * 0.05 = 0)', () => {
+    const boxer = makeBoxer({ reputation: 'Local Star', style: 'out-boxer' });
+    const result = computeNpcBoost(boxer);
+    expect(Object.keys(result)).toHaveLength(0);
+  });
+
+  it('returns correct boost for All-Time Great (45%)', () => {
+    const boxer = makeBoxer({ reputation: 'All-Time Great', style: 'out-boxer' });
+    const result = computeNpcBoost(boxer);
+    expect(result['jab']).toBe(4);
+    expect(result['cross']).toBe(4);
+    expect(result['speed']).toBe(4);
+    expect(result['leadHook']).toBeUndefined();
+  });
+
+  it('boosts style stats only, matching boxer style', () => {
+    const boxer = makeBoxer({ reputation: 'All-Time Great', style: 'slugger' });
+    const result = computeNpcBoost(boxer);
+    expect(result['rearHook']).toBe(4);
+    expect(result['uppercut']).toBe(4);
+    expect(result['jab']).toBeUndefined();
+  });
+
+  it('clamps delta so boosted stat does not exceed cap', () => {
+    const boxer = makeBoxer({
+      reputation: 'All-Time Great',
+      style: 'out-boxer',
+      stats: {
+        jab: 19, cross: 10, leadHook: 10, rearHook: 10, uppercut: 10,
+        headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
+        timing: 10, adaptability: 10, discipline: 10,
+        speed: 10, power: 10, endurance: 10, recovery: 10, toughness: 10,
+      },
+    });
+    const result = computeNpcBoost(boxer);
+    expect(result['jab']).toBe(1);
   });
 });
