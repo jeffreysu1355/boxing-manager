@@ -140,6 +140,10 @@ export interface Boxer {
   titles: TitleRecord[];
   record: FightRecord[];
   trainingExp?: Partial<Record<keyof BoxerStats, number>>;
+  tempStatBoost?: {
+    stats: Partial<BoxerStats>;
+    expiresOnFightId: number;
+  };
   rankPoints: number;
   demotionBuffer: number;
   nextFightDate?: string; // ISO date — when this boxer is next scheduled to fight (NPC only)
