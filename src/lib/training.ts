@@ -1,4 +1,4 @@
-import type { Boxer, BoxerStats, Coach, CoachSkillLevel, FightingStyle } from '../db/db';
+import type { Boxer, BoxerStats, Coach, CoachSkillLevel, FightingStyle, ReputationLevel } from '../db/db';
 
 export const STYLE_STATS: Record<FightingStyle, (keyof BoxerStats)[]> = {
   'out-boxer':      ['jab', 'cross', 'headMovement', 'guard', 'positioning', 'speed'],
@@ -7,8 +7,6 @@ export const STYLE_STATS: Record<FightingStyle, (keyof BoxerStats)[]> = {
   'counterpuncher': ['timing', 'adaptability', 'discipline', 'headMovement', 'bodyMovement', 'speed'],
 };
 
-// Rates tuned so a typical stat (value 10, threshold 100) gains ~1 pt/yr with a
-// Local coach and ~3-4 pts/yr with an All-Time Great coach.
 export const EXP_PER_DAY: Record<CoachSkillLevel, number> = {
   'local': 0.25,
   'contender': 0.5,
@@ -29,7 +27,7 @@ export function applyTraining(boxer: Boxer, coach: Coach, days: number): Boxer {
     exp[stat] = (exp[stat] ?? 0) + days * rate;
 
     if (stats[stat] >= cap) continue;
-    if (stats[stat] === 0) continue; // stats are on 1-20 scale; 0 is invalid
+    if (stats[stat] === 0) continue;
 
     while (stats[stat] < cap) {
       const threshold = stats[stat] * 10;
@@ -40,4 +38,77 @@ export function applyTraining(boxer: Boxer, coach: Coach, days: number): Boxer {
   }
 
   return { ...boxer, stats, trainingExp: exp };
+}
+
+export function dateDiffDaysTraining(from: string, to: string): number {
+  const [fy, fm, fd] = from.split('-').map(Number);
+  const [ty, tm, td] = to.split('-').map(Number);
+  const a = new Date(fy, fm - 1, fd).getTime();
+  const b = new Date(ty, tm - 1, td).getTime();
+  return Math.round((b - a) / 86_400_000);
+}
+
+export function computeTrainingCampBoost(
+  boxer: Boxer,
+  coach: Coach,
+  campStartDate: string,
+  fightDate: string,
+  currentDate: string,
+): Partial<Record<keyof BoxerStats, number>> {
+  const totalDays = Math.min(60, Math.max(0, dateDiffDaysTraining(campStartDate, fightDate)));
+  const trainedDays = Math.min(totalDays, Math.max(0, dateDiffDaysTraining(campStartDate, currentDate)));
+
+  if (totalDays === 0 || trainedDays === 0) return {};
+
+  const earlySegment = Math.max(0, totalDays - 14);
+  const earlyDays = Math.min(trainedDays, earlySegment);
+  const lateDays = Math.max(0, trainedDays - earlySegment);
+
+  const earlyFraction = earlySegment > 0 ? (earlyDays / earlySegment) * 0.80 : 0;
+  const lateFraction = lateDays > 0 ? (lateDays / 14) * 0.20 : 0;
+  const boostFraction = earlyFraction + lateFraction;
+
+  const talentSet = new Set(boxer.naturalTalents.map(t => t.stat));
+  const result: Partial<Record<keyof BoxerStats, number>> = {};
+
+  for (const stat of STYLE_STATS[coach.style]) {
+    const cap = talentSet.has(stat) ? 25 : 20;
+    const current = boxer.stats[stat];
+    const delta = Math.floor(current * 0.50 * boostFraction);
+    const clamped = Math.min(delta, cap - current);
+    if (clamped > 0) result[stat] = clamped;
+  }
+
+  return result;
+}
+
+export const NPC_BOOST_BY_REPUTATION: Record<ReputationLevel, number> = {
+  'Unknown': 0,
+  'Local Star': 0.05,
+  'Rising Star': 0.10,
+  'Respectable Opponent': 0.15,
+  'Contender': 0.20,
+  'Championship Caliber': 0.25,
+  'Nationally Ranked': 0.30,
+  'World Class Fighter': 0.35,
+  'International Superstar': 0.40,
+  'All-Time Great': 0.45,
+};
+
+export function computeNpcBoost(boxer: Boxer): Partial<Record<keyof BoxerStats, number>> {
+  const fraction = NPC_BOOST_BY_REPUTATION[boxer.reputation] ?? 0;
+  if (fraction === 0) return {};
+
+  const talentSet = new Set(boxer.naturalTalents.map(t => t.stat));
+  const result: Partial<Record<keyof BoxerStats, number>> = {};
+
+  for (const stat of STYLE_STATS[boxer.style]) {
+    const cap = talentSet.has(stat) ? 25 : 20;
+    const current = boxer.stats[stat];
+    const delta = Math.floor(current * fraction);
+    const clamped = Math.min(delta, cap - current);
+    if (clamped > 0) result[stat] = clamped;
+  }
+
+  return result;
 }
