@@ -275,7 +275,7 @@ export default function Roster() {
             <tbody>
               {roster.map(boxer => {
                 const nextFightEvent = events
-                  .filter(e => e.type === 'fight' && e.boxerIds.includes(boxer.id!) && e.date > today)
+                  .filter(e => e.type === 'fight' && e.boxerIds.includes(boxer.id!) && e.date >= today)
                   .sort((a, b) => a.date.localeCompare(b.date))[0];
 
                 const campEvent = nextFightEvent

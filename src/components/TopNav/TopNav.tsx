@@ -103,7 +103,7 @@ export function TopNav() {
     allCampEvents: CalendarEvent[],
     currentDate: string,
   ): Promise<{ boostedA: Boxer; boostedB: Boxer }> {
-    function applyBoost(boxer: Boxer, isGymBoxer: boolean): Boxer {
+    async function applyBoost(boxer: Boxer, isGymBoxer: boolean): Promise<Boxer> {
       if (isGymBoxer) {
         const campEvent = allCampEvents.find(
           e => e.type === 'training-camp' && e.fightId === fight.id && e.boxerIds.includes(boxer.id!)
@@ -114,6 +114,10 @@ export function TopNav() {
           const boostedStats = { ...boxer.stats };
           for (const [stat, delta] of Object.entries(deltas) as [keyof BoxerStats, number][]) {
             boostedStats[stat] = (boostedStats[stat] as number) + delta;
+          }
+          // Write tempStatBoost to DB so clearing logic in fightResultApplier works
+          if (Object.keys(deltas).length > 0) {
+            await putBoxer({ ...boxer, tempStatBoost: { stats: deltas, expiresOnFightId: fight.id! } });
           }
           return { ...boxer, stats: boostedStats };
         }
@@ -129,8 +133,8 @@ export function TopNav() {
     }
 
     return {
-      boostedA: applyBoost(boxerA, gymBoxerIds.has(boxerA.id!)),
-      boostedB: applyBoost(boxerB, gymBoxerIds.has(boxerB.id!)),
+      boostedA: await applyBoost(boxerA, gymBoxerIds.has(boxerA.id!)),
+      boostedB: await applyBoost(boxerB, gymBoxerIds.has(boxerB.id!)),
     };
   }
 
