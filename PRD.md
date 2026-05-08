@@ -266,8 +266,8 @@ Coaches must be recruited like boxers. Better gyms attract better coaches.
 - [x] Gym level affects available coach quality
 - [x] Coach assignment to boxers
 - [x] Season training: daily EXP gain calculation
-- [ ] Pre-fight training: temporary 300% stat boost calculation
-- [ ] Pre-fight boost scales with training days
+- [x] Pre-fight training: temporary 300% stat boost calculation
+- [x] Pre-fight boost scales with training days
 - [x] Coach management UI (Gym > Coaches tab)
 
 ---
