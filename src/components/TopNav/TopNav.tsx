@@ -4,16 +4,16 @@ import { getGym, saveGym } from '../../db/gymStore';
 import { getAllCalendarEvents } from '../../db/calendarEventStore';
 import { getAllBoxers, putBoxer, getBoxer } from '../../db/boxerStore';
 import { getAllCoaches } from '../../db/coachStore';
-import { getFight } from '../../db/fightStore';
+import { getFight, getAllFights } from '../../db/fightStore';
 import { getFederation } from '../../db/federationStore';
 import { simForward, nextEventDate, addDays } from '../../lib/simTime';
-import { applyTraining } from '../../lib/training';
+import { applyTraining, computeTrainingCampBoost, computeNpcBoost } from '../../lib/training';
 import { simulateFight } from '../../lib/fightSim';
 import { applyFightResult } from './fightResultApplier';
 import { refreshRecruitPool } from '../../db/worldGen';
 import { simulateNpcFights } from '../../lib/npcFightSim';
 import { runCoachSalaries } from '../../lib/coachSalaries';
-import type { CalendarEvent, Gym, Boxer } from '../../db/db';
+import type { CalendarEvent, Gym, Boxer, Fight, Coach, BoxerStats } from '../../db/db';
 import styles from './TopNav.module.css';
 
 const tabs = [
@@ -95,6 +95,45 @@ export function TopNav() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  async function applyBoostsToBoxers(
+    boxerA: Boxer,
+    boxerB: Boxer,
+    fight: Fight,
+    allCoaches: Coach[],
+    allCampEvents: CalendarEvent[],
+    currentDate: string,
+  ): Promise<{ boostedA: Boxer; boostedB: Boxer }> {
+    function applyBoost(boxer: Boxer, isGymBoxer: boolean): Boxer {
+      if (isGymBoxer) {
+        const campEvent = allCampEvents.find(
+          e => e.type === 'training-camp' && e.fightId === fight.id && e.boxerIds.includes(boxer.id!)
+        );
+        const coach = allCoaches.find(c => c.assignedBoxerId === boxer.id);
+        if (campEvent && coach && campEvent.endDate) {
+          const deltas = computeTrainingCampBoost(boxer, coach, campEvent.date, campEvent.endDate, currentDate);
+          const boostedStats = { ...boxer.stats };
+          for (const [stat, delta] of Object.entries(deltas) as [keyof BoxerStats, number][]) {
+            boostedStats[stat] = (boostedStats[stat] as number) + delta;
+          }
+          return { ...boxer, stats: boostedStats };
+        }
+        return boxer;
+      } else {
+        const deltas = computeNpcBoost(boxer);
+        const boostedStats = { ...boxer.stats };
+        for (const [stat, delta] of Object.entries(deltas) as [keyof BoxerStats, number][]) {
+          boostedStats[stat] = (boostedStats[stat] as number) + delta;
+        }
+        return { ...boxer, stats: boostedStats };
+      }
+    }
+
+    return {
+      boostedA: applyBoost(boxerA, gymBoxerIds.has(boxerA.id!)),
+      boostedB: applyBoost(boxerB, gymBoxerIds.has(boxerB.id!)),
+    };
+  }
+
   async function handleSim(days: number | 'next') {
     if (!gym || isSimming) return;
     setIsSimming(true);
@@ -132,6 +171,23 @@ export function TopNav() {
       setFightStop(result.stoppedAt);
 
       await runTraining(currentDate, result.newDate, updated.id ?? 1);
+      // Clear tempStatBoost for gym boxers whose fight day has passed without being played
+      {
+        const allGymBoxers = await getAllBoxers();
+        const gymBoxerList = allGymBoxers.filter(b => b.gymId === (updated.id ?? 1) && b.id !== undefined);
+        const allFightsData = await getAllFights();
+        const fightDateMap = new Map(allFightsData.filter(f => f.id !== undefined).map(f => [f.id!, f.date]));
+        await Promise.all(
+          gymBoxerList
+            .filter(b => {
+              const boost = b.tempStatBoost;
+              if (!boost) return false;
+              const fightDate = fightDateMap.get(boost.expiresOnFightId);
+              return fightDate !== undefined && fightDate <= result.newDate;
+            })
+            .map(b => putBoxer({ ...b, tempStatBoost: undefined }))
+        );
+      }
       await simulateNpcFights(currentDate, result.newDate);
       await runCoachSalaries(currentDate, result.newDate, updated.id ?? 1);
 
@@ -186,14 +242,19 @@ export function TopNav() {
         const fight = await getFight(event.fightId);
         if (!fight || fight.winnerId !== null) continue; // already resolved
 
-        const [boxerA, boxerB, federation] = await Promise.all([
+        const [boxerA, boxerB, federation, allCoaches, allCampEvents] = await Promise.all([
           getBoxer(fight.boxerIds[0]),
           getBoxer(fight.boxerIds[1]),
           getFederation(fight.federationId),
+          getAllCoaches(),
+          getAllCalendarEvents(),
         ]);
         if (!boxerA || !boxerB || !federation) continue;
 
-        const simResult = simulateFight(boxerA, boxerB, fight, federation.name);
+        const { boostedA, boostedB } = await applyBoostsToBoxers(
+          boxerA, boxerB, fight, allCoaches, allCampEvents, currentDate,
+        );
+        const simResult = simulateFight(boostedA, boostedB, fight, federation.name);
 
         await applyFightResult({
           fightId: fight.id!,
