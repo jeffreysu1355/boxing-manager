@@ -50,11 +50,28 @@ export async function applyFightResult(params: ApplyFightResultParams): Promise<
       'loss',
       isTitleFight,
     );
-    await Promise.all([putBoxer(updatedWinner), putBoxer(updatedLoser)]);
+    const clearBoostWinner = updatedWinner.tempStatBoost?.expiresOnFightId === fightId
+      ? { ...updatedWinner, tempStatBoost: undefined }
+      : updatedWinner;
+    const clearBoostLoser = updatedLoser.tempStatBoost?.expiresOnFightId === fightId
+      ? { ...updatedLoser, tempStatBoost: undefined }
+      : updatedLoser;
+    await Promise.all([putBoxer(clearBoostWinner), putBoxer(clearBoostLoser)]);
   } else {
-    // Rank changes require both boxers present; save records only if one is missing
-    if (winner) await putBoxer({ ...winner, record: [...winner.record, winnerRecord] });
-    if (loser)  await putBoxer({ ...loser,  record: [...loser.record,  loserRecord]  });
+    if (winner) {
+      const withRecord = { ...winner, record: [...winner.record, winnerRecord] };
+      const cleared = withRecord.tempStatBoost?.expiresOnFightId === fightId
+        ? { ...withRecord, tempStatBoost: undefined }
+        : withRecord;
+      await putBoxer(cleared);
+    }
+    if (loser) {
+      const withRecord = { ...loser, record: [...loser.record, loserRecord] };
+      const cleared = withRecord.tempStatBoost?.expiresOnFightId === fightId
+        ? { ...withRecord, tempStatBoost: undefined }
+        : withRecord;
+      await putBoxer(cleared);
+    }
   }
 
   // 3. Title transfer
