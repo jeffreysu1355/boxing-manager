@@ -4,9 +4,12 @@ import { PageHeader } from '../../components/PageHeader/PageHeader';
 import type { Boxer, CalendarEvent, Fight, Federation, FightRecord } from '../../db/db';
 import { getGym } from '../../db/gymStore';
 import { getAllBoxers } from '../../db/boxerStore';
-import { getAllCalendarEvents } from '../../db/calendarEventStore';
+import { getAllCalendarEvents, putCalendarEvent, deleteCalendarEvent } from '../../db/calendarEventStore';
 import { getAllFights } from '../../db/fightStore';
 import { getAllFederations } from '../../db/federationStore';
+import { dateDiffDaysTraining } from '../../lib/training';
+import { getAllCoaches } from '../../db/coachStore';
+import type { Coach } from '../../db/db';
 import { FEDERATION_ABBR } from '../League/Schedule';
 import styles from './Roster.module.css';
 import { RANK_CONFIG } from '../../lib/rankSystem';
@@ -27,7 +30,8 @@ export interface BoxerStatus {
 export function getBoxerStatus(
   boxer: Boxer,
   events: CalendarEvent[],
-  today: string
+  today: string,
+  boostPct?: number,
 ): BoxerStatus {
   if (boxer.id === undefined) return { label: 'Active', color: 'var(--success)' };
   const activeInjuries = boxer.injuries.filter(i => i.recoveryDays > 0);
@@ -42,7 +46,10 @@ export function getBoxerStatus(
 
   const boxerEvents = events.filter(e => e.boxerIds.includes(boxer.id) && e.date >= today);
   if (boxerEvents.some(e => e.type === 'training-camp')) {
-    return { label: 'In Training Camp', color: 'var(--warning)' };
+    const label = boostPct !== undefined && boostPct > 0
+      ? `In Training Camp · +${boostPct}%`
+      : 'In Training Camp';
+    return { label, color: 'var(--warning)' };
   }
   if (boxerEvents.some(e => e.type === 'fight')) {
     return { label: 'Scheduled Fight', color: '#2196f3' };
@@ -99,6 +106,25 @@ export function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+export function computeCampBoostPct(
+  campStartDate: string,
+  fightDate: string,
+  currentDate: string,
+): number {
+  const totalDays = Math.min(60, Math.max(0, dateDiffDaysTraining(campStartDate, fightDate)));
+  const trainedDays = Math.min(totalDays, Math.max(0, dateDiffDaysTraining(campStartDate, currentDate)));
+
+  if (totalDays === 0 || trainedDays === 0) return 0;
+
+  const earlySegment = Math.max(0, totalDays - 14);
+  const earlyDays = Math.min(trainedDays, earlySegment);
+  const lateDays = Math.max(0, trainedDays - earlySegment);
+
+  const earlyFraction = earlySegment > 0 ? (earlyDays / earlySegment) * 0.80 : 0;
+  const lateFraction = lateDays > 0 ? (lateDays / 14) * 0.20 : 0;
+  return Math.round((earlyFraction + lateFraction) * 50);
+}
+
 // --- Component ---
 
 function RankMiniBar({ boxer }: { boxer: Boxer }) {
@@ -134,19 +160,47 @@ export default function Roster() {
   const [boxersMap, setBoxersMap] = useState<Map<number, Boxer>>(new Map());
   const [loading, setLoading] = useState(true);
   const [today, setToday] = useState('');
+  const [_coaches, setCoaches] = useState<Coach[]>([]);
+  const [campEvents, setCampEvents] = useState<CalendarEvent[]>([]);
+  const [campFormBoxerId, setCampFormBoxerId] = useState<number | null>(null);
+  const [campStartInput, setCampStartInput] = useState('');
 
   const navigate = useNavigate();
+
+  async function handleStartCamp(boxerId: number, fightId: number, fightDate: string) {
+    if (!campStartInput) return;
+    await putCalendarEvent({
+      type: 'training-camp',
+      date: campStartInput,
+      endDate: fightDate,
+      fightId,
+      boxerIds: [boxerId],
+    });
+    setCampFormBoxerId(null);
+    setCampStartInput('');
+    const allEvents = await getAllCalendarEvents();
+    setEvents(allEvents);
+    setCampEvents(allEvents.filter(e => e.type === 'training-camp'));
+  }
+
+  async function handleCancelCamp(campEventId: number) {
+    await deleteCalendarEvent(campEventId);
+    const allEvents = await getAllCalendarEvents();
+    setEvents(allEvents);
+    setCampEvents(allEvents.filter(e => e.type === 'training-camp'));
+  }
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      const [gym, allBoxers, allEvents, allFights, allFederations] = await Promise.all([
+      const [gym, allBoxers, allEvents, allFights, allFederations, allCoaches] = await Promise.all([
         getGym(),
         getAllBoxers(),
         getAllCalendarEvents(),
         getAllFights(),
         getAllFederations(),
+        getAllCoaches(),
       ]);
 
       if (cancelled) return;
@@ -176,6 +230,8 @@ export default function Roster() {
       setBoxersMap(bMap);
       setToday(gym?.currentDate ?? '');
       setLoading(false);
+      setCoaches(allCoaches);
+      setCampEvents(allEvents.filter(e => e.type === 'training-camp'));
     }
 
     load();
@@ -218,8 +274,25 @@ export default function Roster() {
             </thead>
             <tbody>
               {roster.map(boxer => {
-                const status = getBoxerStatus(boxer, events, today);
+                const nextFightEvent = events
+                  .filter(e => e.type === 'fight' && e.boxerIds.includes(boxer.id!) && e.date > today)
+                  .sort((a, b) => a.date.localeCompare(b.date))[0];
+
+                const campEvent = nextFightEvent
+                  ? campEvents.find(e => e.fightId === nextFightEvent.fightId && e.boxerIds.includes(boxer.id!))
+                  : undefined;
+
+                const boostPct = campEvent
+                  ? computeCampBoostPct(campEvent.date, campEvent.endDate ?? nextFightEvent!.date, today)
+                  : undefined;
+
+                const status = getBoxerStatus(boxer, events, today, boostPct);
                 const nextFight = getNextFight(boxer, events, fightsMap, federationsMap, today, boxersMap);
+                const hasActiveFight = events.some(e => e.type === 'fight' && e.boxerIds.includes(boxer.id!) && e.date >= today);
+                const hasActiveInjury = boxer.injuries.some(i => i.recoveryDays > 0);
+                const showCampButton = nextFightEvent && !campEvent && !hasActiveInjury;
+                const showCampForm = campFormBoxerId === boxer.id;
+
                 return (
                   <tr key={boxer.id}>
                     <td><Link to={`/player/${boxer.id}`}>{boxer.name}</Link></td>
@@ -243,15 +316,56 @@ export default function Roster() {
                       }
                     </td>
                     <td>
-                      {boxer.id !== undefined &&
-                       !events.some(e => e.type === 'fight' && e.boxerIds.includes(boxer.id!) && e.date >= today) &&
-                       !boxer.injuries.some(i => i.recoveryDays > 0) && (
+                      {!hasActiveFight && !hasActiveInjury && (
                         <button
                           className={styles.scheduleBtn}
                           onClick={() => navigate(`/league/schedule?boxerId=${boxer.id}`)}
                         >
                           Schedule Fight
                         </button>
+                      )}
+                      {campEvent && campEvent.id !== undefined && (
+                        <button
+                          className={styles.cancelCampBtn}
+                          onClick={() => handleCancelCamp(campEvent.id!)}
+                        >
+                          Cancel Camp
+                        </button>
+                      )}
+                      {showCampButton && !showCampForm && (
+                        <button
+                          className={styles.scheduleBtn}
+                          onClick={() => {
+                            setCampFormBoxerId(boxer.id!);
+                            setCampStartInput(today);
+                          }}
+                        >
+                          Start Training Camp
+                        </button>
+                      )}
+                      {showCampForm && (
+                        <div className={styles.campForm}>
+                          <input
+                            type="date"
+                            className={styles.campDateInput}
+                            value={campStartInput}
+                            min={today}
+                            max={nextFightEvent!.date}
+                            onChange={e => setCampStartInput(e.target.value)}
+                          />
+                          <button
+                            className={styles.campConfirmBtn}
+                            onClick={() => handleStartCamp(boxer.id!, nextFightEvent!.fightId, nextFightEvent!.date)}
+                          >
+                            Start Camp
+                          </button>
+                          <button
+                            className={styles.cancelCampBtn}
+                            onClick={() => { setCampFormBoxerId(null); setCampStartInput(''); }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
