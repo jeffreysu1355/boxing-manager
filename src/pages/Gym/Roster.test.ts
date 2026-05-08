@@ -5,6 +5,7 @@ import {
   calcRecord,
   styleLabel,
   capitalize,
+  computeCampBoostPct,
 } from './Roster';
 import type { Boxer, CalendarEvent, Fight, Federation } from '../../db/db';
 
@@ -261,5 +262,55 @@ describe('styleLabel', () => {
 describe('capitalize', () => {
   it('capitalizes weight class', () => {
     expect(capitalize('welterweight')).toBe('Welterweight');
+  });
+});
+
+// --- computeCampBoostPct ---
+
+describe('computeCampBoostPct', () => {
+  it('returns 0 when no days trained (currentDate = campStartDate)', () => {
+    expect(computeCampBoostPct('2026-05-01', '2026-07-01', '2026-05-01')).toBe(0);
+  });
+
+  it('returns 0 when fight is today (totalDays = 0)', () => {
+    expect(computeCampBoostPct('2026-05-01', '2026-05-01', '2026-05-01')).toBe(0);
+  });
+
+  it('returns 40 (80% of 50%) after training through the early segment', () => {
+    // camp 2026-05-01 → 2026-07-01 (61 days → totalDays capped at 60)
+    // earlySegment = 60-14 = 46
+    // currentDate at 46 days in: 2026-05-01 + 46 = 2026-06-16
+    expect(computeCampBoostPct('2026-05-01', '2026-07-01', '2026-06-16')).toBe(40);
+  });
+
+  it('returns 50 after full 60 days of training', () => {
+    // camp 2026-05-01 → 2026-07-01, currentDate = fight date
+    expect(computeCampBoostPct('2026-05-01', '2026-07-01', '2026-07-01')).toBe(50);
+  });
+});
+
+describe('getBoxerStatus with boostPct', () => {
+  it('shows boost % in label when in training camp and boostPct provided', () => {
+    const events: CalendarEvent[] = [
+      { id: 1, type: 'training-camp', date: '2026-05-01', boxerIds: [1], fightId: 10 },
+    ];
+    const status = getBoxerStatus(baseBoxer, events, TODAY, 32);
+    expect(status.label).toBe('In Training Camp · +32%');
+  });
+
+  it('omits boost % when boostPct is 0', () => {
+    const events: CalendarEvent[] = [
+      { id: 1, type: 'training-camp', date: '2026-05-01', boxerIds: [1], fightId: 10 },
+    ];
+    const status = getBoxerStatus(baseBoxer, events, TODAY, 0);
+    expect(status.label).toBe('In Training Camp');
+  });
+
+  it('omits boost % when boostPct is undefined', () => {
+    const events: CalendarEvent[] = [
+      { id: 1, type: 'training-camp', date: '2026-05-01', boxerIds: [1], fightId: 10 },
+    ];
+    const status = getBoxerStatus(baseBoxer, events, TODAY);
+    expect(status.label).toBe('In Training Camp');
   });
 });
