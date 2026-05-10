@@ -12,6 +12,7 @@ import { getAllTitles } from '../../db/titleStore';
 import { getGym } from '../../db/gymStore';
 import { getAllBoxers } from '../../db/boxerStore';
 import { REPUTATION_INDEX } from '../../lib/reputationIndex';
+import { FEDERATION_ABBR, FEDERATION_WEEKS } from '../../constants/federations';
 import styles from './Schedule.module.css';
 
 // --- Constants ---
@@ -36,18 +37,7 @@ const REPUTATION_LEVELS: ReputationLevel[] = [
   'All-Time Great',
 ];
 
-export const FEDERATION_ABBR: Record<FederationName, string> = {
-  'North America Boxing Federation': 'NABF',
-  'South America Boxing Federation': 'SABF',
-  'African Boxing Federation':       'ABF',
-  'European Boxing Federation':      'EBF',
-  'Asia Boxing Federation':          'AsBF',
-  'Oceania Boxing Federation':       'OBF',
-  'International Boxing Federation': 'IBF',
-};
-
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const QUARTER_WEEKS = [10, 23, 36, 49];
 
 // --- Pure helpers ---
 
@@ -154,10 +144,13 @@ export default function Schedule() {
         if (futureFedEvents.length < 2) {
           const abbr = FEDERATION_ABBR[fed.name] ?? fed.name;
           const stagger = Math.floor(Math.abs(fedId * 13) % 7);
+          const weeks = FEDERATION_WEEKS[fed.name] ?? [10, 23, 36, 49];
           const newEvents: FederationEvent[] = [];
-          for (const week of QUARTER_WEEKS) {
+          for (const week of weeks) {
             const dayOfYear = week * 7 + stagger;
             const date = new Date(nextYear, 0, dayOfYear);
+            // Skip if week offset falls outside the target year
+            if (date.getFullYear() !== nextYear) continue;
             const y = date.getFullYear();
             const m = String(date.getMonth() + 1).padStart(2, '0');
             const d = String(date.getDate()).padStart(2, '0');
@@ -438,7 +431,7 @@ export default function Schedule() {
               return (
                 <div key={fedId} className={styles.federationGroup}>
                   <div className={styles.federationGroupLabel}>
-                    {fed ? (FEDERATION_ABBR[fed.name] ?? fed.name) : `Federation ${fedId}`}
+                    {fed ? fed.name : `Federation ${fedId}`}
                   </div>
                   {events.map(ev => {
                     if (ev.id === undefined) return null;

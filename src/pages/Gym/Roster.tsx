@@ -10,7 +10,7 @@ import { getAllFederations } from '../../db/federationStore';
 import { dateDiffDaysTraining } from '../../lib/training';
 import { getAllCoaches } from '../../db/coachStore';
 import type { Coach } from '../../db/db';
-import { FEDERATION_ABBR } from '../League/Schedule';
+import { FEDERATION_ABBR } from '../../constants/federations';
 import styles from './Roster.module.css';
 import { RANK_CONFIG } from '../../lib/rankSystem';
 
