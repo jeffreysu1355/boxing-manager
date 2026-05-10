@@ -266,6 +266,7 @@ export default function Roster() {
                 <th>Weight Class</th>
                 <th>Style</th>
                 <th>Record</th>
+                <th>Reputation</th>
                 <th>Rank</th>
                 <th>Status</th>
                 <th>Next Fight</th>
@@ -300,6 +301,7 @@ export default function Roster() {
                     <td>{capitalize(boxer.weightClass)}</td>
                     <td className={styles.styleTag}>{styleLabel(boxer.style)}</td>
                     <td>{calcRecord(boxer.record)}</td>
+                    <td>{boxer.reputation}</td>
                     <td><RankMiniBar boxer={boxer} /></td>
                     <td>
                       <span

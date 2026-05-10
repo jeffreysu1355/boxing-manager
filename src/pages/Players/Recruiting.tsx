@@ -83,9 +83,12 @@ export default function Recruiting() {
           b => REPUTATION_INDEX[b.reputation] <= maxRepIndex
         );
 
+        const sortByRep = (a: Boxer, b: Boxer) =>
+          REPUTATION_INDEX[b.reputation] - REPUTATION_INDEX[a.reputation];
+
         setGym(gymData ?? null);
-        setProspects(prospectList);
-        setFreeAgents(visibleFreeAgents);
+        setProspects([...prospectList].sort(sortByRep));
+        setFreeAgents([...visibleFreeAgents].sort(sortByRep));
         setLoading(false);
       }
     }
@@ -148,6 +151,7 @@ export default function Recruiting() {
                   <th>Name</th>
                   <th>Age</th>
                   <th>Style</th>
+                  <th>Reputation</th>
                   <th>Record</th>
                   <th>Signing Bonus</th>
                   <th></th>
@@ -162,6 +166,7 @@ export default function Recruiting() {
                       <td><Link to={`/player/${boxer.id}`}>{boxer.name}</Link></td>
                       <td>{boxer.age}</td>
                       <td className={styles.styleTag}>{styleLabel(boxer.style)}</td>
+                      <td>{boxer.reputation}</td>
                       <td>{calcRecord(boxer)}</td>
                       <td>{formatMoney(bonus)}</td>
                       <td>
