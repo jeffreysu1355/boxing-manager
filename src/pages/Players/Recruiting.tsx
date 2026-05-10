@@ -4,6 +4,7 @@ import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { getAllBoxers } from '../../db/boxerStore';
 import { putBoxer } from '../../db/boxerStore';
 import { getGym, saveGym } from '../../db/gymStore';
+import { logTransaction } from '../../db/transactionStore';
 import type { Boxer, Gym, ReputationLevel } from '../../db/db';
 import styles from './Recruiting.module.css';
 
@@ -98,9 +99,19 @@ export default function Recruiting() {
     const bonus = SIGNING_BONUS[boxer.reputation];
     if (gym.balance < bonus) return;
 
-    const updatedGym: Gym = { ...gym, balance: gym.balance - bonus, rosterIds: [...gym.rosterIds, boxer.id] };
-    const updatedBoxer: Boxer = { ...boxer, gymId: gym.id ?? 1 };
+    // Log the signing bonus transaction (this updates gym.balance in DB)
+    await logTransaction({
+      date: gym.currentDate,
+      description: `Signing bonus: ${boxer.name}`,
+      amount: -bonus,
+      category: 'recruit_bonus',
+    });
 
+    // Fetch fresh gym (balance already updated by logTransaction) and add boxer to roster
+    const fresh = await getGym();
+    if (!fresh) return;
+    const updatedGym: Gym = { ...fresh, rosterIds: [...fresh.rosterIds, boxer.id] };
+    const updatedBoxer: Boxer = { ...boxer, gymId: gym.id ?? 1 };
     await Promise.all([saveGym(updatedGym), putBoxer(updatedBoxer)]);
 
     setGym(updatedGym);
