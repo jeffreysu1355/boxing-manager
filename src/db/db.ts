@@ -253,6 +253,22 @@ export interface FederationEvent {
   fightIds: number[];  // fight ids on this card
 }
 
+export type TransactionCategory =
+  | 'fight_payout'
+  | 'ppv_payout'
+  | 'coach_salary'
+  | 'gym_upgrade'
+  | 'recruit_bonus';
+
+export interface GymTransaction {
+  id?: number;
+  date: string;
+  description: string;
+  amount: number;
+  balanceAfter: number;
+  category: TransactionCategory;
+}
+
 // --- DB schema ---
 
 interface BoxingManagerDBSchema extends DBSchema {
@@ -304,6 +320,11 @@ interface BoxingManagerDBSchema extends DBSchema {
     value: FederationEvent;
     indexes: { federationId: number; date: string };
   };
+  transactions: {
+    key: number;
+    value: GymTransaction;
+    indexes: { date: string };
+  };
 }
 
 export type DB = IDBPDatabase<BoxingManagerDBSchema>;
@@ -314,7 +335,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 13, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 14, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -437,6 +458,14 @@ export async function getDB(): Promise<DB> {
         // Gym.coachIds field is abandoned (coach ownership tracked via Coach.gymId).
         // Existing coach records without gymId/monthlySalary return undefined;
         // runtime code treats gymId undefined as null (available pool).
+      }
+
+      if (oldVersion < 14) {
+        const txStore = db.createObjectStore('transactions', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        txStore.createIndex('date', 'date');
       }
     },
   });
