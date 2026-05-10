@@ -78,3 +78,14 @@
   font-size: 13px;
   margin-bottom: 16px;
 }
+
+.titleFightBadge {
+  color: var(--accent);
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.detailsLink {
+  color: var(--text-secondary);
+  font-size: 12px;
+}

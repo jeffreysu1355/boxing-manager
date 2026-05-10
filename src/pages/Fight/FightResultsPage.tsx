@@ -14,7 +14,7 @@ function resultLine(fight: Fight, boxers: Map<number, Boxer>): string {
   const boxerName = (id: number | undefined) =>
     id !== undefined ? (boxers.get(id)?.name ?? `Boxer #${id}`) : '—';
 
-  if (fight.method === 'Draw') return `Draw — ${fight.method}`;
+  if (fight.method === 'Draw') return 'Draw';
   if (fight.winnerId === null) return 'Result pending';
 
   const winnerName = boxerName(fight.winnerId);
@@ -46,6 +46,7 @@ export default function FightResultsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     const ids = (searchParams.get('fights') ?? '')
       .split(',')
       .map(Number)
@@ -73,11 +74,13 @@ export default function FightResultsPage() {
         }
         results.push({ fight, boxers: map });
       }
+      if (cancelled) return;
       setEntries(results);
       setLoading(false);
     }
 
     load();
+    return () => { cancelled = true; };
   }, [searchParams]);
 
   return (
@@ -111,14 +114,9 @@ export default function FightResultsPage() {
             </div>
             <div className={styles.cardMeta}>
               {fight.isTitleFight && (
-                <span style={{ color: 'var(--accent)', fontWeight: 600, marginRight: 8 }}>
-                  Title Fight ·
-                </span>
+                <span className={styles.titleFightBadge}>Title Fight ·</span>
               )}
-              <Link
-                to={`/fight/${fight.id}`}
-                style={{ color: 'var(--text-secondary)', fontSize: 12 }}
-              >
+              <Link to={`/fight/${fight.id}`} className={styles.detailsLink}>
                 View Details →
               </Link>
             </div>
