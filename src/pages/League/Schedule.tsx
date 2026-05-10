@@ -492,7 +492,7 @@ export default function Schedule() {
                 disabled={REPUTATION_LEVELS.indexOf(reputationFilter) === 0}
                 onClick={() => {
                   const idx = REPUTATION_LEVELS.indexOf(reputationFilter);
-                  if (idx > 0) setReputationFilter(REPUTATION_LEVELS[idx - 1]);
+                  if (idx > 0) { setReputationFilter(REPUTATION_LEVELS[idx - 1]); setHoverState(null); }
                 }}
               >
                 ‹
@@ -500,7 +500,7 @@ export default function Schedule() {
               <select
                 className={styles.reputationFilterSelect}
                 value={reputationFilter}
-                onChange={e => setReputationFilter(e.target.value as ReputationLevel)}
+                onChange={e => { setReputationFilter(e.target.value as ReputationLevel); setHoverState(null); }}
               >
                 {REPUTATION_LEVELS.map(rep => (
                   <option key={rep} value={rep}>{rep}</option>
@@ -511,7 +511,7 @@ export default function Schedule() {
                 disabled={REPUTATION_LEVELS.indexOf(reputationFilter) === REPUTATION_LEVELS.length - 1}
                 onClick={() => {
                   const idx = REPUTATION_LEVELS.indexOf(reputationFilter);
-                  if (idx < REPUTATION_LEVELS.length - 1) setReputationFilter(REPUTATION_LEVELS[idx + 1]);
+                  if (idx < REPUTATION_LEVELS.length - 1) { setReputationFilter(REPUTATION_LEVELS[idx + 1]); setHoverState(null); }
                 }}
               >
                 ›
@@ -749,7 +749,7 @@ function StatComparePopup({ x, y, gymBoxer, opponent, matchupLabel: label, style
   const left = x + OFFSET_X + POPUP_WIDTH > window.innerWidth
     ? x - POPUP_WIDTH - OFFSET_X
     : x + OFFSET_X;
-  const top = Math.min(y + OFFSET_Y, window.innerHeight - POPUP_ESTIMATED_HEIGHT);
+  const top = Math.max(0, Math.min(y + OFFSET_Y, window.innerHeight - POPUP_ESTIMATED_HEIGHT));
 
   const matchupClass =
     label === 'Counters you' ? styles.matchupCounter :
