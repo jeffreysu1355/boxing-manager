@@ -1,8 +1,26 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
+import { getGym, saveGym } from '../../db/gymStore';
 
 export default function GodMode() {
+  const [godMode, setGodMode] = useState<boolean>(false);
   const [restarting, setRestarting] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getGym().then(gym => {
+      setGodMode(gym?.godModeEnabled ?? false);
+      setLoading(false);
+    });
+  }, []);
+
+  async function handleToggle() {
+    const gym = await getGym();
+    if (!gym) return;
+    const next = !godMode;
+    await saveGym({ ...gym, godModeEnabled: next });
+    setGodMode(next);
+  }
 
   async function handleRestart() {
     if (!confirm('This will wipe all data and start a fresh world. Continue?')) return;
@@ -11,7 +29,7 @@ export default function GodMode() {
       const req = indexedDB.deleteDatabase('boxing-manager');
       req.onsuccess = () => resolve();
       req.onerror = () => reject(req.error);
-      req.onblocked = () => resolve(); // proceed even if blocked; page reload will clean up
+      req.onblocked = () => resolve();
     });
     window.location.href = '/';
   }
@@ -19,22 +37,47 @@ export default function GodMode() {
   return (
     <div>
       <PageHeader title="God Mode" subtitle="Modify stats, natural talents, and history" />
-      <button
-        onClick={handleRestart}
-        disabled={restarting}
-        style={{
-          padding: '6px 16px',
-          background: 'var(--danger)',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 3,
-          fontWeight: 600,
-          cursor: restarting ? 'not-allowed' : 'pointer',
-          opacity: restarting ? 0.6 : 1,
-        }}
-      >
-        {restarting ? 'Restarting...' : 'Restart'}
-      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            onClick={handleToggle}
+            disabled={loading}
+            style={{
+              padding: '6px 16px',
+              background: godMode ? 'var(--success)' : 'var(--surface, #1a1a2e)',
+              color: godMode ? '#000' : 'var(--text-primary)',
+              border: '1px solid ' + (godMode ? 'var(--success)' : 'var(--border)'),
+              borderRadius: 3,
+              fontWeight: 600,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.5 : 1,
+              minWidth: 120,
+            }}
+          >
+            God Mode: {godMode ? 'ON' : 'OFF'}
+          </button>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            {godMode ? 'Edit buttons are visible on player pages.' : 'Enable to unlock boxer editing.'}
+          </span>
+        </div>
+        <button
+          onClick={handleRestart}
+          disabled={restarting}
+          style={{
+            padding: '6px 16px',
+            background: 'var(--danger)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 3,
+            fontWeight: 600,
+            cursor: restarting ? 'not-allowed' : 'pointer',
+            opacity: restarting ? 0.6 : 1,
+            alignSelf: 'flex-start',
+          }}
+        >
+          {restarting ? 'Restarting...' : 'Restart'}
+        </button>
+      </div>
     </div>
   );
 }
