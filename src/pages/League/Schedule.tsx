@@ -34,6 +34,19 @@ const REPUTATION_INDEX: Record<ReputationLevel, number> = {
   'All-Time Great': 9,
 };
 
+const REPUTATION_LEVELS: ReputationLevel[] = [
+  'Unknown',
+  'Local Star',
+  'Rising Star',
+  'Respectable Opponent',
+  'Contender',
+  'Championship Caliber',
+  'Nationally Ranked',
+  'World Class Fighter',
+  'International Superstar',
+  'All-Time Great',
+];
+
 export const FEDERATION_ABBR: Record<FederationName, string> = {
   'North America Boxing Federation': 'NABF',
   'South America Boxing Federation': 'SABF',
@@ -114,6 +127,7 @@ export default function Schedule() {
   const [selectedOpponentId, setSelectedOpponentId] = useState<number | null>(null);
   const [isTitleFight, setIsTitleFight] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [reputationFilter, setReputationFilter] = useState<ReputationLevel | null>(null);
 
   useEffect(() => {
     let cancelled = false;
