@@ -275,6 +275,7 @@ export function TopNav() {
           weightClass: fight.weightClass,
           fightDate: fight.date,
           contractId: fight.contractId,
+          gymBoxerFirstId: fight.boxerIds[0],
         });
 
         const [updatedWinner, updatedLoser] = await Promise.all([

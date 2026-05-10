@@ -3,6 +3,10 @@ import { getBoxer, putBoxer } from '../../db/boxerStore';
 import { getTitlesByFederation, putTitle } from '../../db/titleStore';
 import { getFightContract, putFightContract } from '../../db/fightContractStore';
 import { applyRankChange } from '../../lib/rankSystem';
+import { getPpvNetwork } from '../../db/ppvNetworkStore';
+import { calcViewers, calcPpvPayout } from '../../lib/ppvCalc';
+import { REPUTATION_INDEX } from '../../lib/reputationIndex';
+import { logTransaction } from '../../db/transactionStore';
 import type { FightMethod, FightRecord, WeightClass } from '../../db/db';
 
 export interface ApplyFightResultParams {
@@ -20,13 +24,14 @@ export interface ApplyFightResultParams {
   weightClass: WeightClass;
   fightDate: string;
   contractId: number | null;
+  gymBoxerFirstId: number;
 }
 
 export async function applyFightResult(params: ApplyFightResultParams): Promise<void> {
   const {
     fightId, winnerId, loserId, method, finishingMove, round, time,
     winnerRecord, loserRecord, isTitleFight, federationId, weightClass,
-    fightDate, contractId,
+    fightDate, contractId, gymBoxerFirstId,
   } = params;
 
   // 1. Update Fight record
@@ -87,11 +92,53 @@ export async function applyFightResult(params: ApplyFightResultParams): Promise<
     }
   }
 
-  // 4. Mark contract completed (skip for NPC fights which have no contract)
+  // 4. Mark contract completed and apply payouts
   if (contractId !== null) {
     const contract = await getFightContract(contractId);
     if (contract) {
       await putFightContract({ ...contract, status: 'completed' });
+
+      // Identify gym boxer and opponent for descriptions
+      const gymBoxer = winner?.id === gymBoxerFirstId ? winner : loser;
+      const opponent = winner?.id === gymBoxerFirstId ? loser : winner;
+      const gymBoxerName = gymBoxer?.name ?? 'Gym Boxer';
+      const opponentName = opponent?.name ?? 'Opponent';
+
+      // Guaranteed payout
+      if (contract.guaranteedPayout > 0) {
+        await logTransaction({
+          date: fightDate,
+          description: `Fight payout: ${gymBoxerName} vs ${opponentName}`,
+          amount: contract.guaranteedPayout,
+          category: 'fight_payout',
+        });
+      }
+
+      // PPV payout with ±20% variance
+      if (contract.ppvNetworkId !== null) {
+        const network = await getPpvNetwork(contract.ppvNetworkId);
+        if (network) {
+          const gymBoxerRank = REPUTATION_INDEX[gymBoxer?.reputation ?? 'Unknown'] ?? 0;
+          const opponentRank = REPUTATION_INDEX[opponent?.reputation ?? 'Unknown'] ?? 0;
+          const baseViewers = calcViewers({
+            network,
+            gymBoxerRank,
+            opponentRank,
+            isTitleFight,
+            isSameFederation: network.federationId === federationId,
+          });
+          const actualViewers = Math.round(baseViewers * (0.8 + Math.random() * 0.4));
+          const ppvPayout = calcPpvPayout(actualViewers, contract.ppvSplitPercentage);
+          if (ppvPayout > 0) {
+            await logTransaction({
+              date: fightDate,
+              description: `PPV payout: ${gymBoxerName} vs ${opponentName} (${network.name})`,
+              amount: ppvPayout,
+              category: 'ppv_payout',
+            });
+          }
+        }
+      }
     }
   }
 }
