@@ -149,7 +149,7 @@ export default function Coaches() {
                             )
                             .map(coach => (
                               <option key={coach.id} value={coach.id?.toString()}>
-                                {coach.name} ({SKILL_LABELS[coach.skillLevel]})
+                                {coach.name} ({SKILL_LABELS[coach.skillLevel]} · {styleLabel(coach.style)})
                               </option>
                             ))}
                         </select>
