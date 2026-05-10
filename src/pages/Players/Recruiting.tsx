@@ -99,15 +99,16 @@ export default function Recruiting() {
     const bonus = SIGNING_BONUS[boxer.reputation];
     if (gym.balance < bonus) return;
 
-    // Log the signing bonus transaction (this updates gym.balance in DB)
-    await logTransaction({
-      date: gym.currentDate,
-      description: `Signing bonus: ${boxer.name}`,
-      amount: -bonus,
-      category: 'recruit_bonus',
-    });
+    if (bonus > 0) {
+      await logTransaction({
+        date: gym.currentDate,
+        description: `Signing bonus: ${boxer.name}`,
+        amount: -bonus,
+        category: 'recruit_bonus',
+      });
+    }
 
-    // Fetch fresh gym (balance already updated by logTransaction) and add boxer to roster
+    // Fetch fresh gym (balance may have been updated by logTransaction) and add boxer to roster
     const fresh = await getGym();
     if (!fresh) return;
     const updatedGym: Gym = { ...fresh, rosterIds: [...fresh.rosterIds, boxer.id] };
