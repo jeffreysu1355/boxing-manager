@@ -727,14 +727,14 @@ const STAT_SECTIONS: { label: string; stats: { key: keyof BoxerStats; name: stri
 ];
 
 function StatComparePopup({ x, y, gymBoxer, opponent, matchupLabel: label, styles }: StatComparePopupProps) {
-  const POPUP_WIDTH = 320;
+  const POPUP_WIDTH = 360;
   const OFFSET_X = 16;
   const OFFSET_Y = -8;
 
   const left = x + OFFSET_X + POPUP_WIDTH > window.innerWidth
     ? x - POPUP_WIDTH - OFFSET_X
     : x + OFFSET_X;
-  const top = y + OFFSET_Y;
+  const top = Math.min(y + OFFSET_Y, window.innerHeight - 420);
 
   const matchupClass =
     label === 'Counters you' ? styles.matchupCounter :
