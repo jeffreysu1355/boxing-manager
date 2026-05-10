@@ -116,6 +116,11 @@ export default function Schedule() {
   const [isTitleFight, setIsTitleFight] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [reputationFilter, setReputationFilter] = useState<ReputationLevel | null>(null);
+  const [hoverState, setHoverState] = useState<{
+    x: number;
+    y: number;
+    opponent: Boxer;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -534,6 +539,13 @@ export default function Schedule() {
                     isSelected={isSelected}
                     onSelect={() => { if (!booked) { setSelectedOpponentId(oppId); setIsTitleFight(false); } }}
                     styles={styles}
+                    onMouseEnter={(e, opponent) => {
+                      if (!booked) setHoverState({ x: e.clientX, y: e.clientY, opponent });
+                    }}
+                    onMouseMove={e => {
+                      if (!booked) setHoverState(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+                    }}
+                    onMouseLeave={() => setHoverState(null)}
                   />
                 );
               })}
@@ -562,6 +574,13 @@ export default function Schedule() {
                             isSelected={isSelected}
                             onSelect={() => { if (!booked) { setSelectedOpponentId(oppId); setIsTitleFight(false); } }}
                             styles={styles}
+                            onMouseEnter={(e, opponent) => {
+                              if (!booked) setHoverState({ x: e.clientX, y: e.clientY, opponent });
+                            }}
+                            onMouseMove={e => {
+                              if (!booked) setHoverState(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+                            }}
+                            onMouseLeave={() => setHoverState(null)}
                           />
                         );
                       })}
@@ -607,9 +626,12 @@ interface OpponentRowProps {
   isSelected: boolean;
   onSelect: () => void;
   styles: Record<string, string>;
+  onMouseEnter?: (e: React.MouseEvent, opponent: Boxer) => void;
+  onMouseMove?: (e: React.MouseEvent) => void;
+  onMouseLeave?: () => void;
 }
 
-function OpponentRow({ boxer, gymBoxer, label, booked, isSelected, onSelect, styles }: OpponentRowProps) {
+function OpponentRow({ boxer, gymBoxer, label, booked, isSelected, onSelect, styles, onMouseEnter, onMouseMove, onMouseLeave }: OpponentRowProps) {
   const matchupClass =
     label === 'Counters you' ? styles.matchupCounter :
     label === 'You counter'  ? styles.matchupYou :
@@ -635,6 +657,9 @@ function OpponentRow({ boxer, gymBoxer, label, booked, isSelected, onSelect, sty
       role="button"
       tabIndex={booked ? -1 : 0}
       onKeyDown={e => { if (!booked && (e.key === 'Enter' || e.key === ' ')) onSelect(); }}
+      onMouseEnter={e => onMouseEnter?.(e, boxer)}
+      onMouseMove={e => onMouseMove?.(e)}
+      onMouseLeave={() => onMouseLeave?.()}
     >
       <div>
         <strong>{boxer.name}</strong>{' '}
