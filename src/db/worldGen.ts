@@ -9,6 +9,7 @@ import { putPpvNetwork } from './ppvNetworkStore';
 import { putTitle } from './titleStore';
 import { RANK_CONFIG } from '../lib/rankSystem';
 import { COACH_MONTHLY_SALARY } from './db';
+import { FEDERATION_ABBR, FEDERATION_WEEKS } from '../constants/federations';
 import type {
   Boxer,
   BoxerStats,
@@ -329,16 +330,6 @@ const CHAMPION_ELIGIBLE: ReputationLevel[] = [
   'All-Time Great',
 ];
 
-const FEDERATION_ABBR_MAP: Record<FederationName, string> = {
-  'North America Boxing Federation': 'NABF',
-  'South America Boxing Federation': 'SABF',
-  'African Boxing Federation':       'ABF',
-  'European Boxing Federation':      'EBF',
-  'Asia Boxing Federation':          'AsBF',
-  'Oceania Boxing Federation':       'OBF',
-  'International Boxing Federation': 'IBF',
-};
-
 // --- Federation seed data ---
 
 const FEDERATION_PRESTIGE: Record<FederationName, number> = {
@@ -566,25 +557,24 @@ async function generatePpvNetworks(
   }
 }
 
-// Quarter week offsets: weeks 10, 23, 36, 49 (roughly Mar, Jun, Sep, Dec)
-const QUARTER_WEEKS = [10, 23, 36, 49];
-
 export async function generateFederationEvents(
   year: number,
   federationIds: { id: number; name: FederationName }[]
 ): Promise<void> {
   for (const fed of federationIds) {
-    const abbr = FEDERATION_ABBR_MAP[fed.name];
+    const abbr = FEDERATION_ABBR[fed.name];
+    const weeks = FEDERATION_WEEKS[fed.name];
     // Deterministic stagger per federation (0–6 days) so events don't all land on the same day
     const stagger = Math.floor(Math.abs(fed.id * 13) % 7);
 
-    for (const week of QUARTER_WEEKS) {
+    for (const week of weeks) {
       const dayOfYear = week * 7 + stagger;
       const date = new Date(year, 0, dayOfYear);
-      const y = date.getFullYear();
+      // Skip if week offset falls outside the target year (e.g. high week numbers + stagger)
+      if (date.getFullYear() !== year) continue;
       const m = String(date.getMonth() + 1).padStart(2, '0');
       const d = String(date.getDate()).padStart(2, '0');
-      const isoDate = `${y}-${m}-${d}`;
+      const isoDate = `${year}-${m}-${d}`;
       const monthName = MONTHS[date.getMonth()];
       const name = `${abbr} ${monthName} ${year}`;
 
