@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { getBoxer } from '../../db/boxerStore';
 import { getAllCoaches } from '../../db/coachStore';
+import { getGym } from '../../db/gymStore';
 import { getTitle } from '../../db/titleStore';
 import { getFederation } from '../../db/federationStore';
 import { STYLE_STATS } from '../../lib/training';
@@ -148,14 +149,16 @@ export default function PlayerPage() {
   const [boxer, setBoxer] = useState<Boxer | null | undefined>(undefined);
   const [coach, setCoach] = useState<Coach | null | undefined>(undefined);
   const [titleFedMap, setTitleFedMap] = useState<Map<number, { abbr: string; weightClass: string }>>(new Map());
+  const [godMode, setGodMode] = useState(false);
 
   useEffect(() => {
     if (!id) { setBoxer(null); setCoach(null); return; }
     let cancelled = false;
 
     async function load() {
-      const [b, coaches] = await Promise.all([getBoxer(Number(id)), getAllCoaches()]);
+      const [b, coaches, gym] = await Promise.all([getBoxer(Number(id)), getAllCoaches(), getGym()]);
       if (cancelled) return;
+      setGodMode(gym?.godModeEnabled ?? false);
       setBoxer(b ?? null);
       setCoach(coaches.find(c => c.assignedBoxerId === Number(id)) ?? null);
 
@@ -214,6 +217,25 @@ export default function PlayerPage() {
   return (
     <div>
       <PageHeader title={boxer.name} subtitle={boxer.reputation} />
+      {godMode && (
+        <div style={{ marginBottom: 8 }}>
+          <Link
+            to={`/player/${boxer.id}/edit`}
+            style={{
+              display: 'inline-block',
+              padding: '5px 14px',
+              background: 'var(--accent)',
+              color: '#000',
+              borderRadius: 3,
+              fontWeight: 600,
+              fontSize: 13,
+              textDecoration: 'none',
+            }}
+          >
+            Edit Boxer
+          </Link>
+        </div>
+      )}
       <div className={styles.page}>
 
         {/* Header card */}
