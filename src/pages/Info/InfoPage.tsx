@@ -1,8 +1,7 @@
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { STYLE_FOCUS } from '../../lib/fightSim';
 import { REPUTATION_ORDER, RANK_CONFIG } from '../../lib/rankSystem';
-import type { FightingStyle } from '../../db/db';
-import type { BoxerStats } from '../../db/db';
+import type { FightingStyle, BoxerStats } from '../../db/db';
 import styles from './InfoPage.module.css';
 
 const STYLE_LABELS: Record<FightingStyle, string> = {
@@ -87,7 +86,7 @@ export default function InfoPage() {
         <div className={styles.sectionBody}>
           <div className={styles.counterChain}>
             {COUNTER_CHAIN.map((style, i) => (
-              <span key={i}>
+              <span key={`${style}-${i}`}>
                 {i > 0 && <span className={styles.counterArrow}> beats </span>}
                 {STYLE_LABELS[style]}
               </span>
