@@ -412,6 +412,7 @@ export default function Schedule() {
             setSelectedOpponentId(null);
             setReputationFilter(null);
             setIsTitleFight(false);
+            setHoverState(null);
           }}
         >
           &larr; Back to boxer list
@@ -451,6 +452,7 @@ export default function Schedule() {
                           setSelectedOpponentId(null);
                           setReputationFilter(selectedGymBoxer?.reputation ?? null);
                           setIsTitleFight(false);
+                          setHoverState(null);
                         }}
                         role="button"
                         tabIndex={0}
@@ -460,6 +462,7 @@ export default function Schedule() {
                             setSelectedOpponentId(null);
                             setReputationFilter(selectedGymBoxer?.reputation ?? null);
                             setIsTitleFight(false);
+                            setHoverState(null);
                           }
                         }}
                       >
@@ -741,11 +744,12 @@ function StatComparePopup({ x, y, gymBoxer, opponent, matchupLabel: label, style
   const POPUP_WIDTH = 360;
   const OFFSET_X = 16;
   const OFFSET_Y = -8;
+  const POPUP_ESTIMATED_HEIGHT = 460;
 
   const left = x + OFFSET_X + POPUP_WIDTH > window.innerWidth
     ? x - POPUP_WIDTH - OFFSET_X
     : x + OFFSET_X;
-  const top = Math.min(y + OFFSET_Y, window.innerHeight - 420);
+  const top = Math.min(y + OFFSET_Y, window.innerHeight - POPUP_ESTIMATED_HEIGHT);
 
   const matchupClass =
     label === 'Counters you' ? styles.matchupCounter :
