@@ -451,30 +451,32 @@ export function TopNav() {
 
       {rankChanges.length > 0 && (
         <div className={styles.fightBanner}>
-          {rankChanges.map((change, i) => {
-            const { name, delta, reputation } = change;
-            if (delta.promoted) return (
-              <div key={i} className={styles.rankChangeLine}>
-                <span className={styles.rankChangePromoted}>{name}: Promoted to {reputation}!</span>
-              </div>
-            );
-            if (delta.demoted) return (
-              <div key={i} className={styles.rankChangeLine}>
-                <span className={styles.rankChangeDemoted}>{name}: Demoted to {reputation}</span>
-              </div>
-            );
-            if (delta.points > 0) return (
-              <div key={i} className={styles.rankChangeLine}>
-                {name}: <span className={styles.rankChangePromoted}>+{delta.points} rank pts</span> ({reputation})
-              </div>
-            );
-            if (delta.bufferPoints > 0) return (
-              <div key={i} className={styles.rankChangeLine}>
-                {name}: <span className={styles.rankChangeDemoted}>−{delta.bufferPoints} buffer pts</span> ({reputation})
-              </div>
-            );
-            return null;
-          })}
+          <div className={styles.fightResultsSection}>
+            {rankChanges.map((change, i) => {
+              const { name, delta, reputation } = change;
+              if (delta.promoted) return (
+                <div key={i} className={styles.rankChangeLine}>
+                  <span className={styles.rankChangePromoted}>{name}: Promoted to {reputation}!</span>
+                </div>
+              );
+              if (delta.demoted) return (
+                <div key={i} className={styles.rankChangeLine}>
+                  <span className={styles.rankChangeDemoted}>{name}: Demoted to {reputation}</span>
+                </div>
+              );
+              if (delta.points > 0) return (
+                <div key={i} className={styles.rankChangeLine}>
+                  {name}: <span className={styles.rankChangePromoted}>+{delta.points} rank pts</span> ({reputation})
+                </div>
+              );
+              if (delta.bufferPoints > 0) return (
+                <div key={i} className={styles.rankChangeLine}>
+                  {name}: <span className={styles.rankChangeDemoted}>−{delta.bufferPoints} buffer pts</span> ({reputation})
+                </div>
+              );
+              return null;
+            })}
+          </div>
           <button className={styles.dismissBtn} onClick={() => setRankChanges([])}>Dismiss</button>
         </div>
       )}
