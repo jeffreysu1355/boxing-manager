@@ -11,8 +11,9 @@ export const FEDERATION_ABBR: Record<FederationName, string> = {
 };
 
 // Fixed week offsets per federation. IBF is quarterly (prestige). SABF/ABF have 3 events
-// (lower prestige). AsBF/OBF include early-year slots (weeks 2 and 5) which are skipped
-// at runtime when they fall outside the target year's bounds.
+// (lower prestige). AsBF/OBF include early-year slots (weeks 2 and 5) that land in Jan/Feb
+// and are correctly included. The year-boundary guard is a safety net for high week numbers
+// at year-end that could overflow into the next year with stagger applied.
 export const FEDERATION_WEEKS: Record<FederationName, number[]> = {
   'International Boxing Federation': [10, 23, 36, 49],
   'North America Boxing Federation': [4, 17, 30, 43],

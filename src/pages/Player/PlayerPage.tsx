@@ -9,17 +9,8 @@ import { getFederation } from '../../db/federationStore';
 import { STYLE_STATS } from '../../lib/training';
 import { RANK_CONFIG } from '../../lib/rankSystem';
 import type { Boxer, BoxerStats, Coach, FightRecord, Federation } from '../../db/db';
+import { FEDERATION_ABBR } from '../../constants/federations';
 import styles from './PlayerPage.module.css';
-
-const FEDERATION_ABBR: Record<string, string> = {
-  'North America Boxing Federation': 'NABF',
-  'South America Boxing Federation': 'SABF',
-  'African Boxing Federation': 'ABF',
-  'European Boxing Federation': 'EBF',
-  'Asia Boxing Federation': 'AsBF',
-  'Oceania Boxing Federation': 'OBF',
-  'International Boxing Federation': 'IBF',
-};
 
 // --- Stat group definitions ---
 
