@@ -6,6 +6,7 @@ import { putFight } from '../../db/fightStore';
 import { putTitle, getAllTitles } from '../../db/titleStore';
 import { putFederation } from '../../db/federationStore';
 import { putFightContract } from '../../db/fightContractStore';
+import { saveGym } from '../../db/gymStore';
 import { applyFightResult } from './fightResultApplier';
 import type { BoxerStats } from '../../db/db';
 
@@ -22,6 +23,7 @@ beforeEach(async () => {
   // @ts-expect-error fake-indexeddb
   global.indexedDB = new IDBFactory();
   await closeAndResetDB();
+  await saveGym({ name: 'Test Gym', level: 1, balance: 100_000, rosterIds: [], currentDate: '2026-01-01' });
 });
 
 afterEach(async () => {
