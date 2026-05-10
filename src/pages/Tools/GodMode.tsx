@@ -17,7 +17,7 @@ export default function GodMode() {
   async function handleToggle() {
     const gym = await getGym();
     if (!gym) return;
-    const next = !godMode;
+    const next = !(gym.godModeEnabled ?? false);
     await saveGym({ ...gym, godModeEnabled: next });
     setGodMode(next);
   }
