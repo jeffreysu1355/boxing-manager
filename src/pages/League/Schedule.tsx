@@ -406,7 +406,13 @@ export default function Schedule() {
       <div style={{ marginBottom: 8 }}>
         <button
           style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: 0, fontSize: 13 }}
-          onClick={() => { setSelectedBoxerId(null); setSelectedEventId(null); setSelectedOpponentId(null); setIsTitleFight(false); }}
+          onClick={() => {
+            setSelectedBoxerId(null);
+            setSelectedEventId(null);
+            setSelectedOpponentId(null);
+            setReputationFilter(null);
+            setIsTitleFight(false);
+          }}
         >
           &larr; Back to boxer list
         </button>
@@ -443,6 +449,7 @@ export default function Schedule() {
                         onClick={() => {
                           setSelectedEventId(ev.id);
                           setSelectedOpponentId(null);
+                          setReputationFilter(selectedGymBoxer?.reputation ?? null);
                           setIsTitleFight(false);
                         }}
                         role="button"
@@ -451,6 +458,7 @@ export default function Schedule() {
                           if (e.key === 'Enter' || e.key === ' ') {
                             setSelectedEventId(ev.id);
                             setSelectedOpponentId(null);
+                            setReputationFilter(selectedGymBoxer?.reputation ?? null);
                             setIsTitleFight(false);
                           }
                         }}
