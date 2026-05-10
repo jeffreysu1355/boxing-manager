@@ -525,7 +525,7 @@ export default function Schedule() {
           {!selectedEvent && (
             <p className={styles.empty}>Select an event first.</p>
           )}
-          {selectedEvent && filteredOpponents.length === 0 && (
+          {selectedEvent && reputationFilter !== null && filteredOpponents.length === 0 && (
             <p className={styles.empty}>No opponents at this reputation level.</p>
           )}
           {selectedEvent && filteredOpponents.length > 0 && (
