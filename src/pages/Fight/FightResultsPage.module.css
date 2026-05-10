@@ -1,0 +1,80 @@
+.page {
+  padding: 32px 24px;
+  max-width: 640px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.subtitle {
+  margin: 0 0 24px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.card {
+  background: var(--bg-secondary, #1a1a2e);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.cardHeader {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.cardMeta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.resultLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.resultLine {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.resultDetail {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.boxerLinks {
+  margin-top: 14px;
+  display: flex;
+  gap: 16px;
+}
+
+.boxerLink {
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.empty {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
