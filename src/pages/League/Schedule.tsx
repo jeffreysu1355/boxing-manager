@@ -613,6 +613,17 @@ export default function Schedule() {
           {confirming ? 'Scheduling...' : 'Confirm Fight'}
         </button>
       </div>
+
+      {hoverState && selectedGymBoxer && (
+        <StatComparePopup
+          x={hoverState.x}
+          y={hoverState.y}
+          gymBoxer={selectedGymBoxer}
+          opponent={hoverState.opponent}
+          matchupLabel={matchupLabel(selectedGymBoxer.style, hoverState.opponent.style)}
+          styles={styles}
+        />
+      )}
     </div>
   );
 }
