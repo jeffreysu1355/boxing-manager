@@ -311,9 +311,9 @@ After scheduling but before the fight, the player can sign up with a PPV network
 #### Completion Tracking
 
 - [x] PPV network data model and generation
-- [ ] Network signup UI (post-scheduling, pre-fight)
-- [ ] Viewer calculation (60% base, bonus for title fights)
-- [ ] PPV revenue calculation and payout
+- [x] Network signup UI (post-scheduling, pre-fight)
+- [x] Viewer calculation (60% base, bonus for title fights)
+- [x] PPV revenue calculation and payout
 
 ### 7.3 Fight Simulation
 
@@ -339,7 +339,7 @@ Fight result must produce a record entry with: winner, method (KO, TKO, Decision
 - [x] Post-fight reputation updates
 - [ ] Post-fight injury generation
 - [x] Post-fight title transfer (if title fight)
-- [ ] Post-fight financial payout
+- [x] Post-fight financial payout
 
 
 ---
@@ -390,9 +390,9 @@ All revenue flows to the gym.
 
 ### Completion Tracking
 
-- [ ] Financial ledger / transaction history
-- [ ] Revenue from guaranteed payouts
-- [ ] Revenue from PPV splits
+- [x] Financial ledger / transaction history
+- [x] Revenue from guaranteed payouts
+- [x] Revenue from PPV splits
 - [ ] Ad revenue scaling with reputation
 - [x] Gym upgrade purchase flow
 - [x] Financial summary UI (Gym > Finances tab)
@@ -455,7 +455,7 @@ These are NOT in scope for the initial build but are noted for future considerat
 | Coach System | **In Progress** |
 | Fight System | **In Progress** |
 | Federation System | **Complete** |
-| Financial System | **Not Started** |
+| Financial System | **In Progress** |
 | UI & Navigation | **In Progress** |
 
 > Update this table as sections are completed. Use **Not Started**, **In Progress**, or **Complete**.
