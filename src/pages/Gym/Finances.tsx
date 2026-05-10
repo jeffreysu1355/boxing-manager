@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { getGym, saveGym } from '../../db/gymStore';
-import { logTransaction } from '../../db/transactionStore';
-import type { Gym } from '../../db/db';
+import { logTransaction, getAllTransactions } from '../../db/transactionStore';
+import type { Gym, GymTransaction } from '../../db/db';
 import styles from './Finances.module.css';
 
 const UPGRADE_COSTS: Record<number, number> = {
@@ -21,16 +21,30 @@ function formatMoney(amount: number): string {
   return `$${amount.toLocaleString('en-US')}`;
 }
 
+function formatDate(iso: string): string {
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+  });
+}
+
+function formatAmount(amount: number): string {
+  const sign = amount >= 0 ? '+' : '-';
+  return `${sign}$${Math.abs(amount).toLocaleString('en-US')}`;
+}
+
 export default function Finances() {
   const [gym, setGym] = useState<Gym | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
+  const [transactions, setTransactions] = useState<GymTransaction[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    getGym().then(g => {
+    Promise.all([getGym(), getAllTransactions()]).then(([g, txs]) => {
       if (!cancelled) {
         setGym(g ?? null);
+        setTransactions(txs);
         setLoading(false);
       }
     });
@@ -128,6 +142,25 @@ export default function Finances() {
             )}
           </div>
         </div>
+      </div>
+      <div className={styles.historySection}>
+        <div className={styles.historySectionTitle}>Transaction History</div>
+        {transactions.length === 0 ? (
+          <p className={styles.empty}>No transactions yet.</p>
+        ) : (
+          <div className={styles.historyList}>
+            {transactions.map(tx => (
+              <div key={tx.id} className={styles.historyRow}>
+                <span className={styles.historyDate}>{formatDate(tx.date)}</span>
+                <span className={styles.historyDesc}>{tx.description}</span>
+                <span className={`${styles.historyAmount} ${tx.amount >= 0 ? styles.historyIncome : styles.historyExpense}`}>
+                  {formatAmount(tx.amount)}
+                </span>
+                <span className={styles.historyBalance}>{formatMoney(tx.balanceAfter)}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

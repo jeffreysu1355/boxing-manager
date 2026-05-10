@@ -120,3 +120,74 @@
   color: var(--text-secondary);
   font-style: italic;
 }
+
+.historySection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.historySectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.historyRow {
+  display: grid;
+  grid-template-columns: 110px 1fr 90px 90px;
+  align-items: center;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  gap: 8px;
+}
+
+.historyRow:last-child {
+  border-bottom: none;
+}
+
+.historyDate {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.historyDesc {
+  color: var(--text-primary);
+}
+
+.historyAmount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.historyIncome {
+  color: var(--success);
+}
+
+.historyExpense {
+  color: var(--danger);
+}
+
+.historyBalance {
+  text-align: right;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
