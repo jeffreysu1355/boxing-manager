@@ -341,6 +341,11 @@ export function TopNav() {
       );
       setGymBoxerIds(freshIds);
       window.dispatchEvent(new CustomEvent('game:sim'));
+
+      const simmedIds = todayFights.map(e => e.fightId);
+      if (simmedIds.length > 0) {
+        navigate(`/fight-results?fights=${simmedIds.join(',')}`);
+      }
     } finally {
       setIsSimming(false);
     }
