@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { getGym, saveGym } from '../../db/gymStore';
+import { logTransaction } from '../../db/transactionStore';
 import type { Gym } from '../../db/db';
 import styles from './Finances.module.css';
 
@@ -17,9 +18,7 @@ const UPGRADE_COSTS: Record<number, number> = {
 };
 
 function formatMoney(amount: number): string {
-  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
-  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`;
-  return `$${amount}`;
+  return `$${amount.toLocaleString('en-US')}`;
 }
 
 export default function Finances() {
@@ -43,9 +42,18 @@ export default function Finances() {
     const cost = UPGRADE_COSTS[gym.level];
     if (cost === undefined || gym.balance < cost) return;
 
-    const updated: Gym = { ...gym, level: gym.level + 1, balance: gym.balance - cost };
-    await saveGym(updated);
-    setGym(updated);
+    await logTransaction({
+      date: gym.currentDate,
+      description: `Gym upgrade to Level ${gym.level + 1}`,
+      amount: -cost,
+      category: 'gym_upgrade',
+    });
+
+    // logTransaction already updated gym.balance in DB; now bump the level
+    const fresh = await getGym();
+    if (!fresh) return;
+    await saveGym({ ...fresh, level: gym.level + 1 });
+    setGym({ ...fresh, level: gym.level + 1 });
     setConfirming(false);
   }
 
