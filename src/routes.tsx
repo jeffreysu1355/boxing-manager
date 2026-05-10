@@ -21,6 +21,7 @@ import CoachRecruiting from './pages/Players/CoachRecruiting';
 import Compare from './pages/Players/Compare';
 import ToolsLayout from './pages/Tools/ToolsLayout';
 import GodMode from './pages/Tools/GodMode';
+import InfoPage from './pages/Info/InfoPage';
 
 export const routes: RouteObject[] = [
   {
@@ -72,6 +73,7 @@ export const routes: RouteObject[] = [
           { path: 'god-mode', element: <GodMode /> },
         ],
       },
+      { path: 'info', element: <InfoPage /> },
     ],
   },
 ];

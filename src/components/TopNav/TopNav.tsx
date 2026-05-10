@@ -22,6 +22,7 @@ const tabs = [
   { to: '/gym', label: 'Gym' },
   { to: '/players', label: 'Players' },
   { to: '/tools', label: 'Tools' },
+  { to: '/info', label: 'Info' },
 ];
 
 function formatGameDate(iso: string): string {
