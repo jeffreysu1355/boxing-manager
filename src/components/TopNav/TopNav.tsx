@@ -259,7 +259,7 @@ export function TopNav() {
 
       for (const event of todayFights) {
         const fight = await getFight(event.fightId);
-        if (!fight || fight.winnerId !== null) continue; // already resolved
+        if (!fight || fight.winnerId !== null || fight.method === 'Draw') continue; // already resolved
 
         const [boxerA, boxerB, federation, allCoaches, allCampEvents] = await Promise.all([
           getBoxer(fight.boxerIds[0]),
