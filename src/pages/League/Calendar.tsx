@@ -8,20 +8,9 @@ import { getAllFights } from '../../db/fightStore';
 import { getAllFederations } from '../../db/federationStore';
 import { getAllFightContracts } from '../../db/fightContractStore';
 import { getAllPpvNetworks } from '../../db/ppvNetworkStore';
-import type { Boxer, CalendarEvent, Fight, Federation, FederationName, FightContract, PpvNetwork } from '../../db/db';
+import type { Boxer, CalendarEvent, Fight, Federation, FightContract, PpvNetwork } from '../../db/db';
+import { FEDERATION_ABBR } from '../../constants/federations';
 import styles from './Calendar.module.css';
-
-// --- Constants ---
-
-export const FEDERATION_ABBR: Record<FederationName, string> = {
-  'North America Boxing Federation': 'NABF',
-  'South America Boxing Federation': 'SABF',
-  'African Boxing Federation':       'ABF',
-  'European Boxing Federation':      'EBF',
-  'Asia Boxing Federation':          'AsBF',
-  'Oceania Boxing Federation':       'OBF',
-  'International Boxing Federation': 'IBF',
-};
 
 // --- Types ---
 
