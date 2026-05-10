@@ -66,7 +66,7 @@ export function computeStatScore(boxer: Boxer): number {
   let weightedSum = 0;
   let totalWeight = 0;
   for (const stat of ALL_STATS) {
-    const weight = focus.has(stat) ? 2 : 1;
+    const weight = focus.has(stat) ? 3 : 0.5;
     weightedSum += boxer.stats[stat] * weight;
     totalWeight += weight;
   }
