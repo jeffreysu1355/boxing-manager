@@ -24,7 +24,7 @@ const REPUTATION_INDEX: Record<ReputationLevel, number> = {
   'All-Time Great': 9,
 };
 
-const STYLE_FOCUS: Record<FightingStyle, (keyof Boxer['stats'])[]> = {
+export const STYLE_FOCUS: Record<FightingStyle, (keyof Boxer['stats'])[]> = {
   'out-boxer':      ['jab', 'cross', 'headMovement', 'guard', 'positioning', 'speed'],
   'swarmer':        ['leadHook', 'rearHook', 'bodyMovement', 'positioning', 'endurance', 'toughness'],
   'slugger':        ['rearHook', 'uppercut', 'power', 'endurance', 'recovery', 'toughness'],
@@ -32,7 +32,7 @@ const STYLE_FOCUS: Record<FightingStyle, (keyof Boxer['stats'])[]> = {
 };
 
 // STYLE_COUNTERS[x] = the style that counters x
-const STYLE_COUNTERS: Record<FightingStyle, FightingStyle> = {
+export const STYLE_COUNTERS: Record<FightingStyle, FightingStyle> = {
   'out-boxer':      'swarmer',
   'swarmer':        'slugger',
   'slugger':        'counterpuncher',
