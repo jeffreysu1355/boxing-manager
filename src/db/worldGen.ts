@@ -769,7 +769,7 @@ export async function generateWorld(): Promise<void> {
   await saveGym({
     name: 'My Gym',
     level: 1,
-    balance: 500_000_000,
+    balance: 20_000,
     rosterIds: [],
     currentDate: '2026-01-01',
   });
