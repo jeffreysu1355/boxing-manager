@@ -487,15 +487,50 @@ export default function Schedule() {
         {/* Right column: opponents */}
         <div className={styles.panel}>
           <div className={styles.panelTitle}>Select an Opponent</div>
+
+          {selectedEvent && reputationFilter !== null && (
+            <div className={styles.reputationFilter}>
+              <button
+                className={styles.reputationFilterArrow}
+                disabled={REPUTATION_LEVELS.indexOf(reputationFilter) === 0}
+                onClick={() => {
+                  const idx = REPUTATION_LEVELS.indexOf(reputationFilter);
+                  if (idx > 0) setReputationFilter(REPUTATION_LEVELS[idx - 1]);
+                }}
+              >
+                ‹
+              </button>
+              <select
+                className={styles.reputationFilterSelect}
+                value={reputationFilter}
+                onChange={e => setReputationFilter(e.target.value as ReputationLevel)}
+              >
+                {REPUTATION_LEVELS.map(rep => (
+                  <option key={rep} value={rep}>{rep}</option>
+                ))}
+              </select>
+              <button
+                className={styles.reputationFilterArrow}
+                disabled={REPUTATION_LEVELS.indexOf(reputationFilter) === REPUTATION_LEVELS.length - 1}
+                onClick={() => {
+                  const idx = REPUTATION_LEVELS.indexOf(reputationFilter);
+                  if (idx < REPUTATION_LEVELS.length - 1) setReputationFilter(REPUTATION_LEVELS[idx + 1]);
+                }}
+              >
+                ›
+              </button>
+            </div>
+          )}
+
           {!selectedEvent && (
             <p className={styles.empty}>Select an event first.</p>
           )}
-          {selectedEvent && opponents.length === 0 && (
-            <p className={styles.empty}>No available opponents for this weight class.</p>
+          {selectedEvent && filteredOpponents.length === 0 && (
+            <p className={styles.empty}>No opponents at this reputation level.</p>
           )}
-          {selectedEvent && opponents.length > 0 && (
+          {selectedEvent && filteredOpponents.length > 0 && (
             <>
-              {opponentsByFed.size === 0 && opponents.map(opp => {
+              {opponentsByFed.size === 0 && filteredOpponents.map(opp => {
                 if (opp.id === undefined) return null;
                 const oppId = opp.id;
                 const booked = opponentsBookedForEvent.has(oppId);
