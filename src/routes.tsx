@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import PlayerPage from './pages/Player/PlayerPage';
 import EditBoxerPage from './pages/Player/EditBoxerPage';
 import FightPage from './pages/Fight/FightPage';
+import FightResultsPage from './pages/Fight/FightResultsPage';
 import LeagueLayout from './pages/League/LeagueLayout';
 import Standings from './pages/League/Standings';
 import Calendar from './pages/League/Calendar';
@@ -32,6 +33,7 @@ export const routes: RouteObject[] = [
       { path: 'player/:id', element: <PlayerPage /> },
       { path: 'player/:id/edit', element: <EditBoxerPage /> },
       { path: 'fight/:fightId', element: <FightPage /> },
+      { path: 'fight-results', element: <FightResultsPage /> },
       {
         path: 'league',
         element: <LeagueLayout />,
