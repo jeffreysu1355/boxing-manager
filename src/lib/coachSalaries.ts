@@ -1,6 +1,6 @@
 import { getAllCoaches } from '../db/coachStore';
-import { getGym, saveGym } from '../db/gymStore';
 import type { Coach } from '../db/db';
+import { logTransaction } from '../db/transactionStore';
 
 export function countMonthsElapsed(fromDate: string, toDate: string): number {
   const [fy, fm] = fromDate.split('-').map(Number);
@@ -22,12 +22,19 @@ export async function runCoachSalaries(
   const months = countMonthsElapsed(fromDate, toDate);
   if (months === 0) return;
 
-  const [gym, allCoaches] = await Promise.all([getGym(), getAllCoaches()]);
-  if (!gym) return;
+  const allCoaches = await getAllCoaches();
+  const gymCoaches = allCoaches.filter(c => c.gymId === gymId);
+  if (gymCoaches.length === 0) return;
 
-  const totalPerMonth = calcTotalMonthlySalary(allCoaches, gymId);
-  const deduction = totalPerMonth * months;
-  if (deduction === 0) return;
-
-  await saveGym({ ...gym, balance: gym.balance - deduction });
+  for (let m = 0; m < months; m++) {
+    for (const coach of gymCoaches) {
+      if (coach.monthlySalary <= 0) continue;
+      await logTransaction({
+        date: toDate,
+        description: `Coach salary: ${coach.name}`,
+        amount: -coach.monthlySalary,
+        category: 'coach_salary',
+      });
+    }
+  }
 }
