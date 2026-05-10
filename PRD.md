@@ -421,6 +421,9 @@ Text-based, data-dense UI inspired by Football GM. See `references/football-gm-u
 #### Tools
 - [ ] **God Mode**: Modify any boxer's stats, natural talents, and history
 
+#### Info
+- [x] **Game Info page**: Reference guide showing fighting style stat focuses, style counter cycle, and reputation ladder
+
 ### General UI
 
 - [x] App shell with top-level tab navigation

@@ -78,6 +78,12 @@
   padding: 2px 7px;
 }
 
+.counterSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .counterChain {
   display: flex;
   align-items: center;
@@ -95,7 +101,6 @@
 .counterNote {
   font-size: 12px;
   color: var(--text-secondary);
-  margin-top: 4px;
 }
 
 .reputationTable {

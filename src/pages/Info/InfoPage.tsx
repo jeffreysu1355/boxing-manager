@@ -1,5 +1,5 @@
 import { PageHeader } from '../../components/PageHeader/PageHeader';
-import { STYLE_FOCUS } from '../../lib/fightSim';
+import { STYLE_FOCUS, STYLE_COUNTERS } from '../../lib/fightSim';
 import { REPUTATION_ORDER, RANK_CONFIG } from '../../lib/rankSystem';
 import type { FightingStyle, BoxerStats } from '../../db/db';
 import styles from './InfoPage.module.css';
@@ -40,7 +40,18 @@ const STAT_GROUPS: { label: string; stats: (keyof BoxerStats)[] }[] = [
 
 const STYLE_ORDER: FightingStyle[] = ['out-boxer', 'swarmer', 'slugger', 'counterpuncher'];
 
-const COUNTER_CHAIN: FightingStyle[] = ['out-boxer', 'swarmer', 'slugger', 'counterpuncher', 'out-boxer'];
+// STYLE_COUNTERS[x] = style that beats x; invert to get "A beats B" pairs for display
+const BEATS: Record<FightingStyle, FightingStyle> = Object.fromEntries(
+  Object.entries(STYLE_COUNTERS).map(([victim, beater]) => [beater, victim])
+) as Record<FightingStyle, FightingStyle>;
+const COUNTER_CHAIN: FightingStyle[] = (() => {
+  const start: FightingStyle = 'swarmer';
+  const chain: FightingStyle[] = [start];
+  let cur = start;
+  for (let i = 0; i < 3; i++) { cur = BEATS[cur]; chain.push(cur); }
+  chain.push(start);
+  return chain;
+})();
 
 export default function InfoPage() {
   return (
@@ -84,17 +95,19 @@ export default function InfoPage() {
       <div className={styles.section}>
         <div className={styles.sectionHeader}>Style Counters</div>
         <div className={styles.sectionBody}>
-          <div className={styles.counterChain}>
-            {COUNTER_CHAIN.map((style, i) => (
-              <span key={`${style}-${i}`}>
-                {i > 0 && <span className={styles.counterArrow}> beats </span>}
-                {STYLE_LABELS[style]}
-              </span>
-            ))}
-            <span className={styles.counterArrow}>→ …</span>
-          </div>
-          <div className={styles.counterNote}>
-            Each style has one counter. When a boxer's style counters their opponent's, they gain a fight advantage worth up to 10% of the outcome (style matchup contributes 20% total, split ±10%).
+          <div className={styles.counterSection}>
+            <div className={styles.counterChain}>
+              {COUNTER_CHAIN.map((style, i) => (
+                <span key={`${style}-${i}`}>
+                  {i > 0 && <span className={styles.counterArrow}> beats </span>}
+                  {STYLE_LABELS[style]}
+                </span>
+              ))}
+              <span className={styles.counterArrow}>→ …</span>
+            </div>
+            <div className={styles.counterNote}>
+              Each style has one counter. When a boxer's style counters their opponent's, they gain a fight advantage worth up to 10% of the outcome (style matchup contributes 20% total, split ±10%).
+            </div>
           </div>
         </div>
       </div>
