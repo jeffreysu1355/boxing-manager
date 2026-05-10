@@ -242,9 +242,15 @@ export function TopNav() {
         e => e.type === 'fight' && e.date === currentDate && e.boxerIds.some(id => gymBoxerIds.has(id))
       );
 
+      let firstSimmedFightId: number | null = null;
+
       for (const event of todayFights) {
         const fight = await getFight(event.fightId);
         if (!fight || fight.winnerId !== null) continue; // already resolved
+
+        if (firstSimmedFightId === null && fight.id !== undefined) {
+          firstSimmedFightId = fight.id;
+        }
 
         const [boxerA, boxerB, federation, allCoaches, allCampEvents] = await Promise.all([
           getBoxer(fight.boxerIds[0]),
@@ -313,6 +319,10 @@ export function TopNav() {
       );
       setGymBoxerIds(freshIds);
       window.dispatchEvent(new CustomEvent('game:sim'));
+
+      if (firstSimmedFightId !== null) {
+        navigate(`/fight/${firstSimmedFightId}`);
+      }
     } finally {
       setIsSimming(false);
     }
