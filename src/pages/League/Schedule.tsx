@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
+import ReactDOM from 'react-dom';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import type { Boxer, CalendarEvent, Federation, FederationEvent, FederationName, FightingStyle, FightRecord, ReputationLevel, BoxerStats, Title } from '../../db/db';
 import { getAllFights, putFight } from '../../db/fightStore';
@@ -674,4 +675,118 @@ function OpponentRow({ boxer, gymBoxer, label, booked, isSelected, onSelect, sty
       </div>
     </div>
   );
+}
+
+interface StatComparePopupProps {
+  x: number;
+  y: number;
+  gymBoxer: Boxer;
+  opponent: Boxer;
+  matchupLabel: 'Counters you' | 'Neutral' | 'You counter';
+  styles: Record<string, string>;
+}
+
+const STAT_SECTIONS: { label: string; stats: { key: keyof BoxerStats; name: string }[] }[] = [
+  {
+    label: 'Offense',
+    stats: [
+      { key: 'jab', name: 'Jab' },
+      { key: 'cross', name: 'Cross' },
+      { key: 'leadHook', name: 'Lead Hook' },
+      { key: 'rearHook', name: 'Rear Hook' },
+      { key: 'uppercut', name: 'Uppercut' },
+    ],
+  },
+  {
+    label: 'Defense',
+    stats: [
+      { key: 'headMovement', name: 'Head Mvmt' },
+      { key: 'bodyMovement', name: 'Body Mvmt' },
+      { key: 'guard', name: 'Guard' },
+      { key: 'positioning', name: 'Positioning' },
+    ],
+  },
+  {
+    label: 'Mental',
+    stats: [
+      { key: 'timing', name: 'Timing' },
+      { key: 'adaptability', name: 'Adaptability' },
+      { key: 'discipline', name: 'Discipline' },
+    ],
+  },
+  {
+    label: 'Physical',
+    stats: [
+      { key: 'speed', name: 'Speed' },
+      { key: 'power', name: 'Power' },
+      { key: 'endurance', name: 'Endurance' },
+      { key: 'recovery', name: 'Recovery' },
+      { key: 'toughness', name: 'Toughness' },
+    ],
+  },
+];
+
+function StatComparePopup({ x, y, gymBoxer, opponent, matchupLabel: label, styles }: StatComparePopupProps) {
+  const POPUP_WIDTH = 320;
+  const OFFSET_X = 16;
+  const OFFSET_Y = -8;
+
+  const left = x + OFFSET_X + POPUP_WIDTH > window.innerWidth
+    ? x - POPUP_WIDTH - OFFSET_X
+    : x + OFFSET_X;
+  const top = y + OFFSET_Y;
+
+  const matchupClass =
+    label === 'Counters you' ? styles.matchupCounter :
+    label === 'You counter'  ? styles.matchupYou :
+    styles.matchupNeutral;
+
+  const popup = (
+    <div
+      className={styles.popup}
+      style={{ left, top }}
+    >
+      <div className={styles.popupHeader}>
+        <div>
+          <div className={styles.popupFighterName}>{gymBoxer.name}</div>
+          <div className={styles.popupFighterMeta}>{calcRecord(gymBoxer.record)} · {gymBoxer.reputation}</div>
+          <div className={styles.popupFighterMeta}>{gymBoxer.style}</div>
+        </div>
+        <div className={styles.popupFighterRight}>
+          <div className={styles.popupFighterName}>{opponent.name}</div>
+          <div className={styles.popupFighterMeta}>{calcRecord(opponent.record)} · {opponent.reputation}</div>
+          <div className={styles.popupFighterMeta}>{opponent.style}</div>
+        </div>
+      </div>
+
+      <div className={styles.popupMatchup}>
+        <span className={matchupClass}>{label}</span>
+      </div>
+
+      {STAT_SECTIONS.map(section => (
+        <div key={section.label} className={styles.popupSection}>
+          <div className={styles.popupSectionLabel}>{section.label}</div>
+          {section.stats.map(({ key, name }) => {
+            const gymVal = gymBoxer.stats[key];
+            const oppVal = opponent.stats[key];
+            const gymWins = gymVal > oppVal;
+            const oppWins = oppVal > gymVal;
+            return (
+              <div key={key} className={styles.popupStatRow}>
+                <span className={`${styles.popupStatLeft} ${gymWins ? styles.popupStatWin : oppWins ? styles.popupStatLose : ''}`}>
+                  {gymVal}
+                </span>
+                <span className={styles.popupStatName}>{name}</span>
+                <span className={`${styles.popupStatRight} ${oppWins ? styles.popupStatWin : gymWins ? styles.popupStatLose : ''}`}>
+                  {oppVal}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+
+  return ReactDOM.createPortal(popup, document.body);
 }
