@@ -61,14 +61,18 @@ export default function EditBoxerPage() {
   async function handleSave() {
     if (!boxer || !stats) return;
     setSaving(true);
-    await putBoxer({
-      ...boxer,
-      stats,
-      reputation,
-      rankPoints,
-      demotionBuffer,
-    });
-    navigate(`/player/${boxer.id}`);
+    try {
+      await putBoxer({
+        ...boxer,
+        stats,
+        reputation,
+        rankPoints,
+        demotionBuffer,
+      });
+      navigate(`/player/${boxer.id}`);
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (loading || !boxer || !stats) {
