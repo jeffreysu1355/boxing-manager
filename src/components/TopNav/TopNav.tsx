@@ -66,6 +66,17 @@ export function TopNav() {
   const [fightStop, setFightStop] = useState<CalendarEvent | null>(null);
   const [isSimming, setIsSimming] = useState(false);
   const [rankChanges, setRankChanges] = useState<Array<{ name: string; delta: NonNullable<Boxer['lastRankDelta']>; reputation: string }>>([]);
+  const [simmedFights, setSimmedFights] = useState<Array<{
+    fightId: number;
+    winnerId: number | null;
+    loserId: number;
+    method: string;
+    finishingMove: string | null;
+    round: number | null;
+    time: string | null;
+    boxer1Name: string;
+    boxer2Name: string;
+  }>>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -144,6 +155,7 @@ export function TopNav() {
     setIsSimming(true);
     setFightStop(null);  // clear stale banner before new sim
     setRankChanges([]);
+    setSimmedFights([]);
     setDropdownOpen(false);
 
     try {
@@ -238,21 +250,16 @@ export function TopNav() {
     setIsSimming(true);
     setDropdownOpen(false);
     setRankChanges([]);
+    setSimmedFights([]);
     try {
       // Find all fight events for today involving gym boxers
       const todayFights = events.filter(
         e => e.type === 'fight' && e.date === currentDate && e.boxerIds.some(id => gymBoxerIds.has(id))
       );
 
-      let firstSimmedFightId: number | null = null;
-
       for (const event of todayFights) {
         const fight = await getFight(event.fightId);
         if (!fight || fight.winnerId !== null) continue; // already resolved
-
-        if (firstSimmedFightId === null && fight.id !== undefined) {
-          firstSimmedFightId = fight.id;
-        }
 
         const [boxerA, boxerB, federation, allCoaches, allCampEvents] = await Promise.all([
           getBoxer(fight.boxerIds[0]),
@@ -290,6 +297,17 @@ export function TopNav() {
           getBoxer(simResult.winnerId),
           getBoxer(simResult.loserId),
         ]);
+        setSimmedFights(prev => [...prev, {
+          fightId: fight.id!,
+          winnerId: simResult.winnerId,
+          loserId: simResult.loserId,
+          method: simResult.method,
+          finishingMove: simResult.finishingMove,
+          round: simResult.round,
+          time: simResult.time,
+          boxer1Name: updatedWinner?.name ?? `Boxer #${simResult.winnerId}`,
+          boxer2Name: updatedLoser?.name ?? `Boxer #${simResult.loserId}`,
+        }]);
         const changes: Array<{ name: string; delta: NonNullable<Boxer['lastRankDelta']>; reputation: string }> = [];
         if (updatedWinner?.lastRankDelta) {
           changes.push({ name: updatedWinner.name, delta: updatedWinner.lastRankDelta, reputation: updatedWinner.reputation });
@@ -323,10 +341,6 @@ export function TopNav() {
       );
       setGymBoxerIds(freshIds);
       window.dispatchEvent(new CustomEvent('game:sim'));
-
-      if (firstSimmedFightId !== null) {
-        navigate(`/fight/${firstSimmedFightId}`);
-      }
     } finally {
       setIsSimming(false);
     }
