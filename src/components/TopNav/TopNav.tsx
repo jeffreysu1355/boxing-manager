@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { NavLink, useNavigate, useLocation } from 'react-router';
 import { getGym, saveGym } from '../../db/gymStore';
 import { getAllCalendarEvents } from '../../db/calendarEventStore';
 import { getAllBoxers, putBoxer, getBoxer } from '../../db/boxerStore';
@@ -79,6 +79,14 @@ export function TopNav() {
   }>>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location.pathname.startsWith('/fight-results')) {
+      setSimmedFights([]);
+      setRankChanges([]);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     Promise.all([getGym(), getAllCalendarEvents(), getAllBoxers()]).then(
