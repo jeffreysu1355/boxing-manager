@@ -298,8 +298,10 @@ export function TopNav() {
         setRankChanges(prev => [...prev, ...changes]);
       }
 
-      // Advance date and run training
-      const updated: Gym = { ...gym, currentDate: addDays(currentDate, 1) };
+      // Advance date and run training — re-fetch gym first so we don't clobber
+      // the balance that logTransaction just wrote during payout processing
+      const freshGym = await getGym();
+      const updated: Gym = { ...(freshGym ?? gym), currentDate: addDays(currentDate, 1) };
       await saveGym(updated);
       setGym(updated);
       setFightStop(null);
