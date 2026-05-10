@@ -6,6 +6,7 @@ export default function GodMode() {
   const [godMode, setGodMode] = useState<boolean>(false);
   const [restarting, setRestarting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
     getGym().then(gym => {
@@ -15,11 +16,17 @@ export default function GodMode() {
   }, []);
 
   async function handleToggle() {
-    const gym = await getGym();
-    if (!gym) return;
-    const next = !(gym.godModeEnabled ?? false);
-    await saveGym({ ...gym, godModeEnabled: next });
-    setGodMode(next);
+    if (toggling) return;
+    setToggling(true);
+    try {
+      const gym = await getGym();
+      if (!gym) return;
+      const next = !(gym.godModeEnabled ?? false);
+      await saveGym({ ...gym, godModeEnabled: next });
+      setGodMode(next);
+    } finally {
+      setToggling(false);
+    }
   }
 
   async function handleRestart() {
@@ -41,7 +48,7 @@ export default function GodMode() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
             onClick={handleToggle}
-            disabled={loading}
+            disabled={loading || toggling}
             style={{
               padding: '6px 16px',
               background: godMode ? 'var(--success)' : 'var(--surface, #1a1a2e)',
@@ -49,8 +56,8 @@ export default function GodMode() {
               border: '1px solid ' + (godMode ? 'var(--success)' : 'var(--border)'),
               borderRadius: 3,
               fontWeight: 600,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.5 : 1,
+              cursor: (loading || toggling) ? 'not-allowed' : 'pointer',
+              opacity: (loading || toggling) ? 0.5 : 1,
               minWidth: 120,
             }}
           >

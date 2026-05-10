@@ -68,6 +68,7 @@ export default function EditBoxerPage() {
         reputation,
         rankPoints,
         demotionBuffer,
+        lastRankDelta: undefined,
       });
       navigate(`/player/${boxer.id}`);
     } finally {
