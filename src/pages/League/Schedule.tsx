@@ -302,9 +302,15 @@ export default function Schedule() {
       })
     : [];
 
+  const filteredOpponents = reputationFilter !== null
+    ? opponents
+        .filter(b => b.reputation === reputationFilter)
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : [];
+
   // Group opponents by federation
   const opponentsByFed = new Map<number, Boxer[]>();
-  for (const opp of opponents) {
+  for (const opp of filteredOpponents) {
     if (opp.federationId === null || opp.federationId === undefined) continue;
     const list = opponentsByFed.get(opp.federationId) ?? [];
     list.push(opp);
