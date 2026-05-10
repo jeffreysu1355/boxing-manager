@@ -163,10 +163,11 @@ export function TopNav() {
         result = simForward(currentDate, days, events, gymBoxerIds);
       }
 
+      const freshGymForDate = await getGym();
       const newMonth = result.newDate.slice(0, 7); // 'YYYY-MM'
-      const needsRecruitRefresh = (gym.recruitRefreshDate ?? '') !== newMonth;
+      const needsRecruitRefresh = ((freshGymForDate ?? gym).recruitRefreshDate ?? '') !== newMonth;
       const updated: Gym = {
-        ...gym,
+        ...(freshGymForDate ?? gym),
         currentDate: result.newDate,
         ...(needsRecruitRefresh ? { recruitRefreshDate: newMonth } : {}),
       };
