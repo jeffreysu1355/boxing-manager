@@ -415,6 +415,35 @@ export function TopNav() {
         </div>
       )}
 
+      {simmedFights.length > 0 && (
+        <div className={styles.fightBanner}>
+          <div className={styles.fightResultsSection}>
+            <strong>Fight Day Results</strong>
+            {simmedFights.map((f, i) => {
+              const isDecision = f.method === 'Decision' || f.method === 'Split Decision';
+              const summary = f.winnerId === null
+                ? 'Draw'
+                : isDecision
+                  ? `${f.boxer1Name} wins by ${f.method}`
+                  : `${f.boxer1Name} wins by ${f.method}${f.finishingMove ? ` (${f.finishingMove})` : ''}${f.round != null ? ` — Rd. ${f.round}` : ''}`;
+              return (
+                <div key={f.fightId}>
+                  {i > 0 && <hr className={styles.fightResultDivider} />}
+                  <div className={styles.fightResultLine}>{summary}</div>
+                </div>
+              );
+            })}
+            <button
+              className={styles.viewResultsBtn}
+              onClick={() => navigate(`/fight-results?fights=${simmedFights.map(f => f.fightId).join(',')}`)}
+            >
+              View Full Results →
+            </button>
+          </div>
+          <button className={styles.dismissBtn} onClick={() => setSimmedFights([])}>Dismiss</button>
+        </div>
+      )}
+
       {rankChanges.length > 0 && (
         <div className={styles.fightBanner}>
           {rankChanges.map((change, i) => {

@@ -139,3 +139,34 @@
   color: var(--danger);
   font-weight: 700;
 }
+
+.fightResultsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.fightResultLine {
+  font-size: 12px;
+  color: #fff;
+}
+
+.fightResultDivider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  margin: 4px 0;
+}
+
+.viewResultsBtn {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 4px;
+  text-align: left;
+}
