@@ -173,6 +173,7 @@ export interface Gym {
   rosterIds: number[];
   currentDate: string; // ISO date, e.g. '2026-01-01'
   recruitRefreshDate?: string; // YYYY-MM (month of last recruit pool refresh)
+  godModeEnabled?: boolean;
 }
 
 export const GYM_LEVEL_COACH_CAP: Record<number, number> = {
