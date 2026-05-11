@@ -7,6 +7,8 @@ import {
   computeNpcBoost,
   NPC_BOOST_BY_REPUTATION,
   dateDiffDaysTraining,
+  applyFightExp,
+  FIGHT_EXP_BY_REPUTATION,
 } from './training';
 import type { Boxer, Coach } from '../db/db';
 
@@ -364,5 +366,58 @@ describe('computeNpcBoost', () => {
     });
     const result = computeNpcBoost(boxer);
     expect(result['jab']).toBe(1);
+  });
+});
+
+describe('applyFightExp', () => {
+  it('adds exp to all 17 stats', () => {
+    const boxer = makeBoxer({ reputation: 'Unknown', trainingExp: {} });
+    const result = applyFightExp(boxer);
+    // Unknown = 0.25 * 60 = 15 exp per stat
+    expect(result.trainingExp!['jab']).toBe(15);
+    expect(result.trainingExp!['leadHook']).toBe(15);
+    expect(result.trainingExp!['timing']).toBe(15);
+    expect(result.trainingExp!['power']).toBe(15);
+    expect(result.trainingExp!['toughness']).toBe(15);
+  });
+
+  it('exp scales with reputation', () => {
+    const unknown = makeBoxer({ reputation: 'Unknown', trainingExp: {} });
+    const allTimeGreat = makeBoxer({ reputation: 'All-Time Great', trainingExp: {} });
+    const r1 = applyFightExp(unknown);
+    const r2 = applyFightExp(allTimeGreat);
+    expect(r2.trainingExp!['jab']).toBeGreaterThan(r1.trainingExp!['jab']!);
+    // All-Time Great = 1.0 * 60 = 60
+    expect(r2.trainingExp!['jab']).toBe(60);
+  });
+
+  it('levels up a stat when exp crosses threshold', () => {
+    // stat=10, threshold=100; Unknown fight gives 15 exp; existing 90 → total 105 → level up
+    const boxer = makeBoxer({
+      reputation: 'Unknown',
+      trainingExp: { jab: 90 },
+    });
+    const result = applyFightExp(boxer);
+    expect(result.stats.jab).toBe(11);
+    expect(result.trainingExp!['jab']).toBe(5); // 105 - 100 = 5 remainder
+  });
+
+  it('does not exceed stat cap of 20', () => {
+    const boxer = makeBoxer({
+      reputation: 'All-Time Great',
+      stats: { jab: 20, cross: 10, leadHook: 10, rearHook: 10, uppercut: 10,
+               headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
+               timing: 10, adaptability: 10, discipline: 10,
+               speed: 10, power: 10, endurance: 10, recovery: 10, toughness: 10 },
+      trainingExp: {},
+    });
+    const result = applyFightExp(boxer);
+    expect(result.stats.jab).toBe(20);
+  });
+
+  it('does not modify the input boxer (immutable)', () => {
+    const boxer = makeBoxer({ reputation: 'Unknown', trainingExp: {} });
+    applyFightExp(boxer);
+    expect(boxer.trainingExp!['jab']).toBeUndefined();
   });
 });

@@ -3,6 +3,7 @@ import { getBoxer, putBoxer } from '../../db/boxerStore';
 import { getTitlesByFederation, putTitle } from '../../db/titleStore';
 import { getFightContract, putFightContract } from '../../db/fightContractStore';
 import { applyRankChange } from '../../lib/rankSystem';
+import { applyFightExp } from '../../lib/training';
 import { getPpvNetwork } from '../../db/ppvNetworkStore';
 import { calcViewers, calcPpvPayout } from '../../lib/ppvCalc';
 import { REPUTATION_INDEX } from '../../lib/reputationIndex';
@@ -61,21 +62,24 @@ export async function applyFightResult(params: ApplyFightResultParams): Promise<
     const clearBoostLoser = updatedLoser.tempStatBoost?.expiresOnFightId === fightId
       ? { ...updatedLoser, tempStatBoost: undefined }
       : updatedLoser;
-    await Promise.all([putBoxer(clearBoostWinner), putBoxer(clearBoostLoser)]);
+    await Promise.all([
+      putBoxer(applyFightExp(clearBoostWinner)),
+      putBoxer(applyFightExp(clearBoostLoser)),
+    ]);
   } else {
     if (winner) {
       const withRecord = { ...winner, record: [...winner.record, winnerRecord] };
       const cleared = withRecord.tempStatBoost?.expiresOnFightId === fightId
         ? { ...withRecord, tempStatBoost: undefined }
         : withRecord;
-      await putBoxer(cleared);
+      await putBoxer(applyFightExp(cleared));
     }
     if (loser) {
       const withRecord = { ...loser, record: [...loser.record, loserRecord] };
       const cleared = withRecord.tempStatBoost?.expiresOnFightId === fightId
         ? { ...withRecord, tempStatBoost: undefined }
         : withRecord;
-      await putBoxer(cleared);
+      await putBoxer(applyFightExp(cleared));
     }
   }
 

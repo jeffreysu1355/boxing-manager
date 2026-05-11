@@ -92,6 +92,45 @@ export function computeTrainingCampBoost(
   return result;
 }
 
+// Exp gained per stat from a single fight, equivalent to 60 days of training
+// at a rate scaled by reputation (higher rank = tougher competition = more exp).
+export const FIGHT_EXP_BY_REPUTATION: Record<ReputationLevel, number> = {
+  'Unknown':               0.25 * 60,  // 15
+  'Local Star':            0.30 * 60,  // 18
+  'Rising Star':           0.35 * 60,  // 21
+  'Respectable Opponent':  0.40 * 60,  // 24
+  'Contender':             0.50 * 60,  // 30
+  'Championship Caliber':  0.60 * 60,  // 36
+  'Nationally Ranked':     0.70 * 60,  // 42
+  'World Class Fighter':   0.80 * 60,  // 48
+  'International Superstar': 0.90 * 60, // 54
+  'All-Time Great':        1.00 * 60,  // 60
+};
+
+export function applyFightExp(boxer: Boxer): Boxer {
+  const exp: Partial<Record<keyof BoxerStats, number>> = { ...(boxer.trainingExp ?? {}) };
+  const talentSet = new Set(boxer.naturalTalents.map(t => t.stat));
+  const gainPerStat = FIGHT_EXP_BY_REPUTATION[boxer.reputation];
+  const stats = { ...boxer.stats };
+
+  for (const stat of ALL_STATS) {
+    const cap = talentSet.has(stat) ? 25 : 20;
+    exp[stat] = (exp[stat] ?? 0) + gainPerStat;
+
+    if (stats[stat] >= cap) continue;
+    if (stats[stat] === 0) continue;
+
+    while (stats[stat] < cap) {
+      const threshold = stats[stat] * 10;
+      if ((exp[stat] ?? 0) < threshold) break;
+      exp[stat] = (exp[stat] ?? 0) - threshold;
+      stats[stat] += 1;
+    }
+  }
+
+  return { ...boxer, stats, trainingExp: exp };
+}
+
 export const NPC_BOOST_BY_REPUTATION: Record<ReputationLevel, number> = {
   'Unknown': 0,
   'Local Star': 0.05,
