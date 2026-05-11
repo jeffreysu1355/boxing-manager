@@ -14,6 +14,7 @@ const sidebarConfig: Record<string, SidebarSection[]> = {
         { to: '/league/standings', label: 'Standings' },
         { to: '/league/calendar', label: 'Calendar' },
         { to: '/league/results', label: 'Results' },
+        { to: '/league/championship-history', label: 'Championship History' },
         { to: '/league/schedule', label: 'Schedule' },
       ],
     },
