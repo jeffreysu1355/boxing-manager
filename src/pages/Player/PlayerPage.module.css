@@ -165,6 +165,15 @@
   overflow: hidden;
 }
 
+.statBarDim {
+  position: relative;
+  width: 60px;
+  height: 14px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
 .statBarFill {
   position: absolute;
   left: 0;

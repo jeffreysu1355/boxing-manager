@@ -261,24 +261,20 @@ export default function PlayerPage() {
             <div key={group.label} className={styles.statPanel}>
               <div className={styles.panelTitle}>{group.label}</div>
               {group.stats.map(stat => {
-                const isTrained = trainedStats.has(stat);
+                const isFocus = trainedStats.has(stat);
                 const currentExp = boxer.trainingExp?.[stat] ?? 0;
-                const threshold = boxer.stats[stat] * 10;
+                const threshold = boxer.stats[stat] * 7.5;
                 const pct = threshold > 0 ? Math.min(100, (currentExp / threshold) * 100) : 0;
                 return (
                   <div key={stat} className={styles.statRow}>
                     <span className={styles.statName}>{STAT_LABELS[stat]}</span>
-                    {isTrained ? (
-                      <div className={styles.statBarWrapper}>
-                        <div className={styles.statBar}>
-                          <div className={styles.statBarFill} style={{ width: `${pct}%` }} />
-                          <span className={styles.statBarPct}>{Math.round(pct)}%</span>
-                        </div>
-                        <span className={styles.statBarValue}>{boxer.stats[stat]}</span>
+                    <div className={styles.statBarWrapper}>
+                      <div className={isFocus ? styles.statBar : styles.statBarDim}>
+                        <div className={styles.statBarFill} style={{ width: `${pct}%` }} />
+                        <span className={styles.statBarPct}>{Math.round(pct)}%</span>
                       </div>
-                    ) : (
-                      <span className={styles.statValue}>{boxer.stats[stat]}</span>
-                    )}
+                      <span className={styles.statBarValue}>{boxer.stats[stat]}</span>
+                    </div>
                   </div>
                 );
               })}

@@ -38,7 +38,7 @@ export function applyTraining(boxer: Boxer, coach: Coach, days: number): Boxer {
     if (stats[stat] === 0) continue;
 
     while (stats[stat] < cap) {
-      const threshold = stats[stat] * 10;
+      const threshold = stats[stat] * 7.5;
       if ((exp[stat] ?? 0) < threshold) break;
       exp[stat] = (exp[stat] ?? 0) - threshold;
       stats[stat] += 1;
@@ -121,7 +121,7 @@ export function applyFightExp(boxer: Boxer): Boxer {
     if (stats[stat] === 0) continue;
 
     while (stats[stat] < cap) {
-      const threshold = stats[stat] * 10;
+      const threshold = stats[stat] * 7.5;
       if ((exp[stat] ?? 0) < threshold) break;
       exp[stat] = (exp[stat] ?? 0) - threshold;
       stats[stat] += 1;

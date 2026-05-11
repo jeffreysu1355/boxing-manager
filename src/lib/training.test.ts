@@ -109,28 +109,28 @@ describe('applyTraining', () => {
   });
 
   it('levels up a stat when exp reaches threshold', () => {
-    // stat=10, threshold=100, contender=0.5exp/day, 200 days = 100 exp → level up
+    // stat=10, threshold=75 (10*7.5), contender=0.5exp/day, 150 days = 75 exp → level up
     const boxer = makeBoxer({ trainingExp: {} });
     const coach = makeCoach({ skillLevel: 'contender', style: 'out-boxer' });
-    const result = applyTraining(boxer, coach, 200);
+    const result = applyTraining(boxer, coach, 150);
     expect(result.stats.jab).toBe(11);
-    // remainder: 100 exp used, 0 leftover
+    // remainder: 75 exp used, 0 leftover
     expect(result.trainingExp!['jab']).toBe(0);
   });
 
   it('carries over remainder exp after level-up', () => {
-    // stat=10, threshold=100, contender=0.5/day, 210 days = 105 exp
-    // 100 used for level-up, 5 remainder
+    // stat=10, threshold=75, contender=0.5/day, 160 days = 80 exp
+    // 75 used for level-up, 5 remainder
     const boxer = makeBoxer({ trainingExp: {} });
     const coach = makeCoach({ skillLevel: 'contender', style: 'out-boxer' });
-    const result = applyTraining(boxer, coach, 210);
+    const result = applyTraining(boxer, coach, 160);
     expect(result.stats.jab).toBe(11);
     expect(result.trainingExp!['jab']).toBe(5);
   });
 
   it('can level up multiple times in one sim step', () => {
-    // stat=1, all-time-great=1.0/day, 11 days = 11 exp
-    // threshold=1×10=10 → stat→2, rem=1; threshold=2×10=20, 1<20 → stop
+    // stat=1, all-time-great=1.0/day, 8 days = 8 exp
+    // threshold=1×7.5=7.5 → stat→2, rem=0.5; threshold=2×7.5=15, 0.5<15 → stop
     const boxer = makeBoxer({
       stats: { jab: 1, cross: 10, leadHook: 10, rearHook: 10, uppercut: 10,
                headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
@@ -139,9 +139,9 @@ describe('applyTraining', () => {
       trainingExp: {},
     });
     const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
-    const result = applyTraining(boxer, coach, 11);
+    const result = applyTraining(boxer, coach, 8);
     expect(result.stats.jab).toBe(2);
-    expect(result.trainingExp!['jab']).toBe(1);
+    expect(result.trainingExp!['jab']).toBe(0.5);
   });
 
   it('caps stat at 20 without natural talent', () => {
@@ -150,14 +150,14 @@ describe('applyTraining', () => {
                headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
                timing: 10, adaptability: 10, discipline: 10,
                speed: 10, power: 10, endurance: 10, recovery: 10, toughness: 10 },
-      trainingExp: { jab: 190 },
+      trainingExp: { jab: 148 },
       naturalTalents: [],
     });
     const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
-    // 1 day × 1.0 = 1 exp, total 191 — still below threshold 200, no level-up
+    // 1 day × 1.0 = 1 exp, total 149 — still below threshold 150 (20*7.5), no level-up
     const result = applyTraining(boxer, coach, 1);
     expect(result.stats.jab).toBe(20);
-    expect(result.trainingExp!['jab']).toBe(191);
+    expect(result.trainingExp!['jab']).toBe(149);
   });
 
   it('caps stat at 25 with natural talent for that stat', () => {
@@ -166,11 +166,11 @@ describe('applyTraining', () => {
                headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
                timing: 10, adaptability: 10, discipline: 10,
                speed: 10, power: 10, endurance: 10, recovery: 10, toughness: 10 },
-      trainingExp: { jab: 234 },
+      trainingExp: { jab: 174 },
       naturalTalents: [{ stat: 'jab' }],
     });
     const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
-    // 6 days × 1.0 = 6 exp, total 240 — threshold for stat=24 is 240 → level up to 25
+    // 6 days × 1.0 = 6 exp, total 180 — threshold for stat=24 is 180 (24*7.5) → level up to 25
     const result = applyTraining(boxer, coach, 6);
     expect(result.stats.jab).toBe(25);
   });
@@ -193,7 +193,7 @@ describe('applyTraining', () => {
     const boxer = makeBoxer({ trainingExp: { jab: 50 } });
     const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
     const result = applyTraining(boxer, coach, 10);
-    // 50 existing + (0.25 × 10) = 52.5, threshold=100, no level-up
+    // 50 existing + (0.25 × 10) = 52.5, threshold=75, no level-up
     expect(result.trainingExp!['jab']).toBe(52.5);
     expect(result.stats.jab).toBe(10);
   });
@@ -224,15 +224,15 @@ describe('applyTraining', () => {
                headMovement: 10, bodyMovement: 10, guard: 10, positioning: 10,
                timing: 10, adaptability: 10, discipline: 10,
                speed: 10, power: 10, endurance: 10, recovery: 10, toughness: 10 },
-      trainingExp: { jab: 190 },
+      trainingExp: { jab: 148 },
       naturalTalents: [{ stat: 'jab' }],
     });
     const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
-    // 1 day × 1.0 = 1 exp, total 191 — threshold for stat=20 is 200, no level-up yet
+    // 1 day × 1.0 = 1 exp, total 149 — threshold for stat=20 is 150, no level-up yet
     const r1 = applyTraining(boxer, coach, 1);
     expect(r1.stats.jab).toBe(20);
-    // 9 more days × 1.0 = 9 exp, total 200 — threshold 200 crossed → level up to 21
-    const r2 = applyTraining(r1, coach, 9);
+    // 1 more day × 1.0 = 1 exp, total 150 — threshold 150 crossed → level up to 21
+    const r2 = applyTraining(r1, coach, 1);
     expect(r2.stats.jab).toBe(21);
   });
 });
@@ -392,14 +392,14 @@ describe('applyFightExp', () => {
   });
 
   it('levels up a stat when exp crosses threshold', () => {
-    // stat=10, threshold=100; Unknown fight gives 15 exp; existing 90 → total 105 → level up
+    // stat=10, threshold=75 (10*7.5); Unknown fight gives 15 exp; existing 65 → total 80 → level up
     const boxer = makeBoxer({
       reputation: 'Unknown',
-      trainingExp: { jab: 90 },
+      trainingExp: { jab: 65 },
     });
     const result = applyFightExp(boxer);
     expect(result.stats.jab).toBe(11);
-    expect(result.trainingExp!['jab']).toBe(5); // 105 - 100 = 5 remainder
+    expect(result.trainingExp!['jab']).toBe(5); // 80 - 75 = 5 remainder
   });
 
   it('does not exceed stat cap of 20', () => {
