@@ -90,13 +90,13 @@ describe('applyTraining', () => {
     const boxer = makeBoxer({ trainingExp: {} });
     const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
     const result = applyTraining(boxer, coach, 5);
-    // local coach = 0.25 exp/day, 5 days = 1.25 exp per stat
+    // local coach = 0.25 exp/day, 5 days = 1.25 exp for focus stats
     // threshold for stat=10 is 100; 1.25 < 100 so no level-up
     expect(result.trainingExp!['jab']).toBe(1.25);
     expect(result.trainingExp!['cross']).toBe(1.25);
     expect(result.trainingExp!['speed']).toBe(1.25);
-    // non-coached stats unchanged
-    expect(result.trainingExp!['leadHook']).toBeUndefined();
+    // off-style stats accumulate at half rate: 0.25 * 0.5 * 5 = 0.625
+    expect(result.trainingExp!['leadHook']).toBe(0.625);
   });
 
   it('does not modify the input boxer (immutable)', () => {
@@ -196,16 +196,16 @@ describe('applyTraining', () => {
     expect(result.stats.jab).toBe(10);
   });
 
-  it('trains coach style stats regardless of boxer style', () => {
-    // boxer is out-boxer, coach is swarmer — boxer gets swarmer stats trained
+  it('trains coach style stats at full rate and off-style stats at half rate', () => {
+    // boxer is out-boxer, coach is swarmer — swarmer stats at full rate, out-boxer at half
     const boxer = makeBoxer({ style: 'out-boxer', trainingExp: {} });
     const coach = makeCoach({ skillLevel: 'local', style: 'swarmer' });
     const result = applyTraining(boxer, coach, 5);
-    // local = 0.25/day, 5 days = 1.25 exp
+    // local = 0.25/day, 5 days = 1.25 exp for swarmer focus stats
     expect(result.trainingExp!['leadHook']).toBe(1.25);
     expect(result.trainingExp!['toughness']).toBe(1.25);
-    // out-boxer stats not touched
-    expect(result.trainingExp!['jab']).toBeUndefined();
+    // out-boxer stats at half rate: 0.25 * 0.5 * 5 = 0.625
+    expect(result.trainingExp!['jab']).toBe(0.625);
   });
 
   it('handles boxer with undefined trainingExp', () => {
@@ -254,10 +254,12 @@ describe('computeTrainingCampBoost', () => {
     const boxer = makeBoxer();
     const coach = makeCoach({ skillLevel: 'all-time-great', style: 'out-boxer' });
     const result = computeTrainingCampBoost(boxer, coach, '2026-05-01', '2026-07-01', '2026-06-16');
+    // focus stats: floor(10 * 0.50 * 0.80) = 4
     expect(result['jab']).toBe(4);
     expect(result['cross']).toBe(4);
     expect(result['speed']).toBe(4);
-    expect(result['leadHook']).toBeUndefined();
+    // off-style stats: floor(10 * 0.25 * 0.80) = 2
+    expect(result['leadHook']).toBe(2);
   });
 
   it('produces full 50% boost after 60 days of training', () => {
@@ -299,14 +301,16 @@ describe('computeTrainingCampBoost', () => {
     expect(result['jab']).toBe(1);
   });
 
-  it('only boosts stats in the coach style, not all stats', () => {
+  it('boosts focus stats at full rate and off-style stats at half rate', () => {
     const boxer = makeBoxer();
     const coach = makeCoach({ skillLevel: 'all-time-great', style: 'swarmer' });
     const result = computeTrainingCampBoost(boxer, coach, '2026-05-01', '2026-07-01', '2026-07-01');
+    // swarmer focus stats: floor(10 * 0.50 * 1.0) = 5
     expect(result['leadHook']).toBe(5);
     expect(result['rearHook']).toBe(5);
-    expect(result['jab']).toBeUndefined();
-    expect(result['cross']).toBeUndefined();
+    // off-style stats: floor(10 * 0.25 * 1.0) = 2
+    expect(result['jab']).toBe(2);
+    expect(result['cross']).toBe(2);
   });
 
   it('caps training days at 60 even if camp is longer', () => {

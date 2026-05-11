@@ -1,5 +1,12 @@
 import type { Boxer, BoxerStats, Coach, CoachSkillLevel, FightingStyle, ReputationLevel } from '../db/db';
 
+const ALL_STATS: (keyof BoxerStats)[] = [
+  'jab', 'cross', 'leadHook', 'rearHook', 'uppercut',
+  'headMovement', 'bodyMovement', 'guard', 'positioning',
+  'timing', 'adaptability', 'discipline',
+  'speed', 'power', 'endurance', 'recovery', 'toughness',
+];
+
 export const STYLE_STATS: Record<FightingStyle, (keyof BoxerStats)[]> = {
   'out-boxer':      ['jab', 'cross', 'headMovement', 'guard', 'positioning', 'speed'],
   'swarmer':        ['leadHook', 'rearHook', 'bodyMovement', 'positioning', 'endurance', 'toughness'],
@@ -18,13 +25,14 @@ export function applyTraining(boxer: Boxer, coach: Coach, days: number): Boxer {
   const stats = { ...boxer.stats };
   const exp: Partial<Record<keyof BoxerStats, number>> = { ...(boxer.trainingExp ?? {}) };
   const rate = EXP_PER_DAY[coach.skillLevel];
-  const trainedStats = STYLE_STATS[coach.style];
+  const focusSet = new Set(STYLE_STATS[coach.style]);
   const talentSet = new Set(boxer.naturalTalents.map(t => t.stat));
 
-  for (const stat of trainedStats) {
+  for (const stat of ALL_STATS) {
+    const statRate = focusSet.has(stat) ? rate : rate * 0.5;
     const cap = talentSet.has(stat) ? 25 : 20;
 
-    exp[stat] = (exp[stat] ?? 0) + days * rate;
+    exp[stat] = (exp[stat] ?? 0) + days * statRate;
 
     if (stats[stat] >= cap) continue;
     if (stats[stat] === 0) continue;
@@ -68,13 +76,15 @@ export function computeTrainingCampBoost(
   const lateFraction = lateDays > 0 ? (lateDays / 14) * 0.20 : 0;
   const boostFraction = earlyFraction + lateFraction;
 
+  const focusSet = new Set(STYLE_STATS[coach.style]);
   const talentSet = new Set(boxer.naturalTalents.map(t => t.stat));
   const result: Partial<Record<keyof BoxerStats, number>> = {};
 
-  for (const stat of STYLE_STATS[coach.style]) {
+  for (const stat of ALL_STATS) {
+    const boostMultiplier = focusSet.has(stat) ? 0.50 : 0.25;
     const cap = talentSet.has(stat) ? 25 : 20;
     const current = boxer.stats[stat];
-    const delta = Math.floor(current * 0.50 * boostFraction);
+    const delta = Math.floor(current * boostMultiplier * boostFraction);
     const clamped = Math.min(delta, cap - current);
     if (clamped > 0) result[stat] = clamped;
   }
