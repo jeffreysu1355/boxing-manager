@@ -1,0 +1,92 @@
+.page {
+  padding: 24px;
+  max-width: 860px;
+}
+
+.loading {
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 24px;
+}
+
+.fedSection {
+  margin-bottom: 36px;
+}
+
+.fedTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.titleCard {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.cardHeader {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  padding: 8px 14px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.empty {
+  padding: 12px 14px;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 12px;
+}
+
+.reignRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 80px 80px;
+  padding: 7px 14px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+
+.reignRow:last-child {
+  border-bottom: none;
+}
+
+.reignHeader {
+  composes: reignRow;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+}
+
+.reignCurrent {
+  composes: reignRow;
+  border-left: 3px solid var(--accent);
+  padding-left: 11px;
+}
+
+.boxerLink {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.boxerLink:hover {
+  text-decoration: underline;
+}
+
+.currentBadge {
+  color: var(--accent);
+  font-weight: 700;
+}
