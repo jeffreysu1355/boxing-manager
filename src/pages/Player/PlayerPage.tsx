@@ -244,7 +244,15 @@ export default function PlayerPage() {
                 const label = info
                   ? `${info.abbr} ${capitalize(info.weightClass)} Champion`
                   : 'Champion';
-                return <span key={t.titleId} className={styles.titleBadge}>{label}</span>;
+                return (
+                  <Link
+                    key={t.titleId}
+                    to={`/league/championship-history#title-${t.titleId}`}
+                    className={styles.titleBadge}
+                  >
+                    {label}
+                  </Link>
+                );
               })}
               {boxer.naturalTalents.map((t, i) => (
                 <span key={i} className={styles.talentTag}>
