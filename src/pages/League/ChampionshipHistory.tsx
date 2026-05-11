@@ -126,16 +126,16 @@ export default function ChampionshipHistory() {
                           <span>Days</span>
                           <span>Defenses</span>
                         </div>
-                        {reigns.map((reign, i) => {
+                        {reigns.map((reign) => {
                           const boxer = boxerMap.get(reign.boxerId);
                           const isCurrent = reign.dateLost === null;
-                          const dateLostDisplay = isCurrent ? today : reign.dateLost!;
+                          const dateLostDisplay = reign.dateLost ?? today;
                           const days = diffDays(reign.dateWon, dateLostDisplay);
                           const rowClass = isCurrent ? styles.reignCurrent : styles.reignRow;
                           const boxerName = boxer?.name ?? 'Unknown Boxer';
 
                           return (
-                            <div key={i} className={rowClass}>
+                            <div key={`${reign.boxerId}-${reign.dateWon}`} className={rowClass}>
                               <span>
                                 {boxer?.id !== undefined ? (
                                   <Link to={`/player/${boxer.id}`} className={styles.boxerLink}>
