@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { getFight } from '../../db/fightStore';
-import { getBoxer } from '../../db/boxerStore';
+import { getBoxer, getAllBoxers, putBoxer } from '../../db/boxerStore';
 import { getFederation } from '../../db/federationStore';
+import { getGym, saveGym } from '../../db/gymStore';
+import { getAllCoaches } from '../../db/coachStore';
 import { applyFightResult } from '../../components/TopNav/fightResultApplier';
+import { addDays } from '../../lib/simTime';
+import { applyTraining } from '../../lib/training';
 import {
   initFightState, simulateRound,
   STAT_CATEGORIES,
@@ -222,6 +226,23 @@ export default function FightPage() {
           gymBoxerFirstId: f.boxerIds[0],
           roundLog: next.roundLog,
         });
+
+        // Advance game date by 1 and run 1 day of training (mirrors handleSimFight in TopNav)
+        const freshGym = await getGym();
+        if (freshGym) {
+          const nextDate = addDays(f.date, 1);
+          await saveGym({ ...freshGym, currentDate: nextDate });
+          const [allBoxers, allCoaches] = await Promise.all([getAllBoxers(), getAllCoaches()]);
+          const gymBoxers = allBoxers.filter(b => b.gymId === (freshGym.id ?? 1) && b.id !== undefined);
+          await Promise.all(
+            gymBoxers.map(boxer => {
+              const coach = allCoaches.find(c => c.assignedBoxerId === boxer.id);
+              if (!coach) return Promise.resolve();
+              return putBoxer(applyTraining(boxer, coach, 1, freshGym.level));
+            })
+          );
+        }
+        window.dispatchEvent(new CustomEvent('game:sim'));
 
         sessionStorage.removeItem(SESSION_KEY(fightId!));
         setShowRecap(true);
