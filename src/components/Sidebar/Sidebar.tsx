@@ -68,6 +68,7 @@ export function Sidebar() {
       {allSections.map((section) => (
         <div key={section.label}>
           <button
+            type="button"
             className={styles.sectionToggle}
             onClick={() => toggleSection(section.label)}
           >

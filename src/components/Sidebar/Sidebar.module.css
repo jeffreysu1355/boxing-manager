@@ -6,15 +6,6 @@
   overflow-y: auto;
 }
 
-.sectionLabel {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  padding: 8px 16px 4px;
-  letter-spacing: 0.5px;
-}
-
 .link {
   display: block;
   padding: 6px 16px 6px 24px;
@@ -50,7 +41,6 @@
   text-transform: uppercase;
   color: var(--text-muted);
   letter-spacing: 0.5px;
-  text-align: left;
 }
 
 .sectionToggle:hover {
