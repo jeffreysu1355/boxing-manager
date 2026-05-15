@@ -234,8 +234,8 @@ export function simulateRound(
 
   const dmgDiff = playerNetDmg - opponentNetDmg;
   const knockdownOccurred = Math.abs(dmgDiff) > 8;
-  const playerRoundScore   = playerNetDmg >= opponentNetDmg ? 10 : (knockdownOccurred ? 8 : 9);
-  const opponentRoundScore = opponentNetDmg > playerNetDmg  ? 10 : (knockdownOccurred ? 8 : 9);
+  const playerRoundScore   = playerNetDmg > opponentNetDmg ? 10 : (knockdownOccurred ? 8 : 9);
+  const opponentRoundScore = opponentNetDmg > playerNetDmg ? 10 : (knockdownOccurred ? 8 : 9);
 
   const narrative = generateNarrative(playerNetDmg, opponentNetDmg, adaptationPenalty, choice.stat, knockdownOccurred);
 
