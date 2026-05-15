@@ -9,7 +9,7 @@ import { applyFightResult } from '../../components/TopNav/fightResultApplier';
 import { addDays } from '../../lib/simTime';
 import { applyTraining } from '../../lib/training';
 import {
-  initFightState, simulateRound,
+  initFightState, simulateRound, pickOpponentChoice,
   STAT_CATEGORIES,
   type FightState,
 } from '../../lib/fightSim';
@@ -256,6 +256,101 @@ export default function FightPage() {
     }
   }, [fightState, player, opponent, selectedCategory, selectedStat, isApplying, fight, fightId, navigate]);
 
+  const handleSimToEnd = useCallback(async () => {
+    if (!fightState || !player || !opponent || isApplying) return;
+    setIsApplying(true);
+
+    let state = fightState;
+    const regionDmg: RegionDamage = { ...playerRegionDamage };
+    const threats = STYLE_THREATS[opponent.style] ?? ['body'];
+
+    while (!state.finished) {
+      const choice = pickOpponentChoice(player);
+      state = simulateRound(state, player, opponent, choice);
+      const lastEntry = state.roundLog[state.roundLog.length - 1];
+      const dmgPerRegion = (lastEntry?.opponentDamageDealt ?? 0) / threats.length;
+      for (const region of threats) {
+        if (region in regionDmg) regionDmg[region as keyof RegionDamage] += dmgPerRegion;
+      }
+    }
+
+    setPlayerRegionDamage(regionDmg);
+    setFightState(state);
+
+    try {
+      const f = fight!;
+      const fed = await getFederation(f.federationId);
+      const { winnerId, loserId, method, finishingMove, round, time } = state.result!;
+      const winner = winnerId === player.id ? player : opponent;
+      const loser  = loserId  === player.id ? player : opponent;
+
+      const winnerRecord = {
+        result: 'win' as const,
+        opponentName: loser.name,
+        opponentId: loser.id!,
+        method,
+        finishingMove,
+        round: round!,
+        time: time!,
+        federation: fed?.name ?? '',
+        date: f.date,
+        isTitleFight: f.isTitleFight,
+      };
+      const loserRecord = {
+        result: 'loss' as const,
+        opponentName: winner.name,
+        opponentId: winner.id!,
+        method,
+        finishingMove,
+        round: round!,
+        time: time!,
+        federation: fed?.name ?? '',
+        date: f.date,
+        isTitleFight: f.isTitleFight,
+      };
+
+      await applyFightResult({
+        fightId: f.id!,
+        winnerId, loserId, method, finishingMove,
+        round: round!,
+        time: time!,
+        winnerRecord, loserRecord,
+        isTitleFight: f.isTitleFight,
+        federationId: f.federationId,
+        weightClass: f.weightClass,
+        fightDate: f.date,
+        contractId: f.contractId,
+        gymBoxerFirstId: f.boxerIds[0],
+        roundLog: state.roundLog,
+      });
+
+      const freshGym = await getGym();
+      if (freshGym) {
+        const nextDate = addDays(f.date, 1);
+        await saveGym({ ...freshGym, currentDate: nextDate });
+        const [allBoxers, allCoaches] = await Promise.all([getAllBoxers(), getAllCoaches()]);
+        const gymBoxers = allBoxers.filter(b => b.gymId === (freshGym.id ?? 1) && b.id !== undefined);
+        await Promise.all(
+          gymBoxers.map(boxer => {
+            const coach = allCoaches.find(c => c.assignedBoxerId === boxer.id);
+            if (!coach) return Promise.resolve();
+            return putBoxer(applyTraining(boxer, coach, 1, freshGym.level));
+          })
+        );
+      }
+      window.dispatchEvent(new CustomEvent('game:sim'));
+
+      sessionStorage.removeItem(SESSION_KEY(fightId!));
+      setShowRecap(true);
+
+      autoNavTimer.current = setTimeout(() => {
+        navigate(`/fight-results?fights=${f.id}`);
+      }, 8000);
+    } finally {
+      setIsApplying(false);
+    }
+  }, [fightState, player, opponent, isApplying, playerRegionDamage, fight, fightId, navigate]);
+
   useEffect(() => {
     return () => {
       if (autoNavTimer.current) clearTimeout(autoNavTimer.current);
@@ -439,13 +534,23 @@ export default function FightPage() {
         )}
       </div>
 
-      <button
-        className={styles.simBtn}
-        onClick={handleSimulateRound}
-        disabled={!selectedCategory || !selectedStat || isApplying}
-      >
-        {isApplying ? 'Applying…' : 'Simulate Round'}
-      </button>
+      <div style={{ display: 'flex', gap: 12 }}>
+        <button
+          className={styles.simBtn}
+          onClick={handleSimulateRound}
+          disabled={!selectedCategory || !selectedStat || isApplying}
+        >
+          {isApplying ? 'Applying…' : 'Simulate Round'}
+        </button>
+        <button
+          className={styles.simBtn}
+          onClick={handleSimToEnd}
+          disabled={isApplying}
+          style={{ opacity: 0.8 }}
+        >
+          {isApplying ? 'Applying…' : 'Sim to End'}
+        </button>
+      </div>
     </div>
   );
 }
