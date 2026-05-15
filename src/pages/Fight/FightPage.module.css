@@ -1,0 +1,265 @@
+.fightContainer {
+  padding: 24px;
+  max-width: 900px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.roundLabel {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.boxerName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Health / Stamina bars */
+.barsSection {
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.barLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+}
+
+.barTrack {
+  height: 10px;
+  background: var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+}
+
+.barFillHealth {
+  background: #4caf50;
+}
+
+.barFillStamina {
+  background: #2196f3;
+}
+
+.barPct {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.opponentBars {
+  text-align: right;
+}
+
+.opponentBars .barTrack {
+  direction: rtl;
+}
+
+/* Body outline SVG area */
+.svgSection {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  margin-bottom: 24px;
+}
+
+.svgWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.svgLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+}
+
+/* Stat picker */
+.pickerSection {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.pickerTitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.categoryRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.statRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.categoryBtn {
+  background: var(--bg-secondary, #1a1a2e);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.categoryBtn:hover {
+  border-color: var(--accent);
+}
+
+.categoryBtnActive {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+.statBtn {
+  background: var(--bg-secondary, #1a1a2e);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.statBtn:hover {
+  border-color: var(--accent);
+}
+
+.statBtnActive {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+.adaptBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #f44336;
+  color: #fff;
+  font-size: 9px;
+  border-radius: 4px;
+  padding: 1px 4px;
+  white-space: nowrap;
+}
+
+/* Last round narrative */
+.narrativeSection {
+  background: var(--bg-secondary, #1a1a2e);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  min-height: 40px;
+}
+
+.narrativeTitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+/* Simulate button */
+.simBtn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.simBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Post-fight recap */
+.recapSection {
+  margin-top: 24px;
+}
+
+.recapTitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.recapEntry {
+  border-left: 2px solid var(--border);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.recapRound {
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+
+.recapNarrative {
+  color: var(--text-secondary);
+}
+
+.recapScore {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.viewResultsBtn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+}
