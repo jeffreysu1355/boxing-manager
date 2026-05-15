@@ -47,7 +47,9 @@ export async function exportSave(): Promise<void> {
     const date = new Date().toISOString().slice(0, 10);
     a.href = url;
     a.download = `boxing-manager-save-${date}.json`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 100);
   } catch (err) {
     console.error('Failed to export save:', err);

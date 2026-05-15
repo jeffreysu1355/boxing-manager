@@ -56,12 +56,15 @@ const COUNTER_CHAIN: FightingStyle[] = (() => {
 })();
 
 export default function InfoPage() {
+  const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [importMsg, setImportMsg] = useState<{ type: 'success' | 'warn' | 'error'; text: string } | null>(null);
+  const [importMsg, setImportMsg] = useState<{ type: 'success' | 'warn' | 'error'; text: string; reload?: boolean } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleExport() {
+    setExporting(true);
     await exportSave();
+    setExporting(false);
   }
 
   async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -88,8 +91,8 @@ export default function InfoPage() {
       setImportMsg({
         type: 'warn',
         text: `Imported save is version ${result.fileVersion} (current: 1). Data loaded — some fields may be missing or incompatible.`,
+        reload: true,
       });
-      setTimeout(() => window.location.reload(), 2000);
       return;
     }
     window.location.reload();
@@ -191,8 +194,8 @@ export default function InfoPage() {
         <div className={styles.sectionHeader}>Save Data</div>
         <div className={styles.sectionBody}>
           <div className={styles.saveRow}>
-            <button type="button" className={styles.saveBtn} onClick={handleExport}>
-              Export Save
+            <button type="button" className={styles.saveBtn} onClick={handleExport} disabled={exporting}>
+              {exporting ? 'Exporting…' : 'Export Save'}
             </button>
             <button
               type="button"
@@ -217,6 +220,15 @@ export default function InfoPage() {
                                            styles.msgSuccess
             }>
               {importMsg.text}
+              {importMsg.reload && (
+                <button
+                  type="button"
+                  className={styles.reloadBtn}
+                  onClick={() => window.location.reload()}
+                >
+                  Reload now
+                </button>
+              )}
             </div>
           )}
         </div>
