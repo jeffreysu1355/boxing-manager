@@ -1,4 +1,14 @@
 import type { Boxer, Fight, FightingStyle, FightMethod, FightRecord, ReputationLevel } from '../db/db';
+import type { StatCategory, RoundLogEntry } from '../db/db';
+export type { StatCategory };
+export type { RoundLogEntry };
+
+export const STAT_CATEGORIES: Record<StatCategory, (keyof Boxer['stats'])[]> = {
+  offense:  ['jab', 'cross', 'leadHook', 'rearHook', 'uppercut'],
+  defense:  ['headMovement', 'bodyMovement', 'guard', 'positioning'],
+  mental:   ['timing', 'adaptability', 'discipline'],
+  physical: ['speed', 'power', 'endurance', 'recovery', 'toughness'],
+};
 
 export interface FightSimResult {
   winnerId: number;
@@ -9,6 +19,23 @@ export interface FightSimResult {
   time: string;
   winnerRecord: FightRecord;
   loserRecord: FightRecord;
+  roundLog?: RoundLogEntry[];
+}
+
+export interface FightState {
+  round: number;
+  playerHealth: number;
+  opponentHealth: number;
+  playerStamina: number;
+  opponentStamina: number;
+  playerScore: number;
+  opponentScore: number;
+  repeatCount: number;
+  lastPlayerStat: keyof Boxer['stats'] | null;
+  lastPlayerCategory: StatCategory | null;
+  roundLog: RoundLogEntry[];
+  finished: boolean;
+  result?: Pick<FightSimResult, 'winnerId' | 'loserId' | 'method' | 'finishingMove' | 'round' | 'time'>;
 }
 
 const REPUTATION_INDEX: Record<ReputationLevel, number> = {

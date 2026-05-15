@@ -204,6 +204,20 @@ export interface Federation {
   prestige: number; // 1-10, International BF = 10
 }
 
+export type StatCategory = 'offense' | 'defense' | 'mental' | 'physical';
+
+export interface RoundLogEntry {
+  round: number;
+  playerFocus: { category: StatCategory; stat: keyof BoxerStats };
+  playerDamageDealt: number;
+  opponentDamageDealt: number;
+  playerScoreThisRound: number;
+  opponentScoreThisRound: number;
+  adaptationPenalty: number;
+  knockdownOccurred: boolean;
+  narrative: string;
+}
+
 export interface Fight {
   id?: number;
   date: string;
@@ -217,6 +231,7 @@ export interface Fight {
   time: string | null; // null for decisions
   isTitleFight: boolean;
   contractId: number | null; // null = NPC-simulated fight with no player contract
+  roundLog?: RoundLogEntry[];
 }
 
 export interface FightContract {
@@ -336,7 +351,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 14, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 15, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -467,6 +482,10 @@ export async function getDB(): Promise<DB> {
           autoIncrement: true,
         });
         txStore.createIndex('date', 'date');
+      }
+
+      if (oldVersion < 15) {
+        // roundLog added as optional field on Fight — no structural change needed
       }
     },
   });
