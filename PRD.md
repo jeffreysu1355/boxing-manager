@@ -367,16 +367,16 @@ When the player clicks "Play Fight" instead of "Sim Fight", a round-based intera
 
 #### Completion Tracking
 
-- [ ] `RoundLogEntry`, `FightState`, `StatCategory` types in `fightSim.ts`
-- [ ] `simulateRound` pure function (stamina, effective stats, adaptation penalty, damage, scoring)
-- [ ] AI opponent tactical choice logic
-- [ ] Fight termination logic (KO/TKO/Decision/Split Decision)
-- [ ] Extend `FightSimResult` with optional `roundLog`
-- [ ] Extend `applyFightResult` to persist `roundLog` on `Fight` record
-- [ ] `FightPage.tsx` interactive fight UI (health/stamina bars, body outline SVG, stat picker)
-- [ ] sessionStorage checkpoint (write after each round, hydrate on mount, clear on finish)
-- [ ] Post-fight recap view in `FightPage` with round-by-round log
-- [ ] DB version bump to 15 (`roundLog` field on `Fight`)
+- [x] `RoundLogEntry`, `FightState`, `StatCategory` types in `fightSim.ts`
+- [x] `simulateRound` pure function (stamina, effective stats, adaptation penalty, damage, scoring)
+- [x] AI opponent tactical choice logic
+- [x] Fight termination logic (KO/TKO/Decision/Split Decision)
+- [x] Extend `FightSimResult` with optional `roundLog`
+- [x] Extend `applyFightResult` to persist `roundLog` on `Fight` record
+- [x] `FightPage.tsx` interactive fight UI (health/stamina bars, body outline SVG, stat picker)
+- [x] sessionStorage checkpoint (write after each round, hydrate on mount, clear on finish)
+- [x] Post-fight recap view in `FightPage` with round-by-round log
+- [x] DB version bump to 15 (`roundLog` field on `Fight`)
 
 
 ---
