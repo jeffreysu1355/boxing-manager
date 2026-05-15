@@ -101,8 +101,8 @@ The gym is the player's central entity. All money flows to the gym. Gym level af
 - [x] Gym upgrade logic with cost scaling
 - [x] Gym level affects recruit quality generation
 - [x] Gym level affects coach attraction
-- [ ] Gym level affects training equipment effectiveness
-- [ ] Gym finances tracking (income, expenses, balance)
+- [x] Gym level affects training equipment effectiveness
+- [x] Gym finances tracking (income, expenses, balance)
 
 ---
 
@@ -191,7 +191,7 @@ Randomly generated special abilities. A talent raises the max stat value from 20
 
 - [x] Natural talent definitions and pool
 - [x] Random talent assignment at generation
-- [ ] Random talent gain from training
+- [x] Random talent gain from training
 - [x] Talent affects stat caps
 
 ### 5.6 Injuries
@@ -317,7 +317,7 @@ After scheduling but before the fight, the player can sign up with a PPV network
 
 ### 7.3 Fight Simulation
 
-The fight itself is simulated (no real-time tactics).
+The fight can be auto-simmed or played interactively. Auto-sim resolves in one pass; interactive play is round-based.
 
 | Factor | Weight |
 |---|---|
@@ -329,7 +329,7 @@ Fight result must produce a record entry with: winner, method (KO, TKO, Decision
 
 #### Completion Tracking
 
-- [x] Fight simulation engine
+- [x] Fight simulation engine (auto-sim)
 - [x] Style matchup advantage calculation (20%)
 - [x] Stats comparison calculation (70%)
 - [x] Random factor (10%)
@@ -340,6 +340,43 @@ Fight result must produce a record entry with: winner, method (KO, TKO, Decision
 - [ ] Post-fight injury generation
 - [x] Post-fight title transfer (if title fight)
 - [x] Post-fight financial payout
+
+### 7.4 Interactive Fight Tactics (Round-Based)
+
+When the player clicks "Play Fight" instead of "Sim Fight", a round-based interactive fight UI activates. 12 rounds by default.
+
+| Mechanic | Details |
+|---|---|
+| Trigger | "Play Fight" on fight day navigates to `/fight/{fightId}`; fight is unresolved |
+| Round structure | 12 rounds; player picks **category focus** + **stat spotlight** each round |
+| Category focus | One of: Offense, Defense, Mental, Physical — moderate boost to all stats in that category |
+| Stat spotlight | One specific stat within (or outside) the chosen category — extra boost on top of category focus |
+| Stamina drain | `drain = 12 - (endurance * 0.8 + toughness * 0.4) / 2` per round; clamped 2–15%/round |
+| Stamina debuff | `effectiveStats = stats * (0.4 + 0.6 * stamina / 100)`; at 0% stamina = 40% effective stats |
+| Adaptation penalty | Repeating the same stat: `penalty = min(0.5, repeatCount * 0.10)`; if opponent adaptability ≥ 15 → 0.15/repeat; resets on switch |
+| Health pool | Each boxer starts at 100%; damage dealt/taken each round reduces health |
+| Scorecard | 10-point must system runs in parallel; difference ≥ 4 pts at end = Decision, < 4 = Split Decision |
+| KO/TKO | Health ≤ 0 = KO; health 1–15 at round end + dominated = TKO |
+| Opponent visibility | Opponent health %, stamina %, and fighting style shown; stats hidden |
+| Body outline | SVG silhouette — player side shows damage zones (green→yellow→red per region); opponent side shows threat zones based on their style |
+| Adaptation warning | Badge on focused stat if `repeatCount ≥ 2` showing current penalty |
+| AI opponent | Picks category/stat each round based on its style's focus stats (deterministic) |
+| Session checkpoint | `FightState` saved to `sessionStorage` after each round; hydrated on page reload |
+| Round log | Every round logged as `RoundLogEntry` (damage, scores, narrative, penalty); stored on `Fight` record in IndexedDB |
+| Post-fight recap | Round-by-round log shown in `FightPage` before routing to fight results page |
+
+#### Completion Tracking
+
+- [ ] `RoundLogEntry`, `FightState`, `StatCategory` types in `fightSim.ts`
+- [ ] `simulateRound` pure function (stamina, effective stats, adaptation penalty, damage, scoring)
+- [ ] AI opponent tactical choice logic
+- [ ] Fight termination logic (KO/TKO/Decision/Split Decision)
+- [ ] Extend `FightSimResult` with optional `roundLog`
+- [ ] Extend `applyFightResult` to persist `roundLog` on `Fight` record
+- [ ] `FightPage.tsx` interactive fight UI (health/stamina bars, body outline SVG, stat picker)
+- [ ] sessionStorage checkpoint (write after each round, hydrate on mount, clear on finish)
+- [ ] Post-fight recap view in `FightPage` with round-by-round log
+- [ ] DB version bump to 15 (`roundLog` field on `Fight`)
 
 
 ---
@@ -419,7 +456,7 @@ Text-based, data-dense UI inspired by Football GM. See `references/football-gm-u
 - [ ] **Compare**: Side-by-side comparison of two selected fighters
 
 #### Tools
-- [ ] **God Mode**: Modify any boxer's stats, natural talents, and history
+- [x] **God Mode**: Modify any boxer's stats, natural talents, and history
 
 #### Info
 - [x] **Game Info page**: Reference guide showing fighting style stat focuses, style counter cycle, and reputation ladder
