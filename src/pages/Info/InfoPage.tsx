@@ -1,7 +1,9 @@
+import { useState, useRef } from 'react';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { STYLE_FOCUS, STYLE_COUNTERS } from '../../lib/fightSim';
 import { REPUTATION_ORDER, RANK_CONFIG } from '../../lib/rankSystem';
 import type { FightingStyle, BoxerStats } from '../../db/db';
+import { exportSave, importSave } from '../../db/saveData';
 import styles from './InfoPage.module.css';
 
 const STYLE_LABELS: Record<FightingStyle, string> = {
@@ -47,13 +49,52 @@ const BEATS: Record<FightingStyle, FightingStyle> = Object.fromEntries(
 const COUNTER_CHAIN: FightingStyle[] = (() => {
   const start: FightingStyle = 'swarmer';
   const chain: FightingStyle[] = [start];
-  let cur = start;
+  let cur: FightingStyle = start;
   for (let i = 0; i < 3; i++) { cur = BEATS[cur]; chain.push(cur); }
   chain.push(start);
   return chain;
 })();
 
 export default function InfoPage() {
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<{ type: 'success' | 'warn' | 'error'; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleExport() {
+    await exportSave();
+  }
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = '';
+    if (!file) return;
+
+    const confirmed = window.confirm(
+      'This will replace ALL current game data with the imported save. This cannot be undone. Continue?'
+    );
+    if (!confirmed) return;
+
+    setImporting(true);
+    setImportMsg(null);
+    const result = await importSave(file);
+    setImporting(false);
+
+    if (!result.ok) {
+      setImportMsg({ type: 'error', text: result.error });
+      return;
+    }
+    if (result.versionMismatch) {
+      setImportMsg({
+        type: 'warn',
+        text: `Imported save is version ${result.fileVersion} (current: 1). Data loaded — some fields may be missing or incompatible.`,
+      });
+      setTimeout(() => window.location.reload(), 2000);
+      return;
+    }
+    window.location.reload();
+  }
+
   return (
     <div className={styles.page}>
       <PageHeader title="Game Info" subtitle="Reference guide for game mechanics" />
@@ -142,6 +183,42 @@ export default function InfoPage() {
               })}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Save Data */}
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>Save Data</div>
+        <div className={styles.sectionBody}>
+          <div className={styles.saveRow}>
+            <button type="button" className={styles.saveBtn} onClick={handleExport}>
+              Export Save
+            </button>
+            <button
+              type="button"
+              className={styles.saveBtn}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+            >
+              {importing ? 'Importing…' : 'Import Save'}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              className={styles.hiddenInput}
+              onChange={handleImportFile}
+            />
+          </div>
+          {importMsg && (
+            <div className={
+              importMsg.type === 'error' ? styles.msgError :
+              importMsg.type === 'warn'  ? styles.msgWarn  :
+                                           styles.msgSuccess
+            }>
+              {importMsg.text}
+            </div>
+          )}
         </div>
       </div>
     </div>
