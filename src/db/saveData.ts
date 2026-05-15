@@ -60,6 +60,10 @@ export type ImportResult =
   | { ok: true; versionMismatch: true; fileVersion: number }
   | { ok: false; error: string };
 
+function isObjectArray(arr: unknown): arr is object[] {
+  return Array.isArray(arr) && arr.every(r => typeof r === 'object' && r !== null);
+}
+
 export async function importSave(file: File): Promise<ImportResult> {
   let parsed: unknown;
   try {
@@ -78,46 +82,60 @@ export async function importSave(file: File): Promise<ImportResult> {
     return { ok: false, error: 'File does not look like a Boxing Manager save.' };
   }
 
+  const s = (parsed as SaveFile).stores;
+  const storeNames = [
+    'boxers','coaches','gym','federations','fights','fightContracts',
+    'ppvNetworks','titles','calendarEvents','federationEvents','transactions',
+  ] as const;
+  for (const name of storeNames) {
+    if (!isObjectArray((s as Record<string, unknown>)[name])) {
+      return { ok: false, error: `Invalid save: "${name}" store is not an array of objects.` };
+    }
+  }
+
   const save = parsed as SaveFile;
   const versionMismatch = save.version !== SAVE_VERSION;
 
-  const db = await getDB();
-  const tx = db.transaction(
-    ['boxers','coaches','gym','federations','fights','fightContracts',
-     'ppvNetworks','titles','calendarEvents','federationEvents','transactions'],
-    'readwrite',
-  );
+  try {
+    const db = await getDB();
+    const tx = db.transaction(
+      ['boxers','coaches','gym','federations','fights','fightContracts',
+       'ppvNetworks','titles','calendarEvents','federationEvents','transactions'],
+      'readwrite',
+    );
 
-  await Promise.all([
-    tx.objectStore('boxers').clear(),
-    tx.objectStore('coaches').clear(),
-    tx.objectStore('gym').clear(),
-    tx.objectStore('federations').clear(),
-    tx.objectStore('fights').clear(),
-    tx.objectStore('fightContracts').clear(),
-    tx.objectStore('ppvNetworks').clear(),
-    tx.objectStore('titles').clear(),
-    tx.objectStore('calendarEvents').clear(),
-    tx.objectStore('federationEvents').clear(),
-    tx.objectStore('transactions').clear(),
-  ]);
+    await Promise.all([
+      tx.objectStore('boxers').clear(),
+      tx.objectStore('coaches').clear(),
+      tx.objectStore('gym').clear(),
+      tx.objectStore('federations').clear(),
+      tx.objectStore('fights').clear(),
+      tx.objectStore('fightContracts').clear(),
+      tx.objectStore('ppvNetworks').clear(),
+      tx.objectStore('titles').clear(),
+      tx.objectStore('calendarEvents').clear(),
+      tx.objectStore('federationEvents').clear(),
+      tx.objectStore('transactions').clear(),
+    ]);
 
-  const s = save.stores;
-  await Promise.all([
-    ...(s.boxers           as object[]).map(r => tx.objectStore('boxers').put(r as never)),
-    ...(s.coaches          as object[]).map(r => tx.objectStore('coaches').put(r as never)),
-    ...(s.gym              as object[]).map(r => tx.objectStore('gym').put(r as never)),
-    ...(s.federations      as object[]).map(r => tx.objectStore('federations').put(r as never)),
-    ...(s.fights           as object[]).map(r => tx.objectStore('fights').put(r as never)),
-    ...(s.fightContracts   as object[]).map(r => tx.objectStore('fightContracts').put(r as never)),
-    ...(s.ppvNetworks      as object[]).map(r => tx.objectStore('ppvNetworks').put(r as never)),
-    ...(s.titles           as object[]).map(r => tx.objectStore('titles').put(r as never)),
-    ...(s.calendarEvents   as object[]).map(r => tx.objectStore('calendarEvents').put(r as never)),
-    ...(s.federationEvents as object[]).map(r => tx.objectStore('federationEvents').put(r as never)),
-    ...(s.transactions     as object[]).map(r => tx.objectStore('transactions').put(r as never)),
-  ]);
+    await Promise.all([
+      ...(s.boxers           as object[]).map(r => tx.objectStore('boxers').put(r as never)),
+      ...(s.coaches          as object[]).map(r => tx.objectStore('coaches').put(r as never)),
+      ...(s.gym              as object[]).map(r => tx.objectStore('gym').put(r as never)),
+      ...(s.federations      as object[]).map(r => tx.objectStore('federations').put(r as never)),
+      ...(s.fights           as object[]).map(r => tx.objectStore('fights').put(r as never)),
+      ...(s.fightContracts   as object[]).map(r => tx.objectStore('fightContracts').put(r as never)),
+      ...(s.ppvNetworks      as object[]).map(r => tx.objectStore('ppvNetworks').put(r as never)),
+      ...(s.titles           as object[]).map(r => tx.objectStore('titles').put(r as never)),
+      ...(s.calendarEvents   as object[]).map(r => tx.objectStore('calendarEvents').put(r as never)),
+      ...(s.federationEvents as object[]).map(r => tx.objectStore('federationEvents').put(r as never)),
+      ...(s.transactions     as object[]).map(r => tx.objectStore('transactions').put(r as never)),
+    ]);
 
-  await tx.done;
+    await tx.done;
+  } catch (err) {
+    return { ok: false, error: `Import failed: ${String(err)}` };
+  }
 
   return versionMismatch
     ? { ok: true, versionMismatch: true, fileVersion: save.version }
