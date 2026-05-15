@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router';
 import styles from './Sidebar.module.css';
 
@@ -58,6 +58,14 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(allSections.map(s => [s.label, s.prefix !== activePrefix]))
   );
+
+  useEffect(() => {
+    setCollapsed(prev => {
+      const activeSection = allSections.find(s => s.prefix === activePrefix);
+      if (!activeSection || !prev[activeSection.label]) return prev;
+      return { ...prev, [activeSection.label]: false };
+    });
+  }, [activePrefix]);
 
   function toggleSection(label: string) {
     setCollapsed(prev => ({ ...prev, [label]: !prev[label] }));
