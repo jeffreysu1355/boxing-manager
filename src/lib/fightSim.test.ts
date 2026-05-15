@@ -4,6 +4,10 @@ import {
   computeStyleScore,
   computeRandomWeight,
   simulateFight,
+  pickOpponentChoice,
+  simulateRound,
+  initFightState,
+  STAT_CATEGORIES,
   type FightSimResult,
 } from './fightSim';
 import type { Boxer, BoxerStats, Fight } from '../db/db';
@@ -33,6 +37,14 @@ function makeBoxer(id: number, overrides: Partial<Boxer> = {}): Boxer {
     titles: [],
     record: [],
     ...overrides,
+  };
+}
+
+function makeFullBoxer(id: number, overrides: Partial<Boxer> = {}): Boxer {
+  return {
+    ...makeBoxer(id, overrides),
+    rankPoints: 0,
+    demotionBuffer: 0,
   };
 }
 
@@ -189,5 +201,125 @@ describe('simulateFight', () => {
     expect(result.winnerRecord.date).toBe('2026-06-15');
     expect(result.loserRecord.federation).toBe('European Boxing Federation');
     expect(result.loserRecord.date).toBe('2026-06-15');
+  });
+});
+
+describe('pickOpponentChoice', () => {
+  it('returns a category and stat consistent with the opponent style', () => {
+    const opponent = makeFullBoxer(2, { style: 'swarmer', stats: makeStats(10) });
+    const choice = pickOpponentChoice(opponent);
+    // Swarmer maps to offense category: leadHook, rearHook, bodyMovement, positioning, endurance, toughness
+    // But STYLE_TO_CATEGORY maps swarmer -> 'offense', so stat will be from offense stats
+    const offenseStats = STAT_CATEGORIES['offense'];
+    expect(offenseStats).toContain(choice.stat);
+  });
+
+  it('returns a valid StatCategory', () => {
+    const opponent = makeFullBoxer(2, { style: 'out-boxer', stats: makeStats(10) });
+    const { category } = pickOpponentChoice(opponent);
+    expect(['offense', 'defense', 'mental', 'physical']).toContain(category);
+  });
+});
+
+describe('initFightState', () => {
+  it('starts at round 1 with full health and stamina', () => {
+    const state = initFightState();
+    expect(state.round).toBe(1);
+    expect(state.playerHealth).toBe(100);
+    expect(state.opponentHealth).toBe(100);
+    expect(state.playerStamina).toBe(100);
+    expect(state.opponentStamina).toBe(100);
+    expect(state.finished).toBe(false);
+    expect(state.roundLog).toHaveLength(0);
+  });
+});
+
+describe('simulateRound', () => {
+  it('advances round by 1', () => {
+    const player   = makeFullBoxer(1, { style: 'slugger',  stats: makeStats(10) });
+    const opponent = makeFullBoxer(2, { style: 'out-boxer', stats: makeStats(10) });
+    const state = initFightState();
+    const next = simulateRound(state, player, opponent, { category: 'offense', stat: 'jab' });
+    expect(next.round).toBe(2);
+  });
+
+  it('reduces stamina each round', () => {
+    const player   = makeFullBoxer(1, { style: 'slugger',  stats: makeStats(10) });
+    const opponent = makeFullBoxer(2, { style: 'out-boxer', stats: makeStats(10) });
+    const state = initFightState();
+    const next = simulateRound(state, player, opponent, { category: 'offense', stat: 'jab' });
+    expect(next.playerStamina).toBeLessThan(100);
+    expect(next.opponentStamina).toBeLessThan(100);
+  });
+
+  it('reduces health each round', () => {
+    const player   = makeFullBoxer(1, { style: 'slugger',  stats: makeStats(10) });
+    const opponent = makeFullBoxer(2, { style: 'out-boxer', stats: makeStats(10) });
+    const state = initFightState();
+    const next = simulateRound(state, player, opponent, { category: 'offense', stat: 'jab' });
+    const healthLost = (100 - next.playerHealth) + (100 - next.opponentHealth);
+    expect(healthLost).toBeGreaterThan(0);
+  });
+
+  it('appends a RoundLogEntry with correct round number', () => {
+    const player   = makeFullBoxer(1, { style: 'slugger',  stats: makeStats(10) });
+    const opponent = makeFullBoxer(2, { style: 'out-boxer', stats: makeStats(10) });
+    const state = initFightState();
+    const next = simulateRound(state, player, opponent, { category: 'offense', stat: 'jab' });
+    expect(next.roundLog).toHaveLength(1);
+    expect(next.roundLog[0].round).toBe(1);
+    expect(next.roundLog[0].playerFocus).toEqual({ category: 'offense', stat: 'jab' });
+  });
+
+  it('increments repeatCount when same stat chosen twice', () => {
+    const player   = makeFullBoxer(1, { style: 'slugger',  stats: makeStats(10) });
+    const opponent = makeFullBoxer(2, { style: 'out-boxer', stats: makeStats(10) });
+    let state = initFightState();
+    state = simulateRound(state, player, opponent, { category: 'offense', stat: 'jab' });
+    state = simulateRound(state, player, opponent, { category: 'offense', stat: 'jab' });
+    expect(state.roundLog[1].adaptationPenalty).toBeGreaterThan(0);
+  });
+
+  it('resets repeatCount when stat switches', () => {
+    const player   = makeFullBoxer(1, { style: 'slugger',  stats: makeStats(10) });
+    const opponent = makeFullBoxer(2, { style: 'out-boxer', stats: makeStats(10) });
+    let state = initFightState();
+    state = simulateRound(state, player, opponent, { category: 'offense', stat: 'jab' });
+    state = simulateRound(state, player, opponent, { category: 'offense', stat: 'jab' });
+    state = simulateRound(state, player, opponent, { category: 'offense', stat: 'cross' });
+    expect(state.roundLog[2].adaptationPenalty).toBe(0);
+  });
+
+  it('finishes fight when health drops to 0 or after round 12', () => {
+    const player   = makeFullBoxer(1, { style: 'slugger',  stats: makeStats(20) });
+    const opponent = makeFullBoxer(2, { style: 'out-boxer', stats: makeStats(1) });
+    let state = initFightState();
+    for (let r = 0; r < 12 && !state.finished; r++) {
+      state = simulateRound(state, player, opponent, { category: 'offense', stat: 'rearHook' });
+    }
+    expect(state.finished).toBe(true);
+    expect(state.result).toBeDefined();
+    expect(['KO', 'TKO', 'Decision', 'Split Decision']).toContain(state.result!.method);
+  });
+
+  it('finishes after round 12 on evenly matched boxers', () => {
+    const player   = makeFullBoxer(1, { style: 'slugger',  stats: makeStats(10) });
+    const opponent = makeFullBoxer(2, { style: 'out-boxer', stats: makeStats(10) });
+    let state = initFightState();
+    for (let r = 0; r < 12 && !state.finished; r++) {
+      state = simulateRound(state, player, opponent, { category: 'offense', stat: 'jab' });
+    }
+    expect(state.finished).toBe(true);
+  });
+
+  it('high-adaptability opponent applies 0.15 penalty rate', () => {
+    const highAdapt = { ...makeStats(10), adaptability: 15 };
+    const player   = makeFullBoxer(1, { style: 'slugger',  stats: makeStats(10) });
+    const opponent = makeFullBoxer(2, { style: 'out-boxer', stats: highAdapt });
+    let state = initFightState();
+    state = simulateRound(state, player, opponent, { category: 'offense', stat: 'jab' });
+    state = simulateRound(state, player, opponent, { category: 'offense', stat: 'jab' });
+    // After 1 repeat, penalty should be 0.15 (not 0.10)
+    expect(state.roundLog[1].adaptationPenalty).toBeCloseTo(0.15);
   });
 });
