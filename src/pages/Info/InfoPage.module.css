@@ -172,15 +172,15 @@
 
 .msgError {
   font-size: 12px;
-  color: var(--color-loss, #e74c3c);
+  color: var(--danger);
 }
 
 .msgWarn {
   font-size: 12px;
-  color: var(--color-warning, #e67e22);
+  color: var(--warning);
 }
 
 .msgSuccess {
   font-size: 12px;
-  color: var(--color-win, #2ecc71);
+  color: var(--success);
 }
