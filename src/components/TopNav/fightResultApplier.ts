@@ -8,7 +8,7 @@ import { getPpvNetwork } from '../../db/ppvNetworkStore';
 import { calcViewers, calcPpvPayout } from '../../lib/ppvCalc';
 import { REPUTATION_INDEX } from '../../lib/reputationIndex';
 import { logTransaction } from '../../db/transactionStore';
-import type { FightMethod, FightRecord, WeightClass } from '../../db/db';
+import type { FightMethod, FightRecord, WeightClass, RoundLogEntry } from '../../db/db';
 
 export interface ApplyFightResultParams {
   fightId: number;
@@ -26,19 +26,20 @@ export interface ApplyFightResultParams {
   fightDate: string;
   contractId: number | null;
   gymBoxerFirstId: number;
+  roundLog?: RoundLogEntry[];
 }
 
 export async function applyFightResult(params: ApplyFightResultParams): Promise<void> {
   const {
     fightId, winnerId, loserId, method, finishingMove, round, time,
     winnerRecord, loserRecord, isTitleFight, federationId, weightClass,
-    fightDate, contractId, gymBoxerFirstId,
+    fightDate, contractId, gymBoxerFirstId, roundLog,
   } = params;
 
   // 1. Update Fight record
   const fight = await getFight(fightId);
   if (fight) {
-    await putFight({ ...fight, winnerId, method, finishingMove, round, time });
+    await putFight({ ...fight, winnerId, method, finishingMove, round, time, ...(roundLog ? { roundLog } : {}) });
   }
 
   // 2. Push records onto both boxers and apply rank changes
