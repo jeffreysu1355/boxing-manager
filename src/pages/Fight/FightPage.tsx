@@ -3,8 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router';
 import { getFight } from '../../db/fightStore';
 import { getBoxer } from '../../db/boxerStore';
 import { getFederation } from '../../db/federationStore';
-import { getAllCalendarEvents } from '../../db/calendarEventStore';
-import { getAllCoaches } from '../../db/coachStore';
 import { applyFightResult } from '../../components/TopNav/fightResultApplier';
 import {
   initFightState, simulateRound,
@@ -180,11 +178,7 @@ export default function FightPage() {
       setIsApplying(true);
       try {
         const f = fight!;
-        const [fed] = await Promise.all([
-          getFederation(f.federationId),
-          getAllCoaches(),
-          getAllCalendarEvents(),
-        ]);
+        const fed = await getFederation(f.federationId);
         const { winnerId, loserId, method, finishingMove, round, time } = next.result;
         const winner = winnerId === player.id ? player : opponent;
         const loser  = loserId  === player.id ? player : opponent;
