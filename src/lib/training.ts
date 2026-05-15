@@ -1,4 +1,4 @@
-import type { Boxer, BoxerStats, Coach, CoachSkillLevel, FightingStyle, ReputationLevel } from '../db/db';
+import type { Boxer, BoxerStats, Coach, CoachSkillLevel, FightingStyle, NaturalTalent, ReputationLevel } from '../db/db';
 
 const ALL_STATS: (keyof BoxerStats)[] = [
   'jab', 'cross', 'leadHook', 'rearHook', 'uppercut',
@@ -21,12 +21,52 @@ export const EXP_PER_DAY: Record<CoachSkillLevel, number> = {
   'all-time-great': 1.0,
 };
 
-export function applyTraining(boxer: Boxer, coach: Coach, days: number): Boxer {
+// Linear decay from 0.0013 at age 18 to a floor of 0.00005 at age 35+.
+// Slope = (0.0013 - 0.00005) / 17 ≈ 0.0000735 per year.
+// Tuned so a career from 18–40 yields ~4–5 talent gains, concentrated in early years.
+export function talentGainProbability(age: number): number {
+  return Math.max(0.00005, 0.0013 - (age - 18) * 0.0000735);
+}
+
+export function rollTalentGain(
+  boxer: Boxer,
+  coach: Coach,
+  rng: () => number = Math.random,
+): NaturalTalent | null {
+  if (rng() >= talentGainProbability(boxer.age)) return null;
+
+  const heldStats = new Set(boxer.naturalTalents.map(t => t.stat));
+  const coachPool = STYLE_STATS[coach.style].filter(s => !heldStats.has(s));
+  const boxerPool = STYLE_STATS[boxer.style].filter(s => !heldStats.has(s) && !coachPool.includes(s));
+
+  // 70% weight to coach stats, 30% to boxer-unique stats
+  const weightedPool: (keyof BoxerStats)[] = [
+    ...coachPool.flatMap(s => [s, s, s, s, s, s, s]),   // 7 entries each → ~70%
+    ...boxerPool.flatMap(s => [s, s, s]),                 // 3 entries each → ~30%
+  ];
+
+  if (weightedPool.length === 0) return null;
+
+  const picked = weightedPool[Math.floor(rng() * weightedPool.length)];
+  return { stat: picked };
+}
+
+export function applyTraining(boxer: Boxer, coach: Coach, days: number, gymLevel: number = 1, rng: () => number = Math.random): Boxer {
   const stats = { ...boxer.stats };
   const exp: Partial<Record<keyof BoxerStats, number>> = { ...(boxer.trainingExp ?? {}) };
-  const rate = EXP_PER_DAY[coach.skillLevel];
+  const gymMultiplier = 1 + (gymLevel - 1) * 0.01;
+  const rate = EXP_PER_DAY[coach.skillLevel] * gymMultiplier;
   const focusSet = new Set(STYLE_STATS[coach.style]);
-  const talentSet = new Set(boxer.naturalTalents.map(t => t.stat));
+
+  // Roll for talent gain once per simulated day, updating naturalTalents as we go
+  // so each day's roll reflects any talents just gained (no duplicate picks).
+  let naturalTalents = [...boxer.naturalTalents];
+  for (let d = 0; d < days; d++) {
+    const gained = rollTalentGain({ ...boxer, naturalTalents }, coach, rng);
+    if (gained) naturalTalents = [...naturalTalents, gained];
+  }
+
+  const talentSet = new Set(naturalTalents.map(t => t.stat));
 
   for (const stat of ALL_STATS) {
     const statRate = focusSet.has(stat) ? rate : rate * 0.5;
@@ -45,7 +85,7 @@ export function applyTraining(boxer: Boxer, coach: Coach, days: number): Boxer {
     }
   }
 
-  return { ...boxer, stats, trainingExp: exp };
+  return { ...boxer, stats, trainingExp: exp, naturalTalents };
 }
 
 export function dateDiffDaysTraining(from: string, to: string): number {

@@ -9,6 +9,8 @@ import {
   dateDiffDaysTraining,
   applyFightExp,
   FIGHT_EXP_BY_REPUTATION,
+  rollTalentGain,
+  talentGainProbability,
 } from './training';
 import type { Boxer, Coach } from '../db/db';
 
@@ -84,6 +86,47 @@ describe('EXP_PER_DAY', () => {
     expect(EXP_PER_DAY['contender']).toBe(0.5);
     expect(EXP_PER_DAY['championship-caliber']).toBe(0.75);
     expect(EXP_PER_DAY['all-time-great']).toBe(1.0);
+  });
+});
+
+describe('gymLevelMultiplier', () => {
+  it('level 1 gives 1.0x multiplier (no change)', () => {
+    const boxer = makeBoxer({ trainingExp: {} });
+    const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
+    // local = 0.25/day, 5 days, level 1 = 1.0x → 1.25 exp
+    const result = applyTraining(boxer, coach, 5, 1);
+    expect(result.trainingExp!['jab']).toBe(1.25);
+  });
+
+  it('level 5 gives 1.04x multiplier', () => {
+    const boxer = makeBoxer({ trainingExp: {} });
+    const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
+    // local = 0.25/day, 5 days, level 5 = 1.04x → 0.25 * 1.04 * 5 = 1.3
+    const result = applyTraining(boxer, coach, 5, 5);
+    expect(result.trainingExp!['jab']).toBeCloseTo(1.3, 10);
+  });
+
+  it('level 10 gives 1.09x multiplier', () => {
+    const boxer = makeBoxer({ trainingExp: {} });
+    const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
+    // local = 0.25/day, 5 days, level 10 = 1.09x → 0.25 * 1.09 * 5 = 1.3625
+    const result = applyTraining(boxer, coach, 5, 10);
+    expect(result.trainingExp!['jab']).toBeCloseTo(1.3625, 10);
+  });
+
+  it('gym level multiplier applies to both focus and off-style stats', () => {
+    const boxer = makeBoxer({ trainingExp: {} });
+    const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
+    // level 10 = 1.09x; off-style at 0.5 rate → 0.25 * 0.5 * 1.09 * 5 = 0.68125
+    const result = applyTraining(boxer, coach, 5, 10);
+    expect(result.trainingExp!['leadHook']).toBeCloseTo(0.68125, 10);
+  });
+
+  it('omitting gymLevel defaults to 1.0x (no change to existing behavior)', () => {
+    const boxer = makeBoxer({ trainingExp: {} });
+    const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
+    const result = applyTraining(boxer, coach, 5);
+    expect(result.trainingExp!['jab']).toBe(1.25);
   });
 });
 
@@ -419,5 +462,115 @@ describe('applyFightExp', () => {
     const boxer = makeBoxer({ reputation: 'Unknown', trainingExp: {} });
     applyFightExp(boxer);
     expect(boxer.trainingExp!['jab']).toBeUndefined();
+  });
+});
+
+describe('talentGainProbability', () => {
+  it('age 18 returns the peak probability ~0.0013', () => {
+    expect(talentGainProbability(18)).toBeCloseTo(0.0013, 4);
+  });
+
+  it('probability decreases as age increases from 18 to 34', () => {
+    expect(talentGainProbability(25)).toBeLessThan(talentGainProbability(18));
+    expect(talentGainProbability(30)).toBeLessThan(talentGainProbability(25));
+    expect(talentGainProbability(34)).toBeLessThan(talentGainProbability(30));
+  });
+
+  it('age 35+ is floored at 0.00005', () => {
+    // at age 35 the linear formula produces ~0.0000505, which the floor clamps to 0.00005
+    expect(talentGainProbability(35)).toBeCloseTo(0.00005, 4);
+    expect(talentGainProbability(40)).toBe(0.00005);
+  });
+});
+
+describe('rollTalentGain', () => {
+  it('returns null when rng roll is above the probability threshold', () => {
+    const boxer = makeBoxer({ age: 18 });
+    const coach = makeCoach({ style: 'out-boxer' });
+    // rng always returns 1.0 (never wins)
+    const result = rollTalentGain(boxer, coach, () => 1.0);
+    expect(result).toBeNull();
+  });
+
+  it('returns a talent when rng roll is below the probability threshold', () => {
+    const boxer = makeBoxer({ age: 18 });
+    const coach = makeCoach({ style: 'out-boxer' });
+    // rng returns 0 (always wins), then a fixed value for stat selection
+    let callCount = 0;
+    const result = rollTalentGain(boxer, coach, () => callCount++ === 0 ? 0 : 0);
+    expect(result).not.toBeNull();
+    expect(result).toHaveProperty('stat');
+  });
+
+  it('returned talent stat comes from coach focus stats (70% pool) or boxer focus stats (30% pool)', () => {
+    // boxer=swarmer, coach=out-boxer: pools are different
+    const boxer = makeBoxer({ age: 18, style: 'swarmer', naturalTalents: [] });
+    const coach = makeCoach({ style: 'out-boxer' });
+    const coachStats = new Set(STYLE_STATS['out-boxer']);
+    const boxerStats = new Set(STYLE_STATS['swarmer']);
+    const validStats = new Set([...coachStats, ...boxerStats]);
+
+    // force a win by making the first roll 0
+    let call = 0;
+    const result = rollTalentGain(boxer, coach, () => call++ === 0 ? 0 : 0.5);
+    expect(result).not.toBeNull();
+    expect(validStats.has(result!.stat)).toBe(true);
+  });
+
+  it('never returns a talent the boxer already has', () => {
+    // boxer already has all out-boxer stats as talents
+    const coachStats = STYLE_STATS['out-boxer'];
+    const boxer = makeBoxer({
+      age: 18,
+      style: 'out-boxer',
+      naturalTalents: coachStats.map(stat => ({ stat })),
+    });
+    const coach = makeCoach({ style: 'out-boxer' });
+    // force a win
+    let call = 0;
+    // With same style, pool = coach stats only (all already held) — should return null
+    const result = rollTalentGain(boxer, coach, () => call++ === 0 ? 0 : 0);
+    expect(result).toBeNull();
+  });
+
+  it('returns null when boxer already holds all stats in the combined pool', () => {
+    const coachStats = STYLE_STATS['out-boxer'];
+    const boxerStats = STYLE_STATS['swarmer'];
+    const allPoolStats = [...new Set([...coachStats, ...boxerStats])];
+    const boxer = makeBoxer({
+      age: 18,
+      style: 'swarmer',
+      naturalTalents: allPoolStats.map(stat => ({ stat })),
+    });
+    const coach = makeCoach({ style: 'out-boxer' });
+    let call = 0;
+    const result = rollTalentGain(boxer, coach, () => call++ === 0 ? 0 : 0);
+    expect(result).toBeNull();
+  });
+
+  it('applyTraining appends a talent when rollTalentGain fires', () => {
+    const boxer = makeBoxer({ age: 18, naturalTalents: [] });
+    const coach = makeCoach({ style: 'out-boxer' });
+    // Simulate 1 day with rng that always triggers the talent roll
+    const result = applyTraining(boxer, coach, 1, 1, () => 0);
+    expect(result.naturalTalents.length).toBe(1);
+  });
+
+  it('applyTraining does not append a talent when roll misses', () => {
+    const boxer = makeBoxer({ age: 18, naturalTalents: [] });
+    const coach = makeCoach({ style: 'out-boxer' });
+    const result = applyTraining(boxer, coach, 1, 1, () => 1.0);
+    expect(result.naturalTalents.length).toBe(0);
+  });
+
+  it('applyTraining can gain at most one talent per day even over many days', () => {
+    // 365 days, rng always wins — should gain at most one per day but cap at pool size
+    const boxer = makeBoxer({ age: 18, style: 'out-boxer', naturalTalents: [] });
+    const coach = makeCoach({ style: 'out-boxer' });
+    const result = applyTraining(boxer, coach, 365, 1, () => 0);
+    // pool = out-boxer focus stats (6 stats), can't exceed that
+    expect(result.naturalTalents.length).toBeLessThanOrEqual(STYLE_STATS['out-boxer'].length);
+    // with always-0 rng, should have gained all available pool stats
+    expect(result.naturalTalents.length).toBe(STYLE_STATS['out-boxer'].length);
   });
 });

@@ -42,7 +42,7 @@ function dateDiffDays(from: string, to: string): number {
   return Math.round((b - a) / 86_400_000);
 }
 
-async function runTraining(fromDate: string, toDate: string, gymId: number) {
+async function runTraining(fromDate: string, toDate: string, gymId: number, gymLevel: number) {
   const [allBoxers, allCoaches] = await Promise.all([getAllBoxers(), getAllCoaches()]);
   const gymBoxers = allBoxers.filter(b => b.gymId === gymId && b.id !== undefined);
   const days = Math.max(0, dateDiffDays(fromDate, toDate));
@@ -52,7 +52,7 @@ async function runTraining(fromDate: string, toDate: string, gymId: number) {
     gymBoxers.map(boxer => {
       const coach = allCoaches.find(c => c.assignedBoxerId === boxer.id);
       if (!coach) return Promise.resolve();
-      const updated = applyTraining(boxer, coach, days);
+      const updated = applyTraining(boxer, coach, days, gymLevel);
       return putBoxer(updated);
     })
   );
@@ -196,7 +196,7 @@ export function TopNav() {
       setGym(updated);
       setFightStop(result.stoppedAt);
 
-      await runTraining(currentDate, result.newDate, updated.id ?? 1);
+      await runTraining(currentDate, result.newDate, updated.id ?? 1, updated.level);
       // Clear tempStatBoost for gym boxers whose fight day has passed without being played
       {
         const allGymBoxers = await getAllBoxers();
@@ -334,7 +334,7 @@ export function TopNav() {
       setGym(updated);
       setFightStop(null);
 
-      await runTraining(currentDate, updated.currentDate, updated.id ?? 1);
+      await runTraining(currentDate, updated.currentDate, updated.id ?? 1, updated.level);
 
       const [freshEvts, freshBoxers] = await Promise.all([
         getAllCalendarEvents(),
