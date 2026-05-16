@@ -20,6 +20,11 @@ export function normalizeBoxer(boxer: Boxer, currentYear: number): Boxer {
   };
 }
 
+// normalizeBoxer uses the real-world year as a fallback for lastAgedYear.
+// This is intentional: for legacy records without lastAgedYear, defaulting to
+// the current real year prevents immediate re-aging on first load. The slight
+// mismatch vs. game year only matters if a saved game spans multiple real years,
+// which is unlikely in practice.
 export async function getBoxer(id: number): Promise<Boxer | undefined> {
   const db = await getDB();
   const boxer = await db.get('boxers', id);

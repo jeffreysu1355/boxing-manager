@@ -43,6 +43,19 @@ function dateDiffDays(from: string, to: string): number {
   return Math.round((b - a) / 86_400_000);
 }
 
+async function runAgingPass(fromDate: string, toDate: string, boxers: Boxer[]): Promise<void> {
+  if (fromDate.slice(0, 7) === toDate.slice(0, 7)) return;
+  const newYear = Number(toDate.slice(0, 4));
+  const newMonthNum = Number(toDate.slice(5, 7));
+  await Promise.all(
+    boxers.map(boxer => {
+      if (!boxer.birthDate || boxer.lastAgedYear === undefined) return Promise.resolve();
+      if (!shouldAgeBoxer(boxer.birthDate, boxer.lastAgedYear, newYear, newMonthNum)) return Promise.resolve();
+      return putBoxer({ ...boxer, age: boxer.age + 1, lastAgedYear: newYear });
+    })
+  );
+}
+
 async function runTraining(fromDate: string, toDate: string, gymId: number, gymLevel: number) {
   const [allBoxers, allCoaches] = await Promise.all([getAllBoxers(), getAllCoaches()]);
   const gymBoxers = allBoxers.filter(b => b.gymId === gymId && b.id !== undefined);
@@ -197,24 +210,10 @@ export function TopNav() {
       setGym(updated);
       setFightStop(result.stoppedAt);
 
-      const oldMonthStr = currentDate.slice(0, 7);
-      const newMonthStr = result.newDate.slice(0, 7);
-      const crossedMonthBoundary = oldMonthStr !== newMonthStr;
-
       // Fetch all boxers once for aging and tempStatBoost clearing
       const allBoxersSnapshot = await getAllBoxers();
 
-      if (crossedMonthBoundary) {
-        const newYear = Number(result.newDate.slice(0, 4));
-        const newMonthNum = Number(result.newDate.slice(5, 7));
-        await Promise.all(
-          allBoxersSnapshot.map(boxer => {
-            if (!boxer.birthDate || boxer.lastAgedYear === undefined) return Promise.resolve();
-            if (!shouldAgeBoxer(boxer.birthDate, boxer.lastAgedYear, newYear, newMonthNum)) return Promise.resolve();
-            return putBoxer({ ...boxer, age: boxer.age + 1, lastAgedYear: newYear });
-          })
-        );
-      }
+      await runAgingPass(currentDate, result.newDate, allBoxersSnapshot);
 
       await runTraining(currentDate, result.newDate, updated.id ?? 1, updated.level);
       // Clear tempStatBoost for gym boxers whose fight day has passed without being played
@@ -355,6 +354,9 @@ export function TopNav() {
       setFightStop(null);
 
       await runTraining(currentDate, updated.currentDate, updated.id ?? 1, updated.level);
+
+      const allBoxersForAging = await getAllBoxers();
+      await runAgingPass(currentDate, updated.currentDate, allBoxersForAging);
 
       const [freshEvts, freshBoxers] = await Promise.all([
         getAllCalendarEvents(),
