@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { shouldAgeBoxer } from '../../lib/aging';
 import { IDBFactory } from 'fake-indexeddb';
 import { closeAndResetDB } from '../../db/db';
 import { putBoxer } from '../../db/boxerStore';
@@ -253,5 +254,27 @@ describe('applyFightResult', () => {
     const { getFightContract } = await import('../../db/fightContractStore');
     const contract = await getFightContract(contractId);
     expect(contract!.status).toBe('completed');
+  });
+});
+
+describe('shouldAgeBoxer', () => {
+  it('returns true when newYear > lastAgedYear and newMonth >= birthMonth', () => {
+    expect(shouldAgeBoxer('2002-03-15', 2025, 2026, 4)).toBe(true);
+  });
+
+  it('returns true when newYear > lastAgedYear and newMonth === birthMonth', () => {
+    expect(shouldAgeBoxer('2002-03-15', 2025, 2026, 3)).toBe(true);
+  });
+
+  it('returns false when newYear > lastAgedYear but newMonth < birthMonth', () => {
+    expect(shouldAgeBoxer('2002-06-15', 2025, 2026, 3)).toBe(false);
+  });
+
+  it('returns false when newYear === lastAgedYear (already aged this year)', () => {
+    expect(shouldAgeBoxer('2002-03-15', 2026, 2026, 4)).toBe(false);
+  });
+
+  it('returns false when newYear < lastAgedYear', () => {
+    expect(shouldAgeBoxer('2002-03-15', 2027, 2026, 4)).toBe(false);
   });
 });

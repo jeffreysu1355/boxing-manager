@@ -11,6 +11,7 @@ import { applyTraining, computeTrainingCampBoost, computeNpcBoost } from '../../
 import { simulateFight } from '../../lib/fightSim';
 import { applyFightResult } from './fightResultApplier';
 import { refreshRecruitPool } from '../../db/worldGen';
+import { shouldAgeBoxer } from '../../lib/aging';
 import { simulateNpcFights } from '../../lib/npcFightSim';
 import { runCoachSalaries } from '../../lib/coachSalaries';
 import type { CalendarEvent, Gym, Boxer, Fight, Coach, BoxerStats } from '../../db/db';
@@ -195,6 +196,23 @@ export function TopNav() {
       await saveGym(updated);
       setGym(updated);
       setFightStop(result.stoppedAt);
+
+      const oldMonthStr = currentDate.slice(0, 7);
+      const newMonthStr = result.newDate.slice(0, 7);
+      const crossedMonthBoundary = oldMonthStr !== newMonthStr;
+
+      if (crossedMonthBoundary) {
+        const newYear = Number(result.newDate.slice(0, 4));
+        const newMonthNum = Number(result.newDate.slice(5, 7));
+        const allBoxersForAging = await getAllBoxers();
+        await Promise.all(
+          allBoxersForAging.map(boxer => {
+            if (!boxer.birthDate || boxer.lastAgedYear === undefined) return Promise.resolve();
+            if (!shouldAgeBoxer(boxer.birthDate, boxer.lastAgedYear, newYear, newMonthNum)) return Promise.resolve();
+            return putBoxer({ ...boxer, age: boxer.age + 1, lastAgedYear: newYear });
+          })
+        );
+      }
 
       await runTraining(currentDate, result.newDate, updated.id ?? 1, updated.level);
       // Clear tempStatBoost for gym boxers whose fight day has passed without being played
