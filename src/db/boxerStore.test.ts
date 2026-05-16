@@ -7,6 +7,7 @@ import {
   getBoxersByWeightClass,
   putBoxer,
   deleteBoxer,
+  normalizeBoxer,
 } from './boxerStore';
 
 const baseBoxer: Omit<Boxer, 'id'> = {
@@ -115,5 +116,42 @@ describe('boxerStore', () => {
     const remaining = await getAllBoxers();
     expect(remaining).toHaveLength(1);
     expect(remaining[0].id).toBe(id2);
+  });
+});
+
+describe('normalizeBoxer', () => {
+  it('leaves birthDate and lastAgedYear unchanged when already present', () => {
+    const boxer = { ...baseBoxer, id: 1, birthDate: '2002-06-15', lastAgedYear: 2026, rankPoints: 0, demotionBuffer: 0 };
+    const result = normalizeBoxer(boxer as Boxer, 2026);
+    expect(result.birthDate).toBe('2002-06-15');
+    expect(result.lastAgedYear).toBe(2026);
+  });
+
+  it('generates birthDate from age when missing', () => {
+    const boxer = { ...baseBoxer, id: 1, age: 22, rankPoints: 0, demotionBuffer: 0 };
+    const result = normalizeBoxer(boxer as Boxer, 2026);
+    expect(result.birthDate).toMatch(/^2004-\d{2}-\d{2}$/); // 2026 - 22 = 2004
+  });
+
+  it('sets lastAgedYear to currentYear when missing', () => {
+    const boxer = { ...baseBoxer, id: 1, rankPoints: 0, demotionBuffer: 0 };
+    const result = normalizeBoxer(boxer as Boxer, 2026);
+    expect(result.lastAgedYear).toBe(2026);
+  });
+
+  it('generates a birthDate day between 01 and 28', () => {
+    const boxer = { ...baseBoxer, id: 1, age: 25, rankPoints: 0, demotionBuffer: 0 };
+    const result = normalizeBoxer(boxer as Boxer, 2026);
+    const day = Number(result.birthDate!.split('-')[2]);
+    expect(day).toBeGreaterThanOrEqual(1);
+    expect(day).toBeLessThanOrEqual(28);
+  });
+
+  it('generates a birthDate month between 01 and 12', () => {
+    const boxer = { ...baseBoxer, id: 1, age: 25, rankPoints: 0, demotionBuffer: 0 };
+    const result = normalizeBoxer(boxer as Boxer, 2026);
+    const month = Number(result.birthDate!.split('-')[1]);
+    expect(month).toBeGreaterThanOrEqual(1);
+    expect(month).toBeLessThanOrEqual(12);
   });
 });
