@@ -56,7 +56,7 @@ export function Sidebar() {
   const activePrefix = getActivePrefix(pathname);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(allSections.map(s => [s.label, s.prefix !== activePrefix]))
+    Object.fromEntries(allSections.map(s => [s.label, false]))
   );
 
   useEffect(() => {
