@@ -147,6 +147,8 @@ export interface Boxer {
   rankPoints: number;
   demotionBuffer: number;
   nextFightDate?: string; // ISO date — when this boxer is next scheduled to fight (NPC only)
+  birthDate?: string;      // ISO YYYY-MM-DD; day is approximate
+  lastAgedYear?: number;   // year age was last incremented
   lastRankDelta?: {
     points: number;
     bufferPoints: number;
