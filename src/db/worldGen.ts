@@ -43,6 +43,17 @@ function weightedPick<T>(entries: [T, number][]): T {
   return entries[entries.length - 1][0];
 }
 
+function pad(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+function generateBirthDate(age: number): string {
+  const birthYear = 2026 - age;
+  const birthMonth = rand(1, 12);
+  const birthDay = rand(1, 28);
+  return `${birthYear}-${pad(birthMonth)}-${pad(birthDay)}`;
+}
+
 // --- Name generation ---
 
 const FEDERATION_COUNTRIES: Record<FederationName, string[]> = {
@@ -452,9 +463,10 @@ export async function generateProspects(): Promise<void> {
     const style = pick(FIGHTING_STYLES);
     const reputation = 'Unknown' as const;
     const fedName = pick(FEDERATION_NAMES);
+    const prospectAge = rand(14, 17);
     const prospect: Omit<Boxer, 'id'> = {
       name: generateName(fedName),
-      age: rand(14, 17),
+      age: prospectAge,
       weightClass: 'welterweight',
       style,
       reputation,
@@ -467,6 +479,8 @@ export async function generateProspects(): Promise<void> {
       record: generateAmateurRecord(style),
       rankPoints: 0,
       demotionBuffer: RANK_CONFIG[reputation].bufferMax,
+      birthDate: generateBirthDate(prospectAge),
+      lastAgedYear: 2026,
       nextFightDate: addDays('2026-01-01', rand(0, 180)),
     };
     await putBoxer(prospect);
@@ -495,6 +509,8 @@ export async function generateFreeAgents(): Promise<void> {
       record: generateFightRecord(reputation, style, age),
       rankPoints: 0,
       demotionBuffer: RANK_CONFIG[reputation].bufferMax,
+      birthDate: generateBirthDate(age),
+      lastAgedYear: 2026,
       nextFightDate: addDays('2026-01-01', rand(0, 180)),
     };
     await putBoxer(freeAgent);
@@ -701,6 +717,8 @@ export async function generateWorld(): Promise<void> {
         record: generateFightRecord(reputation, style, age),
         rankPoints: 0,
         demotionBuffer: RANK_CONFIG[reputation].bufferMax,
+        birthDate: generateBirthDate(age),
+        lastAgedYear: 2026,
         nextFightDate: addDays('2026-01-01', rand(0, 180)),
       };
 
