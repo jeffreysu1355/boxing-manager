@@ -76,6 +76,16 @@ function formatFightDate(date: string): string {
   return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
+function formatBirthDate(birthDate: string | undefined): string {
+  if (!birthDate) return '—';
+  const [year, month, day] = birthDate.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 // --- Component ---
 
 function RankingSection({ boxer }: { boxer: Boxer }) {
@@ -235,6 +245,9 @@ export default function PlayerPage() {
             <span>{boxer.age} yrs</span>
             <span>{capitalize(boxer.weightClass)}</span>
             <span>{styleLabel(boxer.style)}</span>
+          </div>
+          <div className={styles.meta}>
+            <span>Born: {formatBirthDate(boxer.birthDate)}</span>
           </div>
           <div className={styles.record}>{calcRecord(boxer.record)} ({boxer.record.length} fights)</div>
           {(activeTitles.length > 0 || boxer.naturalTalents.length > 0) && (
