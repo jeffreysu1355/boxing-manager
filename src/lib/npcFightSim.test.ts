@@ -3,6 +3,7 @@ import {
   pickOpponent,
   shouldBeTitleFight,
   rollNextFightDate,
+  shouldNpcRetire,
 } from './npcFightSim';
 import type { Boxer, BoxerStats, Title } from '../db/db';
 
@@ -180,5 +181,37 @@ describe('shouldBeTitleFight', () => {
     const title1 = makeTitle({ id: 1, federationId: 1, currentChampionId: 1, weightClass: 'welterweight' });
     const title2 = makeTitle({ id: 2, federationId: 1, currentChampionId: 2, weightClass: 'welterweight' });
     expect(shouldBeTitleFight(a, b, [title1, title2])).toBe(false);
+  });
+});
+
+describe('shouldNpcRetire', () => {
+  it('returns false for boxer under 35', () => {
+    expect(shouldNpcRetire(34, 'All-Time Great')).toBe(false);
+    expect(shouldNpcRetire(34, 'Unknown')).toBe(false);
+  });
+
+  it('returns true for boxer 45 or older (forced retirement)', () => {
+    expect(shouldNpcRetire(45, 'All-Time Great', 0)).toBe(true);
+    expect(shouldNpcRetire(45, 'Unknown', 0)).toBe(true);
+  });
+
+  it('probability increases with age for same reputation', () => {
+    let retiredAt35 = 0;
+    let retiredAt40 = 0;
+    for (let i = 0; i < 10000; i++) {
+      if (shouldNpcRetire(35, 'Unknown')) retiredAt35++;
+      if (shouldNpcRetire(40, 'Unknown')) retiredAt40++;
+    }
+    expect(retiredAt40).toBeGreaterThan(retiredAt35);
+  });
+
+  it('higher reputation reduces retirement chance', () => {
+    let retiredUnknown = 0;
+    let retiredATG = 0;
+    for (let i = 0; i < 10000; i++) {
+      if (shouldNpcRetire(38, 'Unknown')) retiredUnknown++;
+      if (shouldNpcRetire(38, 'All-Time Great')) retiredATG++;
+    }
+    expect(retiredUnknown).toBeGreaterThan(retiredATG);
   });
 });

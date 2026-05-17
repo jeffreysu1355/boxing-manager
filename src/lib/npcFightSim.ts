@@ -5,6 +5,8 @@ import { getFederation } from '../db/federationStore';
 import { simulateFight } from './fightSim';
 import { applyRankChange, REPUTATION_ORDER } from './rankSystem';
 import { addDays } from './simTime';
+import { retireBoxer, type RetireResult } from './retireBoxer';
+import { REPUTATION_INDEX } from './reputationIndex';
 import type { Boxer, Fight, Title, WeightClass } from '../db/db';
 
 export function rollNextFightDate(fromDate: string): string {
@@ -113,7 +115,18 @@ function transferTitle(
   return { ...title, currentChampionId: winnerId, reigns: updatedReigns };
 }
 
-export async function simulateNpcFights(fromDate: string, toDate: string): Promise<void> {
+export function shouldNpcRetire(
+  age: number,
+  reputation: import('../db/db').ReputationLevel,
+  roll: number = Math.random(),
+): boolean {
+  if (age < 35) return false;
+  if (age >= 45) return true;
+  const dailyChance = Math.max(0, (age - 34) * 0.002 - (REPUTATION_INDEX[reputation] ?? 0) * 0.0002);
+  return roll < dailyChance;
+}
+
+export async function simulateNpcFights(fromDate: string, toDate: string): Promise<RetireResult[]> {
   const [allBoxers, allTitles] = await Promise.all([getAllBoxers(), getAllTitles()]);
 
   // Only federation-affiliated boxers — free agents/prospects are regenerated monthly and their IDs become stale
@@ -221,8 +234,24 @@ export async function simulateNpcFights(fromDate: string, toDate: string): Promi
     }
   }
 
+  // NPC retirement pass
+  const retireResults: RetireResult[] = [];
+  const retirableTitles = Array.from(titlesMap.values());
+  const allBoxersForRetire = await getAllBoxers();
+  const npcEligible = allBoxersForRetire.filter(
+    b => b.gymId === null && b.federationId !== null && !b.retired && b.id !== undefined && (b.age ?? 0) >= 35
+  );
+  for (const boxer of npcEligible) {
+    if (shouldNpcRetire(boxer.age, boxer.reputation)) {
+      const result = await retireBoxer(boxer, retirableTitles, toDate);
+      retireResults.push(result);
+    }
+  }
+
   const cutoff = addDays(toDate, -365);
   const allFights = await getAllFights();
   const stale = allFights.filter(f => f.contractId === null && f.date < cutoff);
   await Promise.all(stale.map(f => deleteFight(f.id!)));
+
+  return retireResults;
 }
