@@ -27,6 +27,7 @@ const allSections: SidebarSection[] = [
       { to: '/gym/roster', label: 'Roster' },
       { to: '/gym/finances', label: 'Finances' },
       { to: '/gym/coaches', label: 'Coaches' },
+      { to: '/gym/retired', label: 'Retired' },
     ],
   },
   {

@@ -17,6 +17,7 @@ import GymLayout from './pages/Gym/GymLayout';
 import Roster from './pages/Gym/Roster';
 import Finances from './pages/Gym/Finances';
 import Coaches from './pages/Gym/Coaches';
+import Retired from './pages/Gym/Retired';
 import PlayersLayout from './pages/Players/PlayersLayout';
 import Recruiting from './pages/Players/Recruiting';
 import CoachRecruiting from './pages/Players/CoachRecruiting';
@@ -57,6 +58,7 @@ export const routes: RouteObject[] = [
           { path: 'roster', element: <Roster /> },
           { path: 'finances', element: <Finances /> },
           { path: 'coaches', element: <Coaches /> },
+          { path: 'retired', element: <Retired /> },
         ],
       },
       {

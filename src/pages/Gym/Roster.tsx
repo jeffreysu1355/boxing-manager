@@ -206,7 +206,7 @@ export default function Roster() {
       if (cancelled) return;
 
       const gymId = gym?.id ?? 1;
-      const gymRoster = allBoxers.filter(b => b.gymId === gymId);
+      const gymRoster = allBoxers.filter(b => b.gymId === gymId && !b.retired);
 
       const bMap = new Map<number, Boxer>();
       for (const b of allBoxers) {
