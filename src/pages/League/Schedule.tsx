@@ -258,6 +258,9 @@ export default function Schedule() {
     federations.filter(f => f.id !== undefined).map(f => [f.id, f])
   );
 
+  // Earliest future event across all federations
+  const nextEventId = futureEvents.length > 0 ? futureEvents[0].id : null;
+
   // Group future events by federation
   const eventsByFed = new Map<number, FederationEvent[]>();
   for (const ev of futureEvents) {
@@ -461,6 +464,9 @@ export default function Schedule() {
                       >
                         <strong>{ev.name}</strong>{' '}
                         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{formatEventDate(ev.date)}</span>
+                        {ev.id === nextEventId && (
+                          <span className={styles.nextEventBadge}>Next</span>
+                        )}
                         {ev.fightIds.length > 0 && (
                           <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 8 }}>
                             {ev.fightIds.length} fight{ev.fightIds.length !== 1 ? 's' : ''} booked
