@@ -319,7 +319,6 @@ export default function PlayerPage() {
                   <Link
                     key={t.titleId}
                     to={`/league/championship-history#title-${t.titleId}`}
-                    style={{ textDecoration: 'none' }}
                   >
                     <Badge variant="accent">{label}</Badge>
                   </Link>
