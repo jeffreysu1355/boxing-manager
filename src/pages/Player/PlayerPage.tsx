@@ -287,62 +287,59 @@ export default function PlayerPage() {
           </Link>
         </div>
       )}
-      {godMode && (
-        <div style={{ marginBottom: 8 }}>
-          <Link
-            to={`/player/${boxer.id}/edit`}
-            style={{
-              display: 'inline-block',
-              padding: '5px 14px',
-              background: 'var(--accent)',
-              color: '#000',
-              borderRadius: 3,
-              fontWeight: 600,
-              fontSize: 13,
-              textDecoration: 'none',
-            }}
-          >
-            Edit Boxer
-          </Link>
-        </div>
-      )}
-      {godMode && boxer.id !== undefined && (
-        <div style={{ marginBottom: 8 }}>
-          <button
-            onClick={() => exportBoxer(boxer)}
-            style={{
-              display: 'inline-block',
-              padding: '5px 14px',
-              background: 'var(--surface, #1a1a2e)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border)',
-              borderRadius: 3,
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: 'pointer',
-            }}
-          >
-            Export Boxer
-          </button>
-        </div>
-      )}
-      {boxer.gymId === gymId && gymId !== null && !boxer.retired && (
-        <div style={{ marginBottom: 8 }}>
-          <button
-            onClick={handleRetire}
-            style={{
-              padding: '5px 14px',
-              background: 'var(--danger)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 3,
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: 'pointer',
-            }}
-          >
-            Retire Boxer
-          </button>
+      {(godMode || (boxer.gymId === gymId && gymId !== null && !boxer.retired)) && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+          {godMode && (
+            <Link
+              to={`/player/${boxer.id}/edit`}
+              style={{
+                padding: '5px 14px',
+                background: 'none',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: 3,
+                fontWeight: 600,
+                fontSize: 13,
+                textDecoration: 'none',
+              }}
+            >
+              Edit Boxer
+            </Link>
+          )}
+          {godMode && boxer.id !== undefined && (
+            <button
+              onClick={() => exportBoxer(boxer)}
+              style={{
+                padding: '5px 14px',
+                background: 'none',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: 3,
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              Export Boxer
+            </button>
+          )}
+          {boxer.gymId === gymId && gymId !== null && !boxer.retired && (
+            <button
+              onClick={handleRetire}
+              style={{
+                padding: '5px 14px',
+                background: 'none',
+                color: 'var(--danger)',
+                border: '1px solid var(--danger)',
+                borderRadius: 3,
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              Retire Boxer
+            </button>
+          )}
         </div>
       )}
       <div className={styles.page}>
