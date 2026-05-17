@@ -113,7 +113,7 @@ export function TopNav() {
         const gymId = g?.id ?? 1;
         const ids = new Set(
           boxers
-            .filter(b => b.gymId === gymId && b.id !== undefined)
+            .filter(b => b.gymId === gymId && b.id !== undefined && !b.retired)
             .map(b => b.id!)
         );
         setGymBoxerIds(ids);
@@ -222,7 +222,7 @@ export function TopNav() {
       // Clear tempStatBoost for gym boxers whose fight day has passed without being played
       {
         const allGymBoxers = allBoxersSnapshot;
-        const gymBoxerList = allGymBoxers.filter(b => b.gymId === (updated.id ?? 1) && b.id !== undefined);
+        const gymBoxerList = allGymBoxers.filter(b => b.gymId === (updated.id ?? 1) && b.id !== undefined && !b.retired);
         const allFightsData = await getAllFights();
         const fightDateMap = new Map(allFightsData.filter(f => f.id !== undefined).map(f => [f.id!, f.date]));
         await Promise.all(
@@ -252,7 +252,7 @@ export function TopNav() {
       const freshGymId = updated.id ?? 1;
       const freshIds = new Set(
         freshBoxers
-          .filter(b => b.gymId === freshGymId && b.id !== undefined)
+          .filter(b => b.gymId === freshGymId && b.id !== undefined && !b.retired)
           .map(b => b.id!)
       );
       setGymBoxerIds(freshIds);
@@ -369,7 +369,7 @@ export function TopNav() {
       const freshGymId = updated.id ?? 1;
       const freshIds = new Set(
         freshBoxers
-          .filter(b => b.gymId === freshGymId && b.id !== undefined)
+          .filter(b => b.gymId === freshGymId && b.id !== undefined && !b.retired)
           .map(b => b.id!)
       );
       setGymBoxerIds(freshIds);
