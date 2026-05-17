@@ -7,6 +7,7 @@ import { getGym } from '../../db/gymStore';
 import { getAllTitles, getTitle } from '../../db/titleStore';
 import { getFederation } from '../../db/federationStore';
 import { retireBoxer } from '../../lib/retireBoxer';
+import { getHofEntryByBoxer } from '../../db/hallOfFameStore';
 import { STYLE_STATS } from '../../lib/training';
 import { RANK_CONFIG } from '../../lib/rankSystem';
 import type { Boxer, BoxerStats, Coach, FightRecord, Federation } from '../../db/db';
@@ -154,9 +155,10 @@ export default function PlayerPage() {
   const [titleFedMap, setTitleFedMap] = useState<Map<number, { abbr: string; weightClass: string }>>(new Map());
   const [godMode, setGodMode] = useState(false);
   const [gymId, setGymId] = useState<number | null>(null);
+  const [hofEntry, setHofEntry] = useState<import('../../db/db').HallOfFameEntry | null>(null);
 
   useEffect(() => {
-    if (!id) { setBoxer(null); setCoach(null); return; }
+    if (!id) { setBoxer(null); setCoach(null); setHofEntry(null); return; }
     let cancelled = false;
 
     async function load() {
@@ -166,6 +168,10 @@ export default function PlayerPage() {
       setGymId(gym?.id ?? null);
       setBoxer(b ?? null);
       setCoach(coaches.find(c => c.assignedBoxerId === Number(id)) ?? null);
+      if (b?.id !== undefined) {
+        const hof = await getHofEntryByBoxer(b.id);
+        if (!cancelled) setHofEntry(hof ?? null);
+      }
 
       if (b && b.titles.length > 0) {
         const titleObjs = await Promise.all(b.titles.map(t => getTitle(t.titleId)));
@@ -234,6 +240,25 @@ export default function PlayerPage() {
   return (
     <div>
       <PageHeader title={boxer.name} subtitle={boxer.reputation} />
+      {hofEntry && (
+        <div style={{ marginBottom: 8 }}>
+          <Link
+            to="/league/hall-of-fame"
+            style={{
+              display: 'inline-block',
+              padding: '4px 12px',
+              background: 'var(--accent)',
+              color: '#000',
+              borderRadius: 3,
+              fontWeight: 600,
+              fontSize: 13,
+              textDecoration: 'none',
+            }}
+          >
+            ⭐ Hall of Fame (Score: {Math.round(hofEntry.score)})
+          </Link>
+        </div>
+      )}
       {godMode && (
         <div style={{ marginBottom: 8 }}>
           <Link
