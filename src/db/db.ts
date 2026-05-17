@@ -94,6 +94,8 @@ export interface FightRecord {
   federation: string;
   date: string;
   isTitleFight?: boolean;
+  ageAtFight?: string;
+  opponentAgeAtFight?: string;
 }
 
 export interface TitleReign {
