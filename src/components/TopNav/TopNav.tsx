@@ -11,7 +11,7 @@ import { applyTraining, computeTrainingCampBoost, computeNpcBoost } from '../../
 import { simulateFight } from '../../lib/fightSim';
 import { applyFightResult } from './fightResultApplier';
 import { refreshRecruitPool } from '../../db/worldGen';
-import { shouldAgeBoxer } from '../../lib/aging';
+import { shouldAgeBoxer, applyStatRegression } from '../../lib/aging';
 import { simulateNpcFights } from '../../lib/npcFightSim';
 import { runCoachSalaries } from '../../lib/coachSalaries';
 import type { CalendarEvent, Gym, Boxer, Fight, Coach, BoxerStats } from '../../db/db';
@@ -49,16 +49,19 @@ async function runAgingPass(fromDate: string, toDate: string, boxers: Boxer[]): 
   const newMonthNum = Number(toDate.slice(5, 7));
   await Promise.all(
     boxers.map(boxer => {
+      if (boxer.retired) return Promise.resolve();
       if (!boxer.birthDate || boxer.lastAgedYear === undefined) return Promise.resolve();
       if (!shouldAgeBoxer(boxer.birthDate, boxer.lastAgedYear, newYear, newMonthNum)) return Promise.resolve();
-      return putBoxer({ ...boxer, age: boxer.age + 1, lastAgedYear: newYear });
+      const aged = { ...boxer, age: boxer.age + 1, lastAgedYear: newYear };
+      const regressed = applyStatRegression(aged);
+      return putBoxer(regressed);
     })
   );
 }
 
 async function runTraining(fromDate: string, toDate: string, gymId: number, gymLevel: number) {
   const [allBoxers, allCoaches] = await Promise.all([getAllBoxers(), getAllCoaches()]);
-  const gymBoxers = allBoxers.filter(b => b.gymId === gymId && b.id !== undefined);
+  const gymBoxers = allBoxers.filter(b => b.gymId === gymId && b.id !== undefined && !b.retired);
   const days = Math.max(0, dateDiffDays(fromDate, toDate));
   if (days === 0) return;
 
