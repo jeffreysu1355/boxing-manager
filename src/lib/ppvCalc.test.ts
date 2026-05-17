@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calcViewers, calcPpvPayout, PPV_REVENUE_PER_VIEWER } from './ppvCalc';
+import { calcViewers, calcPpvPayout, calcRecordMultiplier, PPV_REVENUE_PER_VIEWER } from './ppvCalc';
 
 describe('calcViewers', () => {
   const network = {
@@ -51,5 +51,45 @@ describe('calcPpvPayout', () => {
 
   it('returns 0 for 0 viewers', () => {
     expect(calcPpvPayout(0, 50)).toBe(0);
+  });
+});
+
+describe('calcRecordMultiplier', () => {
+  const win = (n: number) => Array.from({ length: n }, () => ({
+    result: 'win' as const, opponentName: 'X', opponentId: null,
+    method: 'KO', finishingMove: null, round: 1, time: '1:00',
+    federation: 'NABF', date: '2026-01-01',
+  }));
+  const loss = (n: number) => Array.from({ length: n }, () => ({
+    result: 'loss' as const, opponentName: 'X', opponentId: null,
+    method: 'KO', finishingMove: null, round: 1, time: '1:00',
+    federation: 'NABF', date: '2026-01-01',
+  }));
+
+  it('returns 1.0 for two fighters with no fights (neutral default)', () => {
+    expect(calcRecordMultiplier([], [])).toBe(1.0);
+  });
+
+  it('returns 1.0 when both have 50% win rate (anchor point)', () => {
+    expect(calcRecordMultiplier([...win(1), ...loss(1)], [...win(1), ...loss(1)])).toBe(1.0);
+  });
+
+  it('returns 1.4 when both are undefeated (max bonus)', () => {
+    expect(calcRecordMultiplier(win(10), win(10))).toBe(1.4);
+  });
+
+  it('returns near 1.0 for lopsided matchup (90% vs 10%)', () => {
+    const highWin = [...win(9), ...loss(1)];
+    const lowWin = [...win(1), ...loss(9)];
+    expect(calcRecordMultiplier(highWin, lowWin)).toBe(1.0);
+  });
+
+  it('returns ~1.24 for two 80% win rate fighters', () => {
+    const record = [...win(8), ...loss(2)];
+    expect(calcRecordMultiplier(record, record)).toBeCloseTo(1.24, 2);
+  });
+
+  it('caps at 1.4 even above 100% (only wins)', () => {
+    expect(calcRecordMultiplier(win(100), win(100))).toBe(1.4);
   });
 });
