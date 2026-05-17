@@ -242,7 +242,7 @@ export function TopNav() {
       const retireResults = await simulateNpcFights(currentDate, result.newDate);
       const newInductees = retireResults
         .filter(r => r.inducted)
-        .map(r => ({ name: r.boxerName, score: Math.round(r.score) }));
+        .map(r => ({ name: r.boxerName, score: r.score }));
       if (newInductees.length > 0) setHofInductees(prev => [...prev, ...newInductees]);
       await runCoachSalaries(currentDate, result.newDate, updated.id ?? 1);
 
@@ -527,7 +527,7 @@ export function TopNav() {
             <strong>Hall of Fame!</strong>
             {hofInductees.map((inductee, i) => (
               <div key={i} className={styles.fightResultLine}>
-                ⭐ {inductee.name} has been inducted into the Hall of Fame! (Score: {inductee.score})
+                ⭐ {inductee.name} has been inducted into the Hall of Fame! (Score: {inductee.score.toFixed(1)})
               </div>
             ))}
           </div>

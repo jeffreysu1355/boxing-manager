@@ -1,6 +1,6 @@
 import type { Boxer, Title } from '../db/db';
 import { putBoxer } from '../db/boxerStore';
-import { putHofEntry } from '../db/hallOfFameStore';
+import { putHofEntry, getHofEntryByBoxer } from '../db/hallOfFameStore';
 import { calcHofScore } from './hofScore';
 
 const HOF_THRESHOLD = 50;
@@ -42,7 +42,8 @@ export async function retireBoxer(
   await putBoxer({ ...boxer, retired: true, hofScore: score });
 
   if (inducted && boxer.id !== undefined) {
-    await putHofEntry({
+    const existing = await getHofEntryByBoxer(boxer.id);
+    if (!existing) await putHofEntry({
       boxerId: boxer.id,
       boxerName: boxer.name,
       weightClass: boxer.weightClass,

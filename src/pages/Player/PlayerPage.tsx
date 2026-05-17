@@ -208,7 +208,7 @@ export default function PlayerPage() {
     const currentDate = gym?.currentDate ?? '2026-01-01';
     const result = await retireBoxer(boxer, allTitles, currentDate);
     if (result.inducted) {
-      window.alert(`${boxer.name} has been inducted into the Hall of Fame! (Score: ${Math.round(result.score)})`);
+      window.alert(`${boxer.name} has been inducted into the Hall of Fame! (Score: ${result.score.toFixed(1)})`);
     }
     navigate('/gym/roster');
   }
@@ -255,7 +255,7 @@ export default function PlayerPage() {
               textDecoration: 'none',
             }}
           >
-            ⭐ Hall of Fame (Score: {Math.round(hofEntry.score)})
+            ⭐ Hall of Fame (Score: {hofEntry.score.toFixed(1)})
           </Link>
         </div>
       )}

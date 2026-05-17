@@ -196,22 +196,18 @@ describe('shouldNpcRetire', () => {
   });
 
   it('probability increases with age for same reputation', () => {
-    let retiredAt35 = 0;
-    let retiredAt40 = 0;
-    for (let i = 0; i < 10000; i++) {
-      if (shouldNpcRetire(35, 'Unknown')) retiredAt35++;
-      if (shouldNpcRetire(40, 'Unknown')) retiredAt40++;
-    }
-    expect(retiredAt40).toBeGreaterThan(retiredAt35);
+    // age 35 Unknown: dailyChance = (35-34)*0.002 = 0.002
+    // age 40 Unknown: dailyChance = (40-34)*0.002 = 0.012
+    // roll=0.005 is > 0.002 (age 35 does not retire) but < 0.012 (age 40 retires)
+    expect(shouldNpcRetire(35, 'Unknown', 0.005)).toBe(false);
+    expect(shouldNpcRetire(40, 'Unknown', 0.005)).toBe(true);
   });
 
   it('higher reputation reduces retirement chance', () => {
-    let retiredUnknown = 0;
-    let retiredATG = 0;
-    for (let i = 0; i < 10000; i++) {
-      if (shouldNpcRetire(38, 'Unknown')) retiredUnknown++;
-      if (shouldNpcRetire(38, 'All-Time Great')) retiredATG++;
-    }
-    expect(retiredUnknown).toBeGreaterThan(retiredATG);
+    // age 38 Unknown: dailyChance = (38-34)*0.002 - 0*0.0002 = 0.008
+    // age 38 All-Time Great: dailyChance = (38-34)*0.002 - 9*0.0002 = 0.008 - 0.0018 = 0.0062
+    // roll=0.0075 is < 0.008 (Unknown retires) but > 0.0062 (ATG does not retire)
+    expect(shouldNpcRetire(38, 'Unknown', 0.0075)).toBe(true);
+    expect(shouldNpcRetire(38, 'All-Time Great', 0.0075)).toBe(false);
   });
 });
