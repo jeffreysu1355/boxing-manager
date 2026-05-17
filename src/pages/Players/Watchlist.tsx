@@ -15,7 +15,6 @@ import {
   RankMiniBar,
 } from '../Gym/Roster';
 import type { Boxer, CalendarEvent, Fight, Federation } from '../../db/db';
-import styles from './Watchlist.module.css';
 import { Badge } from '../../components/ui/badge';
 
 const WEIGHT_ORDER = ['flyweight', 'lightweight', 'welterweight', 'middleweight', 'heavyweight'];
@@ -94,7 +93,7 @@ export default function Watchlist() {
     return (
       <div>
         <PageHeader title="Watchlist" subtitle="Boxers you're tracking" />
-        <p className={styles.loading}>Loading…</p>
+        <p className="text-zinc-400 italic text-sm p-4">Loading…</p>
       </div>
     );
   }
@@ -102,14 +101,14 @@ export default function Watchlist() {
   return (
     <div>
       <PageHeader title="Watchlist" subtitle="Boxers you're tracking" />
-      <div className={styles.page}>
+      <div className="mt-4 flex flex-col gap-6">
         {boxers.length === 0 ? (
-          <p className={styles.empty}>No boxers on your watchlist yet.</p>
+          <p className="text-zinc-500 italic text-sm p-4">No boxers on your watchlist yet.</p>
         ) : (
           <table>
             <thead>
               <tr>
-                <th className={styles.flagCell}></th>
+                <th className="w-7 text-center"></th>
                 <th>Name</th>
                 <th>Weight Class</th>
                 <th>Record</th>
@@ -127,7 +126,7 @@ export default function Watchlist() {
 
                 return (
                   <tr key={boxer.id}>
-                    <td className={styles.flagCell}>
+                    <td className="w-7 text-center">
                       <WatchlistFlag
                         isWatchlisted={true}
                         isOwnGym={isOwnGym}

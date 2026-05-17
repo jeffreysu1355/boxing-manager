@@ -256,8 +256,8 @@ export default function PlayerPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-zinc-50 flex items-center gap-2">
           {boxer.name}
           {boxer.id !== undefined && (
             <WatchlistFlag
@@ -267,31 +267,19 @@ export default function PlayerPage() {
             />
           )}
         </h1>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>{boxer.reputation}</p>
+        <p className="text-xs text-zinc-400 mt-0.5">{boxer.reputation}</p>
       </div>
       {hofEntry && (
-        <div style={{ marginBottom: 8 }}>
-          <Link
-            to="/league/hall-of-fame"
-            style={{
-              display: 'inline-block',
-              padding: '4px 12px',
-              background: 'var(--accent)',
-              color: '#000',
-              borderRadius: 3,
-              fontWeight: 600,
-              fontSize: 13,
-              textDecoration: 'none',
-            }}
-          >
-            ⭐ Hall of Fame (Score: {hofEntry.score.toFixed(1)})
+        <div className="mb-2">
+          <Link to="/league/hall-of-fame">
+            <Badge variant="accent">⭐ Hall of Fame (Score: {hofEntry.score.toFixed(1)})</Badge>
           </Link>
         </div>
       )}
       {(godMode || (boxer.gymId === gymId && gymId !== null && !boxer.retired)) && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+        <div className="flex gap-2 mb-2 flex-wrap">
           {godMode && (
-            <Link to={`/player/${boxer.id}/edit`} style={{ textDecoration: 'none' }}>
+            <Link to={`/player/${boxer.id}/edit`}>
               <Button variant="outline" size="sm">Edit Boxer</Button>
             </Link>
           )}
@@ -311,7 +299,7 @@ export default function PlayerPage() {
 
         {/* Header card */}
         <div className="bg-zinc-900 border border-zinc-700 rounded p-4">
-          <div className="text-sm text-zinc-400 mb-2.5">
+          <div className="flex gap-3 text-sm text-zinc-400 mb-2.5">
             <span>{boxer.age} yrs</span>
             <span>{capitalize(boxer.weightClass)}</span>
             <span>{styleLabel(boxer.style)}</span>
