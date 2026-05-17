@@ -3,7 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { getBoxer, putBoxer } from '../../db/boxerStore';
 import { getAllCoaches } from '../../db/coachStore';
-import { getGym } from '../../db/gymStore';
+import { getGym, addToWatchlist, removeFromWatchlist } from '../../db/gymStore';
+import { WatchlistFlag } from '../../components/WatchlistFlag/WatchlistFlag';
 import { getAllTitles, getTitle } from '../../db/titleStore';
 import { getFederation } from '../../db/federationStore';
 import { retireBoxer } from '../../lib/retireBoxer';
@@ -155,6 +156,7 @@ export default function PlayerPage() {
   const [titleFedMap, setTitleFedMap] = useState<Map<number, { abbr: string; weightClass: string }>>(new Map());
   const [godMode, setGodMode] = useState(false);
   const [gymId, setGymId] = useState<number | null>(null);
+  const [watchlistIds, setWatchlistIds] = useState<number[]>([]);
   const [hofEntry, setHofEntry] = useState<import('../../db/db').HallOfFameEntry | null>(null);
 
   useEffect(() => {
@@ -166,6 +168,7 @@ export default function PlayerPage() {
       if (cancelled) return;
       setGodMode(gym?.godModeEnabled ?? false);
       setGymId(gym?.id ?? null);
+      setWatchlistIds(gym?.watchlistIds ?? []);
       setBoxer(b ?? null);
       setCoach(coaches.find(c => c.assignedBoxerId === Number(id)) ?? null);
       if (b?.id !== undefined) {
@@ -211,6 +214,18 @@ export default function PlayerPage() {
       window.alert(`${boxer.name} has been inducted into the Hall of Fame! (Score: ${result.score.toFixed(1)})`);
     }
     navigate('/gym/roster');
+  }
+
+  async function handleToggleWatchlist() {
+    if (!boxer || boxer.id === undefined) return;
+    const boxerId = boxer.id;
+    if (watchlistIds.includes(boxerId)) {
+      await removeFromWatchlist(boxerId);
+      setWatchlistIds(prev => prev.filter(x => x !== boxerId));
+    } else {
+      await addToWatchlist(boxerId);
+      setWatchlistIds(prev => [...prev, boxerId]);
+    }
   }
 
   if (boxer === undefined) {
@@ -276,6 +291,15 @@ export default function PlayerPage() {
           >
             Edit Boxer
           </Link>
+        </div>
+      )}
+      {boxer.id !== undefined && (
+        <div style={{ marginBottom: 8 }}>
+          <WatchlistFlag
+            isWatchlisted={watchlistIds.includes(boxer.id)}
+            isOwnGym={boxer.gymId === gymId && gymId !== null}
+            onToggle={handleToggleWatchlist}
+          />
         </div>
       )}
       {boxer.gymId === gymId && gymId !== null && !boxer.retired && (
