@@ -254,7 +254,19 @@ export default function PlayerPage() {
 
   return (
     <div>
-      <PageHeader title={boxer.name} subtitle={boxer.reputation} />
+      <div style={{ marginBottom: 16 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          {boxer.name}
+          {boxer.id !== undefined && (
+            <WatchlistFlag
+              isWatchlisted={watchlistIds.includes(boxer.id)}
+              isOwnGym={boxer.gymId === gymId && gymId !== null && !boxer.retired}
+              onToggle={handleToggleWatchlist}
+            />
+          )}
+        </h1>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>{boxer.reputation}</p>
+      </div>
       {hofEntry && (
         <div style={{ marginBottom: 8 }}>
           <Link
@@ -291,15 +303,6 @@ export default function PlayerPage() {
           >
             Edit Boxer
           </Link>
-        </div>
-      )}
-      {boxer.id !== undefined && (
-        <div style={{ marginBottom: 8 }}>
-          <WatchlistFlag
-            isWatchlisted={watchlistIds.includes(boxer.id)}
-            isOwnGym={boxer.gymId === gymId && gymId !== null && !boxer.retired}
-            onToggle={handleToggleWatchlist}
-          />
         </div>
       )}
       {boxer.gymId === gymId && gymId !== null && !boxer.retired && (
