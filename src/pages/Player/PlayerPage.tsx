@@ -8,6 +8,7 @@ import { WatchlistFlag } from '../../components/WatchlistFlag/WatchlistFlag';
 import { getAllTitles, getTitle } from '../../db/titleStore';
 import { getFederation } from '../../db/federationStore';
 import { retireBoxer } from '../../lib/retireBoxer';
+import { exportBoxer } from '../../lib/exportBoxer';
 import { getHofEntryByBoxer } from '../../db/hallOfFameStore';
 import { STYLE_STATS } from '../../lib/training';
 import { RANK_CONFIG } from '../../lib/rankSystem';
@@ -303,6 +304,26 @@ export default function PlayerPage() {
           >
             Edit Boxer
           </Link>
+        </div>
+      )}
+      {godMode && boxer.id !== undefined && (
+        <div style={{ marginBottom: 8 }}>
+          <button
+            onClick={() => exportBoxer(boxer)}
+            style={{
+              display: 'inline-block',
+              padding: '5px 14px',
+              background: 'var(--surface, #1a1a2e)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border)',
+              borderRadius: 3,
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+            }}
+          >
+            Export Boxer
+          </button>
         </div>
       )}
       {boxer.gymId === gymId && gymId !== null && !boxer.retired && (
