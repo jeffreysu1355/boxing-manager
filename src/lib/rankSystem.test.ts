@@ -99,19 +99,20 @@ describe('applyRankChange - wins', () => {
 });
 
 describe('applyRankChange - losses', () => {
-  it('loss drains buffer before rankPoints', () => {
+  it('loss drains rankPoints before buffer', () => {
     const boxer = makeBoxer({ reputation: 'Rising Star', rankPoints: 20, demotionBuffer: 20 });
     const opponent = makeBoxer({ reputation: 'Rising Star' });
     const result = applyRankChange(boxer, opponent, 'loss', false);
-    expect(result.demotionBuffer).toBeLessThan(20);
-    expect(result.rankPoints).toBe(20); // rankPoints untouched while buffer absorbs
+    expect(result.rankPoints).toBeLessThan(20);
+    expect(result.demotionBuffer).toBe(20); // buffer untouched while rankPoints absorbs
   });
 
-  it('loss overflow drains rankPoints after buffer is empty', () => {
-    const boxer = makeBoxer({ reputation: 'Rising Star', rankPoints: 20, demotionBuffer: 0 });
+  it('loss overflow drains buffer after rankPoints reach 0', () => {
+    const boxer = makeBoxer({ reputation: 'Rising Star', rankPoints: 0, demotionBuffer: 20 });
     const opponent = makeBoxer({ reputation: 'Rising Star' });
     const result = applyRankChange(boxer, opponent, 'loss', false);
-    expect(result.rankPoints).toBeLessThan(20);
+    expect(result.demotionBuffer).toBeLessThan(20);
+    expect(result.rankPoints).toBe(0);
   });
 
   it('demotion occurs when both rankPoints and buffer reach 0', () => {

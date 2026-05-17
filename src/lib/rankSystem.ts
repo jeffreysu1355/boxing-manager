@@ -113,10 +113,11 @@ export function applyRankChange(
   const multiplier = getMultiplier(gap, LOSS_MULTIPLIERS);
   const lost = Math.round(config.baseWinPoints * 0.6 * multiplier);
 
-  const newBuffer = Math.max(0, demotionBuffer - lost);
+  const newRankPoints = Math.max(0, rankPoints - lost);
+  const rankDrained = rankPoints - newRankPoints;
+  const overflow = lost - rankDrained;
+  const newBuffer = Math.max(0, demotionBuffer - Math.max(0, overflow));
   const bufferDrained = demotionBuffer - newBuffer;
-  const overflow = lost - bufferDrained;
-  const newRankPoints = Math.max(0, rankPoints - Math.max(0, overflow));
 
   if (newRankPoints <= 0 && newBuffer <= 0 && boxerIndex > 0) {
     const prevRep = REPUTATION_ORDER[boxerIndex - 1];
