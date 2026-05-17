@@ -15,7 +15,7 @@ export function WatchlistFlag({ isWatchlisted, isOwnGym, onToggle }: WatchlistFl
         title="Add to watchlist"
         onClick={onToggle}
       >
-        🏴
+        ⚑
       </button>
     );
   }
