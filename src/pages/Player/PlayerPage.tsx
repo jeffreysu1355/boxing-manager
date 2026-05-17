@@ -350,6 +350,8 @@ export default function PlayerPage() {
                   <th>Time</th>
                   <th>Federation</th>
                   <th>Date</th>
+                  <th>Age</th>
+                  <th>Opp. Age</th>
                   <th></th>
                 </tr>
               </thead>
@@ -376,6 +378,8 @@ export default function PlayerPage() {
                     <td>{fight.time}</td>
                     <td>{fight.federation}</td>
                     <td>{formatFightDate(fight.date)}</td>
+                    <td>{fight.ageAtFight ?? '—'}</td>
+                    <td>{fight.opponentAgeAtFight ?? '—'}</td>
                     <td>
                       {fight.isTitleFight && (
                         <span className={styles.titleBadge}>Title Fight</span>
