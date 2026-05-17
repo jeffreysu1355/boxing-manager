@@ -234,9 +234,20 @@ One entry per inductee, dismissible.
 
 ---
 
+## Section 7: HOF Badge on Boxer Profile Page
+
+On `src/pages/Player/PlayerPage.tsx`, if the boxer has `hofScore` set and a `HallOfFameEntry` exists for them (i.e. `hofScore >= 50`), display a badge near the boxer's name/header:
+
+```
+⭐ Hall of Fame (Score: X)
+```
+
+**Implementation:** On page load, after fetching the boxer, call `getHofEntryByBoxer(boxer.id)`. If an entry is returned, render the badge. The badge links to `/league/hall-of-fame`.
+
+---
+
 ## Out of Scope
 
 - Manual HOF nomination
 - HOF page for NPC gyms (only one HOF, league-wide)
 - Backfilling HOF scores for already-retired boxers
-- HOF badge on boxer profile page (the profile already shows all career stats)
