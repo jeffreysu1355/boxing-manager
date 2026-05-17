@@ -83,6 +83,7 @@ export function TopNav() {
   const [fightStop, setFightStop] = useState<CalendarEvent | null>(null);
   const [isSimming, setIsSimming] = useState(false);
   const [rankChanges, setRankChanges] = useState<Array<{ name: string; delta: NonNullable<Boxer['lastRankDelta']>; reputation: string }>>([]);
+  const [hofInductees, setHofInductees] = useState<Array<{ name: string; score: number }>>([]);
   const [simmedFights, setSimmedFights] = useState<Array<{
     fightId: number;
     winnerId: number | null;
@@ -102,6 +103,7 @@ export function TopNav() {
     if (!location.pathname.startsWith('/fight-results')) {
       setSimmedFights([]);
       setRankChanges([]);
+      setHofInductees([]);
     }
   }, [location.pathname]);
 
@@ -181,6 +183,7 @@ export function TopNav() {
     setFightStop(null);  // clear stale banner before new sim
     setRankChanges([]);
     setSimmedFights([]);
+    setHofInductees([]);
     setDropdownOpen(false);
 
     try {
@@ -236,7 +239,11 @@ export function TopNav() {
             .map(b => putBoxer({ ...b, tempStatBoost: undefined }))
         );
       }
-      await simulateNpcFights(currentDate, result.newDate);
+      const retireResults = await simulateNpcFights(currentDate, result.newDate);
+      const newInductees = retireResults
+        .filter(r => r.inducted)
+        .map(r => ({ name: r.boxerName, score: Math.round(r.score) }));
+      if (newInductees.length > 0) setHofInductees(prev => [...prev, ...newInductees]);
       await runCoachSalaries(currentDate, result.newDate, updated.id ?? 1);
 
       if (needsRecruitRefresh) {
@@ -511,6 +518,20 @@ export function TopNav() {
             })}
           </div>
           <button className={styles.dismissBtn} onClick={() => setRankChanges([])}>Dismiss</button>
+        </div>
+      )}
+
+      {hofInductees.length > 0 && (
+        <div className={styles.fightBanner}>
+          <div className={styles.fightResultsSection}>
+            <strong>Hall of Fame!</strong>
+            {hofInductees.map((inductee, i) => (
+              <div key={i} className={styles.fightResultLine}>
+                ⭐ {inductee.name} has been inducted into the Hall of Fame! (Score: {inductee.score})
+              </div>
+            ))}
+          </div>
+          <button className={styles.dismissBtn} onClick={() => setHofInductees([])}>Dismiss</button>
         </div>
       )}
     </div>
