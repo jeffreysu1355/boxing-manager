@@ -5,6 +5,7 @@ import { getBoxer, putBoxer } from '../../db/boxerStore';
 import { getGym } from '../../db/gymStore';
 import { getAllTitles } from '../../db/titleStore';
 import { retireBoxer } from '../../lib/retireBoxer';
+import { exportBoxer } from '../../lib/exportBoxer';
 import { RANK_CONFIG, REPUTATION_ORDER } from '../../lib/rankSystem';
 import type { Boxer, BoxerStats, NaturalTalent, ReputationLevel } from '../../db/db';
 
@@ -333,6 +334,19 @@ export default function EditBoxerPage() {
             }}
           >
             Cancel
+          </button>
+          <button
+            onClick={() => exportBoxer(boxer)}
+            style={{
+              padding: '6px 16px',
+              background: 'none',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border)',
+              borderRadius: 3,
+              cursor: 'pointer',
+            }}
+          >
+            Export
           </button>
         </div>
 
