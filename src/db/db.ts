@@ -149,6 +149,7 @@ export interface Boxer {
   nextFightDate?: string; // ISO date — when this boxer is next scheduled to fight (NPC only)
   birthDate?: string;      // ISO YYYY-MM-DD; day is approximate
   lastAgedYear?: number;   // year age was last incremented
+  retired?: boolean;       // true = retired, still associated with gym
   lastRankDelta?: {
     points: number;
     bufferPoints: number;
