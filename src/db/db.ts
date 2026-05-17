@@ -152,6 +152,7 @@ export interface Boxer {
   birthDate?: string;      // ISO YYYY-MM-DD; day is approximate
   lastAgedYear?: number;   // year age was last incremented
   retired?: boolean;       // true = retired, still associated with gym
+  hofScore?: number;
   lastRankDelta?: {
     points: number;
     bufferPoints: number;
@@ -290,6 +291,21 @@ export interface GymTransaction {
   category: TransactionCategory;
 }
 
+export interface HallOfFameEntry {
+  id?: number;
+  boxerId: number;
+  boxerName: string;
+  weightClass: WeightClass;
+  inductedDate: string;
+  score: number;
+  peakReputation: ReputationLevel;
+  record: { wins: number; losses: number; draws: number };
+  totalFights: number;
+  careerSpan: number;
+  titlesWon: number;
+  totalDefenses: number;
+}
+
 // --- DB schema ---
 
 interface BoxingManagerDBSchema extends DBSchema {
@@ -346,6 +362,11 @@ interface BoxingManagerDBSchema extends DBSchema {
     value: GymTransaction;
     indexes: { date: string };
   };
+  hallOfFame: {
+    key: number;
+    value: HallOfFameEntry;
+    indexes: { boxerId: number };
+  };
 }
 
 export type DB = IDBPDatabase<BoxingManagerDBSchema>;
@@ -356,7 +377,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 15, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 16, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -491,6 +512,14 @@ export async function getDB(): Promise<DB> {
 
       if (oldVersion < 15) {
         // roundLog added as optional field on Fight — no structural change needed
+      }
+
+      if (oldVersion < 16) {
+        const hofStore = db.createObjectStore('hallOfFame', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        hofStore.createIndex('boxerId', 'boxerId', { unique: true });
       }
     },
   });
