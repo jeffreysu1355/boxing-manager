@@ -17,6 +17,19 @@ export function calcRecordMultiplier(recordA: FightRecord[], recordB: FightRecor
   return 1.0 + Math.min(RECORD_MAX_BONUS, Math.max(0, geoMean - WIN_RATE_NEUTRAL) * RECORD_SLOPE);
 }
 
+export function calcStreakMultiplier(recordA: FightRecord[], recordB: FightRecord[]): number {
+  const currentStreak = (record: FightRecord[]) => {
+    let streak = 0;
+    for (let i = record.length - 1; i >= 0; i--) {
+      if (record[i].result !== 'win') break;
+      streak++;
+    }
+    return Math.min(streak, 5);
+  };
+  const geoMean = Math.sqrt((currentStreak(recordA) / 5) * (currentStreak(recordB) / 5));
+  return 1.0 + geoMean * 0.15;
+}
+
 interface ViewerParams {
   network: {
     baseViewership: number;
