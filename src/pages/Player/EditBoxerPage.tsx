@@ -336,7 +336,7 @@ export default function EditBoxerPage() {
             Cancel
           </button>
           <button
-            onClick={() => exportBoxer(boxer)}
+            onClick={() => exportBoxer({ ...boxer, stats: stats!, reputation, rankPoints, demotionBuffer, naturalTalents, age })}
             style={{
               padding: '6px 16px',
               background: 'none',

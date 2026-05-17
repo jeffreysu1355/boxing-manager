@@ -42,12 +42,18 @@ export default function ImportBoxerPage() {
       navigate('/tools/god-mode', { replace: true });
       return;
     }
-    setStats({ ...imported.stats });
-    setReputation(imported.reputation);
-    setRankPoints(imported.rankPoints ?? 0);
-    setDemotionBuffer(imported.demotionBuffer ?? RANK_CONFIG[imported.reputation].bufferMax);
-    setNaturalTalents([...imported.naturalTalents]);
-    setAge(imported.age);
+    getGym().then(gym => {
+      if (!gym?.godModeEnabled) {
+        navigate('/tools/god-mode', { replace: true });
+        return;
+      }
+      setStats({ ...imported.stats });
+      setReputation(imported.reputation);
+      setRankPoints(imported.rankPoints ?? 0);
+      setDemotionBuffer(imported.demotionBuffer ?? RANK_CONFIG[imported.reputation].bufferMax);
+      setNaturalTalents([...imported.naturalTalents]);
+      setAge(imported.age);
+    });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSave() {
@@ -78,6 +84,7 @@ export default function ImportBoxerPage() {
         age,
         gymId: gym.id ?? 1,
         record: resolvedRecord,
+        titles: [], // title IDs are session-specific; strip on cross-session import
         lastRankDelta: undefined,
         retired: false,
       };
