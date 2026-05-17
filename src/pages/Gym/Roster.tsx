@@ -11,8 +11,9 @@ import { dateDiffDaysTraining } from '../../lib/training';
 import { getAllCoaches } from '../../db/coachStore';
 import type { Coach } from '../../db/db';
 import { FEDERATION_ABBR } from '../../constants/federations';
-import styles from './Roster.module.css';
 import { RANK_CONFIG } from '../../lib/rankSystem';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
 
 const SEVERITY_ORDER: Record<'minor' | 'moderate' | 'severe', number> = {
   minor: 0,
@@ -24,7 +25,7 @@ const SEVERITY_ORDER: Record<'minor' | 'moderate' | 'severe', number> = {
 
 export interface BoxerStatus {
   label: string;
-  color: string;
+  variant: 'danger' | 'warning' | 'muted' | 'success';
 }
 
 export function getBoxerStatus(
@@ -33,7 +34,7 @@ export function getBoxerStatus(
   today: string,
   boostPct?: number,
 ): BoxerStatus {
-  if (boxer.id === undefined) return { label: 'Active', color: 'var(--success)' };
+  if (boxer.id === undefined) return { label: 'Active', variant: 'success' };
   const activeInjuries = boxer.injuries.filter(i => i.recoveryDays > 0);
   if (activeInjuries.length > 0) {
     const worst = activeInjuries.reduce((a, b) =>
@@ -41,7 +42,7 @@ export function getBoxerStatus(
     );
     const sev = worst.severity.charAt(0).toUpperCase() + worst.severity.slice(1);
     const days = worst.recoveryDays;
-    return { label: `Injured (${sev}, ${days} day${days === 1 ? '' : 's'})`, color: 'var(--danger)' };
+    return { label: `Injured (${sev}, ${days} day${days === 1 ? '' : 's'})`, variant: 'danger' };
   }
 
   const boxerEvents = events.filter(e => e.boxerIds.includes(boxer.id!) && e.date >= today);
@@ -49,12 +50,12 @@ export function getBoxerStatus(
     const label = boostPct !== undefined && boostPct > 0
       ? `In Training Camp · +${boostPct}%`
       : 'In Training Camp';
-    return { label, color: 'var(--warning)' };
+    return { label, variant: 'warning' };
   }
   if (boxerEvents.some(e => e.type === 'fight')) {
-    return { label: 'Scheduled Fight', color: '#2196f3' };
+    return { label: 'Scheduled Fight', variant: 'muted' };
   }
-  return { label: 'Active', color: 'var(--success)' };
+  return { label: 'Active', variant: 'success' };
 }
 
 export function getNextFight(
@@ -127,7 +128,7 @@ export function computeCampBoostPct(
 
 // --- Component ---
 
-function RankMiniBar({ boxer }: { boxer: Boxer }) {
+export function RankMiniBar({ boxer }: { boxer: Boxer }) {
   const config = RANK_CONFIG[boxer.reputation];
   const rankPoints = boxer.rankPoints ?? 0;
   const demotionBuffer = boxer.demotionBuffer ?? config.bufferMax;
@@ -140,13 +141,13 @@ function RankMiniBar({ boxer }: { boxer: Boxer }) {
     : `${rankPoints} / ${config.promotionThreshold} pts to next rank · Buffer: ${demotionBuffer} / ${config.bufferMax}`;
 
   return (
-    <div className={styles.rankCell} title={tooltip}>
-      <span className={styles.rankLabel}>{boxer.reputation}</span>
-      <div className={styles.rankBarTrack}>
-        <div className={styles.rankBarFill} style={{ width: `${progressPct}%` }} />
+    <div className="flex flex-col gap-0.5" title={tooltip}>
+      <span className="text-[11px] text-zinc-400 whitespace-nowrap">{boxer.reputation}</span>
+      <div className="w-16 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+        <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${progressPct}%` }} />
       </div>
-      <div className={styles.rankBarTrack}>
-        <div className={styles.bufferBarFill} style={{ width: `${bufferPct}%` }} />
+      <div className="w-16 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+        <div className="h-full bg-yellow-500 rounded-full transition-all" style={{ width: `${bufferPct}%` }} />
       </div>
     </div>
   );
@@ -246,7 +247,7 @@ export default function Roster() {
     return (
       <div>
         <PageHeader title="Roster" subtitle="Current gym members" />
-        <p className={styles.loading}>Loading…</p>
+        <p className="text-zinc-400 italic text-sm p-4">Loading…</p>
       </div>
     );
   }
@@ -254,9 +255,9 @@ export default function Roster() {
   return (
     <div>
       <PageHeader title="Roster" subtitle="Current gym members" />
-      <div className={styles.page}>
+      <div className="mt-4">
         {roster.length === 0 ? (
-          <p className={styles.empty}>No boxers on your roster yet.</p>
+          <p className="text-zinc-500 italic text-sm p-4">No boxers on your roster yet.</p>
         ) : (
           <table>
             <thead>
@@ -299,74 +300,57 @@ export default function Roster() {
                     <td><Link to={`/player/${boxer.id}`}>{boxer.name}</Link></td>
                     <td>{boxer.age}</td>
                     <td>{capitalize(boxer.weightClass)}</td>
-                    <td className={styles.styleTag}>{styleLabel(boxer.style)}</td>
+                    <td className="text-zinc-300 font-medium">{styleLabel(boxer.style)}</td>
                     <td>{calcRecord(boxer.record)}</td>
                     <td>{boxer.reputation}</td>
                     <td><RankMiniBar boxer={boxer} /></td>
                     <td>
-                      <span
-                        className={styles.statusBadge}
-                        style={{ backgroundColor: status.color }}
-                      >
-                        {status.label}
-                      </span>
+                      <Badge variant={status.variant}>{status.label}</Badge>
                     </td>
                     <td>
                       {nextFight
-                        ? <span className={styles.nextFight}>{nextFight}</span>
-                        : <span className={styles.noFight}>—</span>
+                        ? <span className="text-zinc-300 text-xs">{nextFight}</span>
+                        : <span className="text-zinc-600">—</span>
                       }
                     </td>
                     <td>
                       {!hasActiveFight && !hasActiveInjury && (
-                        <button
-                          className={styles.scheduleBtn}
-                          onClick={() => navigate(`/league/schedule?boxerId=${boxer.id}`)}
-                        >
+                        <Button size="sm" onClick={() => navigate(`/league/schedule?boxerId=${boxer.id}`)}>
                           Schedule Fight
-                        </button>
+                        </Button>
                       )}
                       {campEvent && campEvent.id !== undefined && (
-                        <button
-                          className={styles.cancelCampBtn}
-                          onClick={() => handleCancelCamp(campEvent.id!)}
-                        >
+                        <Button size="sm" variant="outline" onClick={() => handleCancelCamp(campEvent.id!)}>
                           Cancel Camp
-                        </button>
+                        </Button>
                       )}
                       {showCampButton && !showCampForm && (
-                        <button
-                          className={styles.scheduleBtn}
+                        <Button
+                          size="sm"
                           onClick={() => {
                             setCampFormBoxerId(boxer.id!);
                             setCampStartInput(today);
                           }}
                         >
                           Start Training Camp
-                        </button>
+                        </Button>
                       )}
                       {showCampForm && (
-                        <div className={styles.campForm}>
+                        <div className="flex items-center gap-1 mt-1">
                           <input
                             type="date"
-                            className={styles.campDateInput}
+                            className="bg-zinc-800 border border-zinc-600 rounded px-2 py-0.5 text-xs text-zinc-200"
                             value={campStartInput}
                             min={today}
                             max={nextFightEvent!.date}
                             onChange={e => setCampStartInput(e.target.value)}
                           />
-                          <button
-                            className={styles.campConfirmBtn}
-                            onClick={() => handleStartCamp(boxer.id!, nextFightEvent!.fightId, nextFightEvent!.date)}
-                          >
+                          <Button size="sm" onClick={() => handleStartCamp(boxer.id!, nextFightEvent!.fightId, nextFightEvent!.date)}>
                             Start Camp
-                          </button>
-                          <button
-                            className={styles.cancelCampBtn}
-                            onClick={() => { setCampFormBoxerId(null); setCampStartInput(''); }}
-                          >
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => { setCampFormBoxerId(null); setCampStartInput(''); }}>
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </td>

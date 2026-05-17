@@ -12,36 +12,11 @@ import {
   getNextFight,
   calcRecord,
   capitalize,
+  RankMiniBar,
 } from '../Gym/Roster';
-import { RANK_CONFIG } from '../../lib/rankSystem';
 import type { Boxer, CalendarEvent, Fight, Federation } from '../../db/db';
 import styles from './Watchlist.module.css';
-import rosterStyles from '../Gym/Roster.module.css';
-
-function RankMiniBar({ boxer }: { boxer: Boxer }) {
-  const config = RANK_CONFIG[boxer.reputation];
-  const rankPoints = boxer.rankPoints ?? 0;
-  const demotionBuffer = boxer.demotionBuffer ?? config.bufferMax;
-  const progressPct = config.promotionThreshold === Infinity
-    ? 100
-    : Math.min(100, (rankPoints / config.promotionThreshold) * 100);
-  const bufferPct = Math.min(100, (demotionBuffer / config.bufferMax) * 100);
-  const tooltip = config.promotionThreshold === Infinity
-    ? `${boxer.reputation} · Buffer: ${demotionBuffer} / ${config.bufferMax}`
-    : `${rankPoints} / ${config.promotionThreshold} pts to next rank · Buffer: ${demotionBuffer} / ${config.bufferMax}`;
-
-  return (
-    <div className={rosterStyles.rankCell} title={tooltip}>
-      <span className={rosterStyles.rankLabel}>{boxer.reputation}</span>
-      <div className={rosterStyles.rankBarTrack}>
-        <div className={rosterStyles.rankBarFill} style={{ width: `${progressPct}%` }} />
-      </div>
-      <div className={rosterStyles.rankBarTrack}>
-        <div className={rosterStyles.bufferBarFill} style={{ width: `${bufferPct}%` }} />
-      </div>
-    </div>
-  );
-}
+import { Badge } from '../../components/ui/badge';
 
 const WEIGHT_ORDER = ['flyweight', 'lightweight', 'welterweight', 'middleweight', 'heavyweight'];
 
@@ -165,17 +140,12 @@ export default function Watchlist() {
                     <td>{boxer.reputation}</td>
                     <td><RankMiniBar boxer={boxer} /></td>
                     <td>
-                      <span
-                        className={rosterStyles.statusBadge}
-                        style={{ backgroundColor: status.color }}
-                      >
-                        {status.label}
-                      </span>
+                      <Badge variant={status.variant}>{status.label}</Badge>
                     </td>
                     <td>
                       {nextFight
-                        ? <span className={rosterStyles.nextFight}>{nextFight}</span>
-                        : <span className={rosterStyles.noFight}>—</span>
+                        ? <span className="text-zinc-300 text-xs">{nextFight}</span>
+                        : <span className="text-zinc-600">—</span>
                       }
                     </td>
                   </tr>
