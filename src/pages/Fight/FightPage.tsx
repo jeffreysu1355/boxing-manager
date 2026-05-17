@@ -7,6 +7,7 @@ import { getGym, saveGym } from '../../db/gymStore';
 import { getAllCoaches } from '../../db/coachStore';
 import { applyFightResult } from '../../components/TopNav/fightResultApplier';
 import { addDays } from '../../lib/simTime';
+import { calcAgeAtDate } from '../../lib/ageCalc';
 import { applyTraining } from '../../lib/training';
 import {
   initFightState, simulateRound, pickOpponentChoice,
@@ -198,6 +199,8 @@ export default function FightPage() {
           federation: fed?.name ?? '',
           date: f.date,
           isTitleFight: f.isTitleFight,
+          ageAtFight: calcAgeAtDate(winner.birthDate, f.date),
+          opponentAgeAtFight: calcAgeAtDate(loser.birthDate, f.date),
         };
         const loserRecord = {
           result: 'loss' as const,
@@ -210,6 +213,8 @@ export default function FightPage() {
           federation: fed?.name ?? '',
           date: f.date,
           isTitleFight: f.isTitleFight,
+          ageAtFight: calcAgeAtDate(loser.birthDate, f.date),
+          opponentAgeAtFight: calcAgeAtDate(winner.birthDate, f.date),
         };
 
         await applyFightResult({
@@ -295,6 +300,8 @@ export default function FightPage() {
         federation: fed?.name ?? '',
         date: f.date,
         isTitleFight: f.isTitleFight,
+        ageAtFight: calcAgeAtDate(winner.birthDate, f.date),
+        opponentAgeAtFight: calcAgeAtDate(loser.birthDate, f.date),
       };
       const loserRecord = {
         result: 'loss' as const,
@@ -307,6 +314,8 @@ export default function FightPage() {
         federation: fed?.name ?? '',
         date: f.date,
         isTitleFight: f.isTitleFight,
+        ageAtFight: calcAgeAtDate(loser.birthDate, f.date),
+        opponentAgeAtFight: calcAgeAtDate(winner.birthDate, f.date),
       };
 
       await applyFightResult({
