@@ -131,6 +131,8 @@ export async function applyFightResult(params: ApplyFightResultParams): Promise<
             opponentRank,
             isTitleFight,
             isSameFederation: network.federationId === federationId,
+            gymBoxerRecord: gymBoxer?.record ?? [],
+            opponentRecord: opponent?.record ?? [],
           });
           const actualViewers = Math.round(baseViewers * (0.8 + Math.random() * 0.4));
           const ppvPayout = calcPpvPayout(actualViewers, contract.ppvSplitPercentage);
