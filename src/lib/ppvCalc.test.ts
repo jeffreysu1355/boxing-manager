@@ -80,11 +80,10 @@ describe('calcViewers', () => {
       isTitleFight: false, isSameFederation: false,
       gymBoxerRecord: streakRecord, opponentRecord: streakRecord,
     });
-    // winRate = 10/15 each → geoMean ≈ 0.667 → recordMult ≈ 1.133; streakMult = 1.15
-    const winRate = 10 / 15;
-    const geoMean = Math.sqrt(winRate * winRate);
-    const expectedRecordMult = 1.0 + Math.min(0.4, Math.max(0, geoMean - 0.5) * 0.8);
-    expect(viewers).toBeCloseTo(600_000 * expectedRecordMult * 1.15, 0);
+    // 10 alternating W/L + 5 final wins = 15 fights, 10 wins (66.7% win rate), 5-fight streak
+    // winRate 0.667 → geoMean 0.667 → recordMult ≈ 1.133; 5-streak each → streakMult = 1.15
+    // 600_000 base × 1.1333 record mult × 1.15 streak mult ≈ 780,930
+    expect(viewers).toBeCloseTo(600_000 * 1.1333 * 1.15, -3);
   });
 
   it('neutral multipliers (1.0) when records are omitted', () => {
