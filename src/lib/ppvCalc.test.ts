@@ -107,7 +107,7 @@ describe('calcRecordMultiplier', () => {
 });
 
 describe('calcStreakMultiplier', () => {
-  const makeRecord = (results: ('win' | 'loss')[]) =>
+  const makeRecord = (results: ('win' | 'loss' | 'draw')[]) =>
     results.map(result => ({
       result, opponentName: 'X', opponentId: null,
       method: 'KO', finishingMove: null, round: 1, time: '1:00',
@@ -130,7 +130,8 @@ describe('calcStreakMultiplier', () => {
 
   it('returns ~1.0 when one is on a streak but the other is not', () => {
     const streaking = makeRecord(['win', 'win', 'win', 'win', 'win']);
-    const notStreaking = makeRecord(['win', 'loss']);
+    const notStreaking = makeRecord(['win', 'loss']); // last fight is a loss, streak = 0
+    // geometric mean of (5/5) and (0/5) = 0 → no bonus
     expect(calcStreakMultiplier(streaking, notStreaking)).toBe(1.0);
   });
 
@@ -143,5 +144,11 @@ describe('calcStreakMultiplier', () => {
   it('caps streak at 5 regardless of longer streak', () => {
     const longStreak = makeRecord(['win', 'win', 'win', 'win', 'win', 'win', 'win', 'win']);
     expect(calcStreakMultiplier(longStreak, longStreak)).toBeCloseTo(1.15, 5);
+  });
+
+  it('treats a draw as a streak breaker', () => {
+    // draw is not a win, so it ends the streak
+    const record = makeRecord(['win', 'win', 'draw']);
+    expect(calcStreakMultiplier(record, record)).toBe(1.0);
   });
 });

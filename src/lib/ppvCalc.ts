@@ -6,6 +6,9 @@ const WIN_RATE_NEUTRAL = 0.5;   // geo mean at or below this = no bonus
 const RECORD_SLOPE = 0.8;       // multiplier per unit above neutral
 const RECORD_MAX_BONUS = 0.4;   // caps record multiplier at 1.4×
 
+const STREAK_MAX_LENGTH = 5;    // streaks longer than this get no extra credit
+const STREAK_MAX_BONUS = 0.15;  // max multiplier bonus when both fighters have max streaks
+
 export function calcRecordMultiplier(recordA: FightRecord[], recordB: FightRecord[]): number {
   const winRate = (record: FightRecord[]) => {
     if (record.length === 0) return 0.5;
@@ -24,10 +27,12 @@ export function calcStreakMultiplier(recordA: FightRecord[], recordB: FightRecor
       if (record[i].result !== 'win') break;
       streak++;
     }
-    return Math.min(streak, 5);
+    return Math.min(streak, STREAK_MAX_LENGTH);
   };
-  const geoMean = Math.sqrt((currentStreak(recordA) / 5) * (currentStreak(recordB) / 5));
-  return 1.0 + geoMean * 0.15;
+  const geoMean = Math.sqrt(
+    (currentStreak(recordA) / STREAK_MAX_LENGTH) * (currentStreak(recordB) / STREAK_MAX_LENGTH)
+  );
+  return 1.0 + geoMean * STREAK_MAX_BONUS;
 }
 
 interface ViewerParams {
