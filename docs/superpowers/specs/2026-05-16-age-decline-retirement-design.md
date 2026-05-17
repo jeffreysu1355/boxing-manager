@@ -146,4 +146,5 @@ New route: `/gym/retired`
 - Hall of Fame (future — data preserved via `retired` flag + fight record)
 - Automatic forced retirement at any age
 - NPC boxer retirement
-- Stat regression affecting NPC boxers
+
+**Note:** Stat regression and aging apply to all boxers (NPC and gym alike) — `runAgingPass` is called with `getAllBoxers()` at both advance-time call sites.
