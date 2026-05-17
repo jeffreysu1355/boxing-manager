@@ -2,14 +2,19 @@ import type { FightRecord } from '../db/db';
 
 export const PPV_REVENUE_PER_VIEWER = 0.50;
 
+const WIN_RATE_NEUTRAL = 0.5;   // geo mean at or below this = no bonus
+const RECORD_SLOPE = 0.8;       // multiplier per unit above neutral
+const RECORD_MAX_BONUS = 0.4;   // caps record multiplier at 1.4×
+
 export function calcRecordMultiplier(recordA: FightRecord[], recordB: FightRecord[]): number {
   const winRate = (record: FightRecord[]) => {
     if (record.length === 0) return 0.5;
     const wins = record.filter(r => r.result === 'win').length;
+    // Draws count against the denominator but not toward wins (intentional—draws don't prove dominance)
     return wins / record.length;
   };
   const geoMean = Math.sqrt(winRate(recordA) * winRate(recordB));
-  return 1.0 + Math.min(0.4, Math.max(0, geoMean - 0.5) * 0.8);
+  return 1.0 + Math.min(RECORD_MAX_BONUS, Math.max(0, geoMean - WIN_RATE_NEUTRAL) * RECORD_SLOPE);
 }
 
 interface ViewerParams {

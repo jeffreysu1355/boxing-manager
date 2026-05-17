@@ -65,6 +65,11 @@ describe('calcRecordMultiplier', () => {
     method: 'KO', finishingMove: null, round: 1, time: '1:00',
     federation: 'NABF', date: '2026-01-01',
   }));
+  const draw = (n: number) => Array.from({ length: n }, () => ({
+    result: 'draw' as const, opponentName: 'X', opponentId: null,
+    method: 'Draw', finishingMove: null, round: 12, time: '3:00',
+    federation: 'NABF', date: '2026-01-01',
+  }));
 
   it('returns 1.0 for two fighters with no fights (neutral default)', () => {
     expect(calcRecordMultiplier([], [])).toBe(1.0);
@@ -89,7 +94,14 @@ describe('calcRecordMultiplier', () => {
     expect(calcRecordMultiplier(record, record)).toBeCloseTo(1.24, 2);
   });
 
-  it('caps at 1.4 even above 100% (only wins)', () => {
-    expect(calcRecordMultiplier(win(100), win(100))).toBe(1.4);
+  it('treats draws as non-wins (counts against denominator)', () => {
+    // 5 wins, 0 losses, 5 draws = 50% win rate → same as 5-5-0 → geo mean 0.5 → 1.0
+    const record = [...win(5), ...draw(5)];
+    expect(calcRecordMultiplier(record, record)).toBe(1.0);
+  });
+
+  it('works correctly with a single fight on record', () => {
+    // 1 win each → 100% → geo mean 1.0 → multiplier 1.4
+    expect(calcRecordMultiplier(win(1), win(1))).toBe(1.4);
   });
 });
