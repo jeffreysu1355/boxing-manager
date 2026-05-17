@@ -38,6 +38,7 @@ const allSections: SidebarSection[] = [
       { to: '/players/recruiting', label: 'Recruiting' },
       { to: '/players/coaches', label: 'Coaches' },
       { to: '/players/compare', label: 'Compare' },
+      { to: '/players/watchlist', label: 'Watchlist' },
     ],
   },
   {

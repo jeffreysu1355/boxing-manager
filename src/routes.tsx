@@ -23,6 +23,7 @@ import PlayersLayout from './pages/Players/PlayersLayout';
 import Recruiting from './pages/Players/Recruiting';
 import CoachRecruiting from './pages/Players/CoachRecruiting';
 import Compare from './pages/Players/Compare';
+import Watchlist from './pages/Players/Watchlist';
 import ToolsLayout from './pages/Tools/ToolsLayout';
 import GodMode from './pages/Tools/GodMode';
 import InfoPage from './pages/Info/InfoPage';
@@ -71,6 +72,7 @@ export const routes: RouteObject[] = [
           { path: 'recruiting', element: <Recruiting /> },
           { path: 'coaches', element: <CoachRecruiting /> },
           { path: 'compare', element: <Compare /> },
+          { path: 'watchlist', element: <Watchlist /> },
         ],
       },
       {
