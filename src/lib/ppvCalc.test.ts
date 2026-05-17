@@ -41,6 +41,61 @@ describe('calcViewers', () => {
     const viewers = calcViewers({ network: { ...network, minBoxerRank: 3 }, gymBoxerRank: 5, opponentRank: 3, isTitleFight: true, isSameFederation: true });
     expect(viewers).toBeCloseTo(600_000 * 1.2 * 1.1 * 1.5, 0);
   });
+
+  it('applies record multiplier when both records are passed', () => {
+    // both 100% win rate → recordMult = 1.4; no recent streak (losses interrupt) → streakMult = 1.0
+    const mixedWins = Array.from({ length: 10 }, (_, i) => ({
+      result: (i === 9 ? 'loss' : 'win') as 'win' | 'loss',
+      opponentName: 'X', opponentId: null,
+      method: 'KO', finishingMove: null, round: 1, time: '1:00',
+      federation: 'NABF', date: '2026-01-01',
+    }));
+    const viewers = calcViewers({
+      network, gymBoxerRank: 0, opponentRank: 0,
+      isTitleFight: false, isSameFederation: false,
+      gymBoxerRecord: mixedWins, opponentRecord: mixedWins,
+    });
+    // 9 wins, 1 loss = 90% win rate → geoMean = 0.9 → recordMult = 1 + (0.9-0.5)*0.8 = 1.32
+    // last fight is loss, streak = 0 → streakMult = 1.0
+    expect(viewers).toBeCloseTo(600_000 * 1.32, 0);
+  });
+
+  it('applies streak multiplier when both on 5-fight win streaks', () => {
+    const mixedRecord = Array.from({ length: 10 }, (_, i) => ({
+      result: (i % 2 === 0 ? 'win' : 'loss') as 'win' | 'loss',
+      opponentName: 'X', opponentId: null,
+      method: 'KO', finishingMove: null, round: 1, time: '1:00',
+      federation: 'NABF', date: '2026-01-01',
+    }));
+    // end with 5 wins to create streak
+    const streakRecord = [
+      ...mixedRecord,
+      ...Array.from({ length: 5 }, () => ({
+        result: 'win' as const, opponentName: 'X', opponentId: null,
+        method: 'KO', finishingMove: null, round: 1, time: '1:00',
+        federation: 'NABF', date: '2026-01-01',
+      })),
+    ];
+    const viewers = calcViewers({
+      network, gymBoxerRank: 0, opponentRank: 0,
+      isTitleFight: false, isSameFederation: false,
+      gymBoxerRecord: streakRecord, opponentRecord: streakRecord,
+    });
+    // winRate = 10/15 each → geoMean ≈ 0.667 → recordMult ≈ 1.133; streakMult = 1.15
+    const winRate = 10 / 15;
+    const geoMean = Math.sqrt(winRate * winRate);
+    const expectedRecordMult = 1.0 + Math.min(0.4, Math.max(0, geoMean - 0.5) * 0.8);
+    expect(viewers).toBeCloseTo(600_000 * expectedRecordMult * 1.15, 0);
+  });
+
+  it('neutral multipliers (1.0) when records are omitted', () => {
+    // existing behavior unchanged when gymBoxerRecord/opponentRecord not passed
+    const viewers = calcViewers({
+      network, gymBoxerRank: 0, opponentRank: 0,
+      isTitleFight: false, isSameFederation: false,
+    });
+    expect(viewers).toBe(600_000);
+  });
 });
 
 describe('calcPpvPayout', () => {

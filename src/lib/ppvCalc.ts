@@ -46,10 +46,16 @@ interface ViewerParams {
   opponentRank: number;   // 0–9 reputation index
   isTitleFight: boolean;
   isSameFederation: boolean;
+  gymBoxerRecord?: FightRecord[];
+  opponentRecord?: FightRecord[];
 }
 
 export function calcViewers(params: ViewerParams): number {
-  const { network, gymBoxerRank, opponentRank, isTitleFight, isSameFederation } = params;
+  const {
+    network, gymBoxerRank, opponentRank,
+    isTitleFight, isSameFederation,
+    gymBoxerRecord = [], opponentRecord = [],
+  } = params;
 
   const base = network.baseViewership * 0.6;
   const homeFederationBonus = isSameFederation ? 1.2 : 1.0;
@@ -59,8 +65,10 @@ export function calcViewers(params: ViewerParams): number {
   const rankBonus = Math.min(1.5, 1 + (excessA + excessB) * 0.05);
 
   const titleBonus = isTitleFight ? network.titleFightMultiplier : 1.0;
+  const recordMult = calcRecordMultiplier(gymBoxerRecord, opponentRecord);
+  const streakMult = calcStreakMultiplier(gymBoxerRecord, opponentRecord);
 
-  return Math.round(base * homeFederationBonus * rankBonus * titleBonus);
+  return Math.round(base * homeFederationBonus * rankBonus * titleBonus * recordMult * streakMult);
 }
 
 export function calcPpvPayout(viewers: number, ppvSplitPercentage: number): number {
