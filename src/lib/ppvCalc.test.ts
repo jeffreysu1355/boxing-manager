@@ -42,22 +42,21 @@ describe('calcViewers', () => {
     expect(viewers).toBeCloseTo(600_000 * 1.2 * 1.1 * 1.5, 0);
   });
 
-  it('applies record multiplier when both records are passed', () => {
-    // both 100% win rate → recordMult = 1.4; no recent streak (losses interrupt) → streakMult = 1.0
-    const mixedWins = Array.from({ length: 10 }, (_, i) => ({
-      result: (i === 9 ? 'loss' : 'win') as 'win' | 'loss',
-      opponentName: 'X', opponentId: null,
+  it('applies record multiplier when both records are all wins', () => {
+    // both 100% win rate → recordMult = 1.4
+    // 10 consecutive wins → streakMult = 1.15 (capped at 5)
+    const wins = Array.from({ length: 10 }, () => ({
+      result: 'win' as const, opponentName: 'X', opponentId: null,
       method: 'KO', finishingMove: null, round: 1, time: '1:00',
       federation: 'NABF', date: '2026-01-01',
     }));
     const viewers = calcViewers({
       network, gymBoxerRank: 0, opponentRank: 0,
       isTitleFight: false, isSameFederation: false,
-      gymBoxerRecord: mixedWins, opponentRecord: mixedWins,
+      gymBoxerRecord: wins, opponentRecord: wins,
     });
-    // 9 wins, 1 loss = 90% win rate → geoMean = 0.9 → recordMult = 1 + (0.9-0.5)*0.8 = 1.32
-    // last fight is loss, streak = 0 → streakMult = 1.0
-    expect(viewers).toBeCloseTo(600_000 * 1.32, 0);
+    // both 100% win rate → recordMult = 1.4; 10-fight win streak (capped at 5) → streakMult = 1.15
+    expect(viewers).toBeCloseTo(600_000 * 1.4 * 1.15, 0);
   });
 
   it('applies streak multiplier when both on 5-fight win streaks', () => {
