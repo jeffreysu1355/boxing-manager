@@ -7,5 +7,6 @@ export default defineConfig({
   test: {
     environment: 'node',
     setupFiles: ['fake-indexeddb/auto'],
+    exclude: ['**/node_modules/**', '**/.claude/worktrees/**'],
   },
 })
