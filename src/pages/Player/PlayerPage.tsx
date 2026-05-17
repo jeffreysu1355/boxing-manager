@@ -4,8 +4,9 @@ import { PageHeader } from '../../components/PageHeader/PageHeader';
 import { getBoxer, putBoxer } from '../../db/boxerStore';
 import { getAllCoaches } from '../../db/coachStore';
 import { getGym } from '../../db/gymStore';
-import { getTitle } from '../../db/titleStore';
+import { getAllTitles, getTitle } from '../../db/titleStore';
 import { getFederation } from '../../db/federationStore';
+import { retireBoxer } from '../../lib/retireBoxer';
 import { STYLE_STATS } from '../../lib/training';
 import { RANK_CONFIG } from '../../lib/rankSystem';
 import type { Boxer, BoxerStats, Coach, FightRecord, Federation } from '../../db/db';
@@ -197,7 +198,12 @@ export default function PlayerPage() {
   async function handleRetire() {
     if (!boxer || boxer.id === undefined) return;
     if (!window.confirm(`Retire ${boxer.name}? This cannot be undone.`)) return;
-    await putBoxer({ ...boxer, retired: true });
+    const [allTitles, gym] = await Promise.all([getAllTitles(), getGym()]);
+    const currentDate = gym?.currentDate ?? '2026-01-01';
+    const result = await retireBoxer(boxer, allTitles, currentDate);
+    if (result.inducted) {
+      window.alert(`${boxer.name} has been inducted into the Hall of Fame! (Score: ${Math.round(result.score)})`);
+    }
     navigate('/gym/roster');
   }
 
