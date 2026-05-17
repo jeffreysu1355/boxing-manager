@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useNavigate } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
-import { getBoxer } from '../../db/boxerStore';
+import { getBoxer, putBoxer } from '../../db/boxerStore';
 import { getAllCoaches } from '../../db/coachStore';
 import { getGym } from '../../db/gymStore';
 import { getTitle } from '../../db/titleStore';
@@ -147,10 +147,12 @@ function RankingSection({ boxer }: { boxer: Boxer }) {
 
 export default function PlayerPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [boxer, setBoxer] = useState<Boxer | null | undefined>(undefined);
   const [coach, setCoach] = useState<Coach | null | undefined>(undefined);
   const [titleFedMap, setTitleFedMap] = useState<Map<number, { abbr: string; weightClass: string }>>(new Map());
   const [godMode, setGodMode] = useState(false);
+  const [gymId, setGymId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) { setBoxer(null); setCoach(null); return; }
@@ -160,6 +162,7 @@ export default function PlayerPage() {
       const [b, coaches, gym] = await Promise.all([getBoxer(Number(id)), getAllCoaches(), getGym()]);
       if (cancelled) return;
       setGodMode(gym?.godModeEnabled ?? false);
+      setGymId(gym?.id ?? null);
       setBoxer(b ?? null);
       setCoach(coaches.find(c => c.assignedBoxerId === Number(id)) ?? null);
 
@@ -190,6 +193,13 @@ export default function PlayerPage() {
       window.removeEventListener('game:sim', load);
     };
   }, [id]);
+
+  async function handleRetire() {
+    if (!boxer || boxer.id === undefined) return;
+    if (!window.confirm(`Retire ${boxer.name}? This cannot be undone.`)) return;
+    await putBoxer({ ...boxer, retired: true });
+    navigate('/gym/roster');
+  }
 
   if (boxer === undefined) {
     return (
@@ -235,6 +245,25 @@ export default function PlayerPage() {
           >
             Edit Boxer
           </Link>
+        </div>
+      )}
+      {boxer.gymId === gymId && gymId !== null && !boxer.retired && (
+        <div style={{ marginBottom: 8 }}>
+          <button
+            onClick={handleRetire}
+            style={{
+              padding: '5px 14px',
+              background: 'var(--danger)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 3,
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+            }}
+          >
+            Retire Boxer
+          </button>
         </div>
       )}
       <div className={styles.page}>
