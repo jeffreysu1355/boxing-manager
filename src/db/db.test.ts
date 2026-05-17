@@ -103,9 +103,9 @@ describe('getDB', () => {
     expect(tx.store.indexNames.contains('fightId')).toBe(true);
   });
 
-  it('opens DB at version 16 with federationEvents store', async () => {
+  it('opens DB at version 17 with federationEvents store', async () => {
     const db = await getDB();
-    expect(db.version).toBe(16);
+    expect(db.version).toBe(17);
     const storeNames = Array.from(db.objectStoreNames);
     expect(storeNames).toContain('federationEvents');
   });
@@ -117,14 +117,14 @@ describe('getDB', () => {
     expect(tx.store.indexNames.contains('date')).toBe(true);
   });
 
-  it('opens DB at version 16 with opponentId field support on FightRecord', async () => {
+  it('opens DB at version 17 with opponentId field support on FightRecord', async () => {
     const db = await getDB();
-    expect(db.version).toBe(16);
+    expect(db.version).toBe(17);
   });
 
-  it('opens DB at version 16 with hallOfFame store', async () => {
+  it('opens DB at version 17 with hallOfFame store', async () => {
     const db = await getDB();
-    expect(db.version).toBe(16);
+    expect(db.version).toBe(17);
     const storeNames = Array.from(db.objectStoreNames);
     expect(storeNames).toContain('hallOfFame');
   });
