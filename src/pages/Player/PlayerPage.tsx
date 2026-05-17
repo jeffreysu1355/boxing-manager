@@ -295,8 +295,8 @@ export default function PlayerPage() {
               style={{
                 padding: '5px 14px',
                 background: 'none',
-                color: 'var(--text-secondary)',
-                border: '1px solid var(--border)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--text-primary)',
                 borderRadius: 3,
                 fontWeight: 600,
                 fontSize: 13,
@@ -312,8 +312,8 @@ export default function PlayerPage() {
               style={{
                 padding: '5px 14px',
                 background: 'none',
-                color: 'var(--text-secondary)',
-                border: '1px solid var(--border)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--text-primary)',
                 borderRadius: 3,
                 fontWeight: 600,
                 fontSize: 13,
