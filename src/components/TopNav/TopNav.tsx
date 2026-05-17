@@ -15,7 +15,7 @@ import { shouldAgeBoxer, applyStatRegression } from '../../lib/aging';
 import { simulateNpcFights } from '../../lib/npcFightSim';
 import { runCoachSalaries } from '../../lib/coachSalaries';
 import type { CalendarEvent, Gym, Boxer, Fight, Coach, BoxerStats } from '../../db/db';
-import styles from './TopNav.module.css';
+import { Button } from '../ui/button';
 
 const tabs = [
   { to: '/', label: 'Dashboard' },
@@ -392,39 +392,39 @@ export function TopNav() {
   }
 
   return (
-    <div className={styles.topNavWrapper}>
-      <nav className={styles.topNav}>
-        <span className={styles.brand}>Boxing Manager</span>
+    <div className="flex flex-col" style={{ gridArea: 'nav' }}>
+      <nav className="flex items-center bg-zinc-900 border-b border-zinc-700 px-4 gap-1">
+        <span className="font-bold text-sm text-orange-500 mr-4 whitespace-nowrap">Boxing Manager</span>
 
-        <div className={styles.playArea} ref={dropdownRef}>
-          <span className={styles.dateDisplay}>{formatGameDate(currentDate)}</span>
-          <button
-            className={styles.playBtn}
+        <div className="relative flex items-center gap-2 mr-4" ref={dropdownRef}>
+          <span className="text-sm text-zinc-400 whitespace-nowrap">{formatGameDate(currentDate)}</span>
+          <Button
             onClick={() => setDropdownOpen(o => !o)}
             disabled={isSimming}
+            size="sm"
           >
             {isSimming ? 'Simming...' : 'Play ▾'}
-          </button>
+          </Button>
           {dropdownOpen && (
-            <div className={styles.dropdown}>
+            <div className="absolute top-[calc(100%+4px)] left-0 bg-zinc-800 border border-zinc-700 rounded min-w-[180px] z-[100] shadow-lg">
               {isOnFightDay ? (
                 <>
-                  <button className={styles.dropdownItem} onClick={handlePlayFight}>
+                  <button className="block w-full px-4 py-2.5 text-sm text-left text-zinc-200 hover:bg-zinc-700 bg-transparent border-none cursor-pointer" onClick={handlePlayFight}>
                     Play Fight
                   </button>
-                  <button className={styles.dropdownItem} onClick={handleSimFight}>
+                  <button className="block w-full px-4 py-2.5 text-sm text-left text-zinc-200 hover:bg-zinc-700 bg-transparent border-none cursor-pointer" onClick={handleSimFight}>
                     Sim Fight
                   </button>
                 </>
               ) : (
                 <>
-                  <button className={styles.dropdownItem} onClick={() => handleSim(7)}>
+                  <button className="block w-full px-4 py-2.5 text-sm text-left text-zinc-200 hover:bg-zinc-700 bg-transparent border-none cursor-pointer" onClick={() => handleSim(7)}>
                     Sim 1 Week
                   </button>
-                  <button className={styles.dropdownItem} onClick={() => handleSim(21)}>
+                  <button className="block w-full px-4 py-2.5 text-sm text-left text-zinc-200 hover:bg-zinc-700 bg-transparent border-none cursor-pointer" onClick={() => handleSim(21)}>
                     Sim 1 Month
                   </button>
-                  <button className={styles.dropdownItem} onClick={() => handleSim('next')}>
+                  <button className="block w-full px-4 py-2.5 text-sm text-left text-zinc-200 hover:bg-zinc-700 bg-transparent border-none cursor-pointer" onClick={() => handleSim('next')}>
                     Sim to Next Event
                   </button>
                 </>
@@ -439,7 +439,9 @@ export function TopNav() {
             to={tab.to}
             end={tab.to === '/'}
             className={({ isActive }) =>
-              isActive ? styles.activeTab : styles.tab
+              isActive
+                ? 'px-3.5 py-2 text-sm font-medium rounded-t text-zinc-100 bg-zinc-800'
+                : 'px-3.5 py-2 text-sm font-medium rounded-t text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700'
             }
           >
             {tab.label}
@@ -448,11 +450,11 @@ export function TopNav() {
       </nav>
 
       {fightStop && (
-        <div className={styles.fightBanner}>
+        <div className="bg-orange-500 text-white px-4 py-2 text-sm flex items-start gap-2 border-t border-black/20">
           <strong>Fight Day!</strong> A scheduled fight has arrived on{' '}
           {formatGameDate(fightStop.date)}.{' '}
           <button
-            className={styles.dismissBtn}
+            className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-white/20 text-white border border-white/40 rounded cursor-pointer hover:bg-white/30"
             onClick={() => setFightStop(null)}
           >
             Dismiss
@@ -461,8 +463,8 @@ export function TopNav() {
       )}
 
       {simmedFights.length > 0 && (
-        <div className={styles.fightBanner}>
-          <div className={styles.fightResultsSection}>
+        <div className="bg-orange-500 text-white px-4 py-2 text-sm flex items-start gap-2 border-t border-black/20">
+          <div className="flex flex-col gap-1 flex-1">
             <strong>Fight Day Results</strong>
             {simmedFights.map((f, i) => {
               const isDecision = f.method === 'Decision' || f.method === 'Split Decision';
@@ -473,65 +475,65 @@ export function TopNav() {
                   : `${f.boxer1Name} wins by ${f.method}${f.finishingMove ? ` (${f.finishingMove})` : ''}${f.round != null ? ` — Rd. ${f.round}` : ''}`;
               return (
                 <div key={f.fightId}>
-                  {i > 0 && <hr className={styles.fightResultDivider} />}
-                  <div className={styles.fightResultLine}>{summary}</div>
+                  {i > 0 && <hr className="border-none border-t border-white/25 my-1" />}
+                  <div className="text-xs text-white">{summary}</div>
                 </div>
               );
             })}
             <button
-              className={styles.viewResultsBtn}
+              className="text-white text-xs font-semibold underline bg-transparent border-none cursor-pointer p-0 mt-1 text-left"
               onClick={() => navigate(`/fight-results?fights=${simmedFights.map(f => f.fightId).join(',')}`)}
             >
               View Full Results →
             </button>
           </div>
-          <button className={styles.dismissBtn} onClick={() => setSimmedFights([])}>Dismiss</button>
+          <button className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-white/20 text-white border border-white/40 rounded cursor-pointer hover:bg-white/30" onClick={() => setSimmedFights([])}>Dismiss</button>
         </div>
       )}
 
       {rankChanges.length > 0 && (
-        <div className={styles.fightBanner}>
-          <div className={styles.fightResultsSection}>
+        <div className="bg-orange-500 text-white px-4 py-2 text-sm flex items-start gap-2 border-t border-black/20">
+          <div className="flex flex-col gap-1 flex-1">
             {rankChanges.map((change, i) => {
               const { name, delta, reputation } = change;
               if (delta.promoted) return (
-                <div key={i} className={styles.rankChangeLine}>
-                  <span className={styles.rankChangePromoted}>{name}: Promoted to {reputation}!</span>
+                <div key={i} className="text-xs text-white">
+                  <span className="text-green-300 font-bold">{name}: Promoted to {reputation}!</span>
                 </div>
               );
               if (delta.demoted) return (
-                <div key={i} className={styles.rankChangeLine}>
-                  <span className={styles.rankChangeDemoted}>{name}: Demoted to {reputation}</span>
+                <div key={i} className="text-xs text-white">
+                  <span className="text-red-300 font-bold">{name}: Demoted to {reputation}</span>
                 </div>
               );
               if (delta.points > 0) return (
-                <div key={i} className={styles.rankChangeLine}>
-                  {name}: <span className={styles.rankChangePromoted}>+{delta.points} rank pts</span> ({reputation})
+                <div key={i} className="text-xs text-white">
+                  {name}: <span className="text-green-300 font-bold">+{delta.points} rank pts</span> ({reputation})
                 </div>
               );
               if (delta.bufferPoints > 0) return (
-                <div key={i} className={styles.rankChangeLine}>
-                  {name}: <span className={styles.rankChangeDemoted}>−{delta.bufferPoints} buffer pts</span> ({reputation})
+                <div key={i} className="text-xs text-white">
+                  {name}: <span className="text-red-300 font-bold">−{delta.bufferPoints} buffer pts</span> ({reputation})
                 </div>
               );
               return null;
             })}
           </div>
-          <button className={styles.dismissBtn} onClick={() => setRankChanges([])}>Dismiss</button>
+          <button className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-white/20 text-white border border-white/40 rounded cursor-pointer hover:bg-white/30" onClick={() => setRankChanges([])}>Dismiss</button>
         </div>
       )}
 
       {hofInductees.length > 0 && (
-        <div className={styles.fightBanner}>
-          <div className={styles.fightResultsSection}>
+        <div className="bg-orange-500 text-white px-4 py-2 text-sm flex items-start gap-2 border-t border-black/20">
+          <div className="flex flex-col gap-1 flex-1">
             <strong>Hall of Fame!</strong>
             {hofInductees.map((inductee, i) => (
-              <div key={i} className={styles.fightResultLine}>
+              <div key={i} className="text-xs text-white">
                 ⭐ {inductee.name} has been inducted into the Hall of Fame! (Score: {inductee.score.toFixed(1)})
               </div>
             ))}
           </div>
-          <button className={styles.dismissBtn} onClick={() => setHofInductees([])}>Dismiss</button>
+          <button className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-white/20 text-white border border-white/40 rounded cursor-pointer hover:bg-white/30" onClick={() => setHofInductees([])}>Dismiss</button>
         </div>
       )}
     </div>
