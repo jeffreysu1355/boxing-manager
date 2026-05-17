@@ -10,6 +10,7 @@ import Standings from './pages/League/Standings';
 import Calendar from './pages/League/Calendar';
 import RecentResults from './pages/League/RecentResults';
 import ChampionshipHistory from './pages/League/ChampionshipHistory';
+import HallOfFame from './pages/League/HallOfFame';
 import Schedule from './pages/League/Schedule';
 import ContractNegotiation from './pages/League/ContractNegotiation';
 import PpvSignup from './pages/League/PpvSignup';
@@ -45,6 +46,7 @@ export const routes: RouteObject[] = [
           { path: 'calendar', element: <Calendar /> },
           { path: 'results', element: <RecentResults /> },
           { path: 'championship-history', element: <ChampionshipHistory /> },
+          { path: 'hall-of-fame', element: <HallOfFame /> },
           { path: 'schedule', element: <Schedule /> },
           { path: 'contracts/:id', element: <ContractNegotiation /> },
           { path: 'ppv/:fightId', element: <PpvSignup /> },

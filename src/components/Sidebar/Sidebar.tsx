@@ -17,6 +17,7 @@ const allSections: SidebarSection[] = [
       { to: '/league/calendar', label: 'Calendar' },
       { to: '/league/results', label: 'Results' },
       { to: '/league/championship-history', label: 'Championship History' },
+      { to: '/league/hall-of-fame', label: 'Hall of Fame' },
       { to: '/league/schedule', label: 'Schedule' },
     ],
   },
