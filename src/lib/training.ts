@@ -21,6 +21,11 @@ export const EXP_PER_DAY: Record<CoachSkillLevel, number> = {
   'all-time-great': 1.0,
 };
 
+export function ageTrainingMultiplier(age: number): number {
+  if (age <= 35) return 1.0;
+  return Math.max(0.1, 1.0 - (age - 35) * 0.05);
+}
+
 // Linear decay from 0.0013 at age 18 to a floor of 0.00005 at age 35+.
 // Slope = (0.0013 - 0.00005) / 17 ≈ 0.0000735 per year.
 // Tuned so a career from 18–40 yields ~4–5 talent gains, concentrated in early years.
@@ -55,7 +60,7 @@ export function applyTraining(boxer: Boxer, coach: Coach, days: number, gymLevel
   const stats = { ...boxer.stats };
   const exp: Partial<Record<keyof BoxerStats, number>> = { ...(boxer.trainingExp ?? {}) };
   const gymMultiplier = 1 + (gymLevel - 1) * 0.01;
-  const rate = EXP_PER_DAY[coach.skillLevel] * gymMultiplier;
+  const rate = EXP_PER_DAY[coach.skillLevel] * gymMultiplier * ageTrainingMultiplier(boxer.age);
   const focusSet = new Set(STYLE_STATS[coach.style]);
 
   // Roll for talent gain once per simulated day, updating naturalTalents as we go

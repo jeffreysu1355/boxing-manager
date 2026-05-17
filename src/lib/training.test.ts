@@ -11,6 +11,7 @@ import {
   FIGHT_EXP_BY_REPUTATION,
   rollTalentGain,
   talentGainProbability,
+  ageTrainingMultiplier,
 } from './training';
 import type { Boxer, Coach } from '../db/db';
 
@@ -572,5 +573,39 @@ describe('rollTalentGain', () => {
     expect(result.naturalTalents.length).toBeLessThanOrEqual(STYLE_STATS['out-boxer'].length);
     // with always-0 rng, should have gained all available pool stats
     expect(result.naturalTalents.length).toBe(STYLE_STATS['out-boxer'].length);
+  });
+});
+
+describe('ageTrainingMultiplier', () => {
+  it('returns 1.0 for age 35 and below', () => {
+    expect(ageTrainingMultiplier(18)).toBe(1.0);
+    expect(ageTrainingMultiplier(25)).toBe(1.0);
+    expect(ageTrainingMultiplier(35)).toBe(1.0);
+  });
+
+  it('returns 0.95 for age 36', () => {
+    expect(ageTrainingMultiplier(36)).toBeCloseTo(0.95, 10);
+  });
+
+  it('returns 0.90 for age 37', () => {
+    expect(ageTrainingMultiplier(37)).toBeCloseTo(0.90, 10);
+  });
+
+  it('returns 0.75 for age 40', () => {
+    expect(ageTrainingMultiplier(40)).toBeCloseTo(0.75, 10);
+  });
+
+  it('floors at 0.10 for age 53 and above', () => {
+    expect(ageTrainingMultiplier(53)).toBe(0.10);
+    expect(ageTrainingMultiplier(60)).toBe(0.10);
+  });
+
+  it('applyTraining gives less exp for a 40-year-old than a 25-year-old', () => {
+    const youngBoxer = makeBoxer({ age: 25, trainingExp: {} });
+    const oldBoxer = makeBoxer({ age: 40, trainingExp: {} });
+    const coach = makeCoach({ skillLevel: 'local', style: 'out-boxer' });
+    const youngResult = applyTraining(youngBoxer, coach, 10);
+    const oldResult = applyTraining(oldBoxer, coach, 10);
+    expect(oldResult.trainingExp!['jab']).toBeLessThan(youngResult.trainingExp!['jab']!);
   });
 });
