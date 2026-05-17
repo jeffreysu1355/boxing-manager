@@ -323,3 +323,43 @@ describe('simulateRound', () => {
     expect(state.roundLog[1].adaptationPenalty).toBeCloseTo(0.15);
   });
 });
+
+describe('simulateFight age fields', () => {
+  it('populates ageAtFight and opponentAgeAtFight when birthDates are present', () => {
+    const boxer1 = makeFullBoxer(1, { birthDate: '1999-01-15' });
+    const boxer2 = makeFullBoxer(2, { birthDate: '2000-06-20' });
+    const fight = makeFight({ date: '2026-05-16' });
+
+    const result = simulateFight(boxer1, boxer2, fight, 'Test Federation');
+
+    // winner gets own age + opponent's age; loser gets own age + opponent's age
+    const winner = result.winnerId === 1 ? boxer1 : boxer2;
+    const loser  = result.loserId  === 1 ? boxer1 : boxer2;
+
+    expect(result.winnerRecord.ageAtFight).toBe(
+      winner.birthDate === '1999-01-15' ? '27y 4m' : '25y 10m'
+    );
+    expect(result.winnerRecord.opponentAgeAtFight).toBe(
+      loser.birthDate === '1999-01-15' ? '27y 4m' : '25y 10m'
+    );
+    expect(result.loserRecord.ageAtFight).toBe(
+      loser.birthDate === '1999-01-15' ? '27y 4m' : '25y 10m'
+    );
+    expect(result.loserRecord.opponentAgeAtFight).toBe(
+      winner.birthDate === '1999-01-15' ? '27y 4m' : '25y 10m'
+    );
+  });
+
+  it('returns — for age fields when birthDate is absent', () => {
+    const boxer1 = makeFullBoxer(1); // no birthDate
+    const boxer2 = makeFullBoxer(2); // no birthDate
+    const fight = makeFight({ date: '2026-05-16' });
+
+    const result = simulateFight(boxer1, boxer2, fight, 'Test Federation');
+
+    expect(result.winnerRecord.ageAtFight).toBe('—');
+    expect(result.winnerRecord.opponentAgeAtFight).toBe('—');
+    expect(result.loserRecord.ageAtFight).toBe('—');
+    expect(result.loserRecord.opponentAgeAtFight).toBe('—');
+  });
+});

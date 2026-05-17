@@ -1,5 +1,6 @@
 import type { Boxer, Fight, FightingStyle, FightMethod, FightRecord, ReputationLevel } from '../db/db';
 import type { StatCategory, RoundLogEntry } from '../db/db';
+import { calcAgeAtDate } from './ageCalc';
 export type { StatCategory };
 export type { RoundLogEntry };
 
@@ -380,6 +381,8 @@ export function simulateFight(
     federation: federationName,
     date: fight.date,
     isTitleFight: fight.isTitleFight,
+    ageAtFight: calcAgeAtDate(winner.birthDate, fight.date),
+    opponentAgeAtFight: calcAgeAtDate(loser.birthDate, fight.date),
   };
 
   const loserRecord: FightRecord = {
@@ -393,6 +396,8 @@ export function simulateFight(
     federation: federationName,
     date: fight.date,
     isTitleFight: fight.isTitleFight,
+    ageAtFight: calcAgeAtDate(loser.birthDate, fight.date),
+    opponentAgeAtFight: calcAgeAtDate(winner.birthDate, fight.date),
   };
 
   return {
