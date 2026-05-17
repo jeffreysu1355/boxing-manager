@@ -297,7 +297,7 @@ export default function PlayerPage() {
         <div style={{ marginBottom: 8 }}>
           <WatchlistFlag
             isWatchlisted={watchlistIds.includes(boxer.id)}
-            isOwnGym={boxer.gymId === gymId && gymId !== null}
+            isOwnGym={boxer.gymId === gymId && gymId !== null && !boxer.retired}
             onToggle={handleToggleWatchlist}
           />
         </div>

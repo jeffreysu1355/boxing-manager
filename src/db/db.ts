@@ -378,7 +378,7 @@ let dbInstance: DB | null = null;
 
 export async function getDB(): Promise<DB> {
   if (dbInstance) return dbInstance;
-  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 16, {
+  dbInstance = await openDB<BoxingManagerDBSchema>('boxing-manager', 17, {
     upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         const boxerStore = db.createObjectStore('boxers', {
@@ -521,6 +521,12 @@ export async function getDB(): Promise<DB> {
           autoIncrement: true,
         });
         hofStore.createIndex('boxerId', 'boxerId', { unique: true });
+      }
+
+      if (oldVersion < 17) {
+        // watchlistIds added as optional field on Gym — no structural change needed.
+        // Existing Gym records without the field return undefined; runtime code
+        // treats undefined as [] via nullish coalescing in gymStore helpers.
       }
     },
   });

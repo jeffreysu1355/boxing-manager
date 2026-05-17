@@ -148,7 +148,7 @@ export default function Watchlist() {
               {boxers.map(boxer => {
                 const status = getBoxerStatus(boxer, events, today);
                 const nextFight = getNextFight(boxer, events, fightsMap, federationsMap, today, boxersMap);
-                const isOwnGym = boxer.gymId === gymId && gymId !== null;
+                const isOwnGym = boxer.gymId === gymId && gymId !== null && !boxer.retired;
 
                 return (
                   <tr key={boxer.id}>
