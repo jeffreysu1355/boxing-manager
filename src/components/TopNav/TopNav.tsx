@@ -438,11 +438,7 @@ export function TopNav() {
             key={tab.to}
             to={tab.to}
             end={tab.to === '/'}
-            className={({ isActive }) =>
-              isActive
-                ? 'inline-flex items-center px-5 h-12 text-sm font-medium text-zinc-100 bg-zinc-800'
-                : 'inline-flex items-center px-5 h-12 text-sm font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700'
-            }
+            className={({ isActive }) => isActive ? 'nav-tab nav-tab-active' : 'nav-tab'}
           >
             {tab.label}
           </NavLink>
