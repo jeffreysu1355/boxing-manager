@@ -83,7 +83,7 @@ export function Sidebar() {
             onClick={() => toggleSection(section.label)}
           >
             {section.label}
-            <span className="text-[10px] leading-none">
+            <span className="text-lg leading-none text-zinc-400">
               {collapsed[section.label] ? '▸' : '▾'}
             </span>
           </button>
