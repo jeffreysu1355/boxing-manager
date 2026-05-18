@@ -394,14 +394,13 @@ export function TopNav() {
   return (
     <div className="flex flex-col" style={{ gridArea: 'nav' }}>
       <nav className="flex items-center bg-zinc-900 border-b border-zinc-700 px-4 gap-1 h-12">
-        <span className="font-bold text-sm text-orange-500 mr-4 whitespace-nowrap">Boxing Manager</span>
+        <NavLink to="/" className="font-bold text-sm text-orange-500 mr-4 whitespace-nowrap hover:opacity-80">Boxing Manager</NavLink>
 
-        <div className="relative flex items-center gap-2 mr-4" ref={dropdownRef}>
+        <div className="relative flex items-center gap-5 mr-4" ref={dropdownRef}>
           <span className="text-sm text-zinc-400 whitespace-nowrap">{formatGameDate(currentDate)}</span>
           <Button
             onClick={() => setDropdownOpen(o => !o)}
             disabled={isSimming}
-            size="sm"
           >
             {isSimming ? 'Simming...' : 'Play ▾'}
           </Button>
