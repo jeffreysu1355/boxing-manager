@@ -20,14 +20,6 @@
   --sidebar-width: 180px;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 html, body, #root {
   height: 100%;
   width: 100%;
@@ -70,26 +62,4 @@ th {
 
 tr:hover {
   background-color: var(--bg-hover);
-}
-
-.nav-tab {
-  display: inline-flex;
-  align-items: center;
-  padding: 0 20px;
-  height: 48px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition: color 0.15s, background-color 0.15s;
-}
-
-.nav-tab:hover {
-  color: var(--text-primary);
-  background-color: var(--bg-hover);
-}
-
-.nav-tab-active {
-  color: var(--text-primary);
-  background-color: var(--bg-surface);
 }
