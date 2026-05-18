@@ -277,7 +277,7 @@ export default function PlayerPage() {
         </div>
       )}
       {(godMode || (boxer.gymId === gymId && gymId !== null && !boxer.retired)) && (
-        <div className="flex gap-2 mb-2 flex-wrap">
+        <div className="flex gap-2 mb-5 flex-wrap">
           {godMode && (
             <Link to={`/player/${boxer.id}/edit`}>
               <Button variant="outline" size="sm">Edit Boxer</Button>
