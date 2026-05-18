@@ -47,7 +47,7 @@ describe('getBoxerStatus', () => {
   it('returns Active when no injuries or events', () => {
     const status = getBoxerStatus(baseBoxer, [], TODAY);
     expect(status.label).toBe('Active');
-    expect(status.color).toBe('var(--success)');
+    expect(status.variant).toBe('success');
   });
 
   it('returns Injured when boxer has injury with recoveryDays > 0', () => {
@@ -57,7 +57,7 @@ describe('getBoxerStatus', () => {
     };
     const status = getBoxerStatus(boxer, [], TODAY);
     expect(status.label).toBe('Injured (Minor, 5 days)');
-    expect(status.color).toBe('var(--danger)');
+    expect(status.variant).toBe('danger');
   });
 
   it('uses most severe injury when multiple injuries exist', () => {
@@ -96,7 +96,7 @@ describe('getBoxerStatus', () => {
     ];
     const status = getBoxerStatus(baseBoxer, events, TODAY);
     expect(status.label).toBe('In Training Camp');
-    expect(status.color).toBe('var(--warning)');
+    expect(status.variant).toBe('warning');
   });
 
   it('returns Scheduled Fight when future fight event exists and no training camp', () => {
@@ -105,7 +105,7 @@ describe('getBoxerStatus', () => {
     ];
     const status = getBoxerStatus(baseBoxer, events, TODAY);
     expect(status.label).toBe('Scheduled Fight');
-    expect(status.color).toBe('#2196f3');
+    expect(status.variant).toBe('muted');
   });
 
   it('ignores past events when computing status', () => {

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router';
-import styles from './Sidebar.module.css';
 
 interface SidebarSection {
   label: string;
@@ -75,16 +74,16 @@ export function Sidebar() {
   }
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className="overflow-y-auto py-3 bg-zinc-900 border-r border-zinc-700" style={{ gridArea: 'sidebar' }}>
       {allSections.map((section) => (
         <div key={section.label}>
           <button
             type="button"
-            className={styles.sectionToggle}
+            className="flex items-center justify-between w-full px-4 pt-2 pb-1 bg-transparent border-none cursor-pointer text-[11px] font-bold uppercase text-zinc-500 tracking-wide hover:text-zinc-400"
             onClick={() => toggleSection(section.label)}
           >
             {section.label}
-            <span className={styles.toggleIcon}>
+            <span className="text-[10px] leading-none">
               {collapsed[section.label] ? '▸' : '▾'}
             </span>
           </button>
@@ -93,7 +92,9 @@ export function Sidebar() {
               key={link.to}
               to={link.to}
               className={({ isActive }) =>
-                isActive ? styles.activeLink : styles.link
+                isActive
+                  ? "block px-4 pl-5 py-2 text-sm text-zinc-100 bg-zinc-800 border-l-[3px] border-orange-500 transition-colors"
+                  : "block px-4 pl-6 py-2 text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700 transition-colors"
               }
             >
               {link.label}
@@ -104,7 +105,9 @@ export function Sidebar() {
       <NavLink
         to="/info"
         className={({ isActive }) =>
-          isActive ? styles.infoLinkActive : styles.infoLink
+          isActive
+            ? "block px-4 pt-2 pb-1 text-[11px] font-bold uppercase text-zinc-100 tracking-wide"
+            : "block px-4 pt-2 pb-1 text-[11px] font-bold uppercase text-zinc-500 tracking-wide hover:text-zinc-400 transition-colors"
         }
       >
         Info

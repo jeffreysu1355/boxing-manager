@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router';
 import { PageHeader } from '../../components/PageHeader/PageHeader';
-import { getBoxer, putBoxer } from '../../db/boxerStore';
+import { getBoxer } from '../../db/boxerStore';
 import { getAllCoaches } from '../../db/coachStore';
 import { getGym, addToWatchlist, removeFromWatchlist } from '../../db/gymStore';
 import { WatchlistFlag } from '../../components/WatchlistFlag/WatchlistFlag';
@@ -14,7 +14,8 @@ import { STYLE_STATS } from '../../lib/training';
 import { RANK_CONFIG } from '../../lib/rankSystem';
 import type { Boxer, BoxerStats, Coach, FightRecord, Federation } from '../../db/db';
 import { FEDERATION_ABBR } from '../../constants/federations';
-import styles from './PlayerPage.module.css';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 
 // --- Stat group definitions ---
 
@@ -109,39 +110,39 @@ function RankingSection({ boxer }: { boxer: Boxer }) {
 
   function renderDelta() {
     if (!delta) return null;
-    if (delta.promoted) return <span className={styles.rankPromoted}>Promoted to {boxer.reputation}!</span>;
-    if (delta.demoted) return <span className={styles.rankDemoted}>Demoted to {boxer.reputation}</span>;
-    if (delta.points === 0 && delta.bufferPoints === 0) return <span className={styles.rankDeltaNeutral}>No rank change (title fight loss)</span>;
-    if (delta.bufferPoints > 0) return <span className={styles.rankDeltaNegative}>−{delta.bufferPoints} buffer pts</span>;
-    if (delta.points > 0 && !delta.promoted) return <span className={styles.rankDeltaPositive}>+{delta.points} pts</span>;
-    if (delta.points > 0 && delta.demoted) return <span className={styles.rankDeltaNegative}>−{delta.points} pts</span>;
+    if (delta.promoted) return <span className="text-green-500 font-bold text-sm">Promoted to {boxer.reputation}!</span>;
+    if (delta.demoted) return <span className="text-red-500 font-bold text-sm">Demoted to {boxer.reputation}</span>;
+    if (delta.points === 0 && delta.bufferPoints === 0) return <span className="text-zinc-500 text-xs">No rank change (title fight loss)</span>;
+    if (delta.bufferPoints > 0) return <span className="text-red-500 text-xs font-semibold">−{delta.bufferPoints} buffer pts</span>;
+    if (delta.points > 0 && !delta.promoted) return <span className="text-green-500 text-xs font-semibold">+{delta.points} pts</span>;
+    if (delta.points > 0 && delta.demoted) return <span className="text-red-500 text-xs font-semibold">−{delta.points} pts</span>;
     return null;
   }
 
   return (
-    <div className={styles.rankSection}>
-      <div className={styles.sectionTitle}>Ranking</div>
-      <div className={styles.rankRow}>
-        <span className={styles.rankRowLabel}>Rank</span>
+    <div className="bg-zinc-900 border border-zinc-700 rounded overflow-hidden">
+      <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 px-3.5 py-2 bg-zinc-800 border-b border-zinc-700">Ranking</div>
+      <div className="flex justify-between items-center px-3.5 py-2 border-b border-zinc-700 last:border-b-0 text-sm">
+        <span className="text-zinc-400 text-xs min-w-[80px]">Rank</span>
         <span style={{ flex: 1 }}>{boxer.reputation}</span>
       </div>
-      <div className={styles.rankRow}>
-        <span className={styles.rankRowLabel}>Progress</span>
-        <div className={styles.rankBarContainer}>
-          <div className={styles.rankBarBlue} style={{ width: `${progressPct}%` }} />
+      <div className="flex justify-between items-center px-3.5 py-2 border-b border-zinc-700 last:border-b-0 text-sm">
+        <span className="text-zinc-400 text-xs min-w-[80px]">Progress</span>
+        <div className="flex-1 mx-3 h-2 bg-zinc-800 rounded border border-zinc-700 overflow-hidden">
+          <div className="h-full bg-blue-500 rounded transition-all duration-200" style={{ width: `${progressPct}%` }} />
         </div>
-        <span className={styles.rankBarNumbers}>{progressLabel}</span>
+        <span className="font-mono text-xs text-zinc-400 whitespace-nowrap">{progressLabel}</span>
       </div>
-      <div className={styles.rankRow}>
-        <span className={styles.rankRowLabel}>Buffer</span>
-        <div className={styles.rankBarContainer}>
-          <div className={styles.rankBarAmber} style={{ width: `${bufferPct}%` }} />
+      <div className="flex justify-between items-center px-3.5 py-2 border-b border-zinc-700 last:border-b-0 text-sm">
+        <span className="text-zinc-400 text-xs min-w-[80px]">Buffer</span>
+        <div className="flex-1 mx-3 h-2 bg-zinc-800 rounded border border-zinc-700 overflow-hidden">
+          <div className="h-full bg-yellow-500 rounded transition-all duration-200" style={{ width: `${bufferPct}%` }} />
         </div>
-        <span className={styles.rankBarNumbers}>{demotionBuffer} / {config.bufferMax}</span>
+        <span className="font-mono text-xs text-zinc-400 whitespace-nowrap">{demotionBuffer} / {config.bufferMax}</span>
       </div>
       {delta && (
-        <div className={styles.rankRow}>
-          <span className={styles.rankRowLabel}>Last fight</span>
+        <div className="flex justify-between items-center px-3.5 py-2 border-b border-zinc-700 last:border-b-0 text-sm">
+          <span className="text-zinc-400 text-xs min-w-[80px]">Last fight</span>
           <span style={{ flex: 1 }}>{renderDelta()}</span>
         </div>
       )}
@@ -233,7 +234,7 @@ export default function PlayerPage() {
     return (
       <div>
         <PageHeader title="Player" subtitle="" />
-        <p className={styles.notFound}>Loading…</p>
+        <p className="text-zinc-400 italic">Loading…</p>
       </div>
     );
   }
@@ -242,7 +243,7 @@ export default function PlayerPage() {
     return (
       <div>
         <PageHeader title="Player" subtitle="" />
-        <p className={styles.notFound}>Boxer not found.</p>
+        <p className="text-zinc-400 italic">Boxer not found.</p>
       </div>
     );
   }
@@ -255,8 +256,8 @@ export default function PlayerPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 16 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-zinc-50 flex items-center gap-2">
           {boxer.name}
           {boxer.id !== undefined && (
             <WatchlistFlag
@@ -266,97 +267,49 @@ export default function PlayerPage() {
             />
           )}
         </h1>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>{boxer.reputation}</p>
+        <p className="text-xs text-zinc-400 mt-0.5">{boxer.reputation}</p>
       </div>
       {hofEntry && (
-        <div style={{ marginBottom: 8 }}>
-          <Link
-            to="/league/hall-of-fame"
-            style={{
-              display: 'inline-block',
-              padding: '4px 12px',
-              background: 'var(--accent)',
-              color: '#000',
-              borderRadius: 3,
-              fontWeight: 600,
-              fontSize: 13,
-              textDecoration: 'none',
-            }}
-          >
-            ⭐ Hall of Fame (Score: {hofEntry.score.toFixed(1)})
+        <div className="mb-2">
+          <Link to="/league/hall-of-fame">
+            <Badge variant="accent">⭐ Hall of Fame (Score: {hofEntry.score.toFixed(1)})</Badge>
           </Link>
         </div>
       )}
       {(godMode || (boxer.gymId === gymId && gymId !== null && !boxer.retired)) && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+        <div className="flex gap-2 mb-2 flex-wrap">
           {godMode && (
-            <Link
-              to={`/player/${boxer.id}/edit`}
-              style={{
-                padding: '5px 14px',
-                background: 'none',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--text-primary)',
-                borderRadius: 3,
-                fontWeight: 600,
-                fontSize: 13,
-                textDecoration: 'none',
-              }}
-            >
-              Edit Boxer
+            <Link to={`/player/${boxer.id}/edit`}>
+              <Button variant="outline" size="sm">Edit Boxer</Button>
             </Link>
           )}
           {godMode && boxer.id !== undefined && (
-            <button
-              onClick={() => exportBoxer(boxer)}
-              style={{
-                padding: '5px 14px',
-                background: 'none',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--text-primary)',
-                borderRadius: 3,
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: 'pointer',
-              }}
-            >
+            <Button variant="outline" size="sm" onClick={() => exportBoxer(boxer)}>
               Export Boxer
-            </button>
+            </Button>
           )}
           {boxer.gymId === gymId && gymId !== null && !boxer.retired && (
-            <button
-              onClick={handleRetire}
-              style={{
-                padding: '5px 14px',
-                background: 'none',
-                color: 'var(--danger)',
-                border: '1px solid var(--danger)',
-                borderRadius: 3,
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: 'pointer',
-              }}
-            >
+            <Button variant="danger" size="sm" onClick={handleRetire}>
               Retire Boxer
-            </button>
+            </Button>
           )}
         </div>
       )}
-      <div className={styles.page}>
+      <div className="flex flex-col gap-5">
 
         {/* Header card */}
-        <div className={styles.header}>
-          <div className={styles.meta}>
+        <div className="bg-zinc-900 border border-zinc-700 rounded p-4">
+          <div className="flex gap-3 text-sm text-zinc-400 mb-2.5">
             <span>{boxer.age} yrs</span>
             <span>{capitalize(boxer.weightClass)}</span>
             <span>{styleLabel(boxer.style)}</span>
           </div>
-          <div className={styles.meta}>
+          <div className="text-sm text-zinc-400 mb-2.5">
             <span>Born: {formatBirthDate(boxer.birthDate)}</span>
           </div>
-          <div className={styles.record}>{calcRecord(boxer.record)} ({boxer.record.length} fights)</div>
+          <div className="text-sm font-semibold text-zinc-100 mb-2.5">{calcRecord(boxer.record)} ({boxer.record.length} fights)</div>
           {(activeTitles.length > 0 || boxer.naturalTalents.length > 0) && (
-            <div className={styles.tags}>
+            <div className="flex flex-wrap gap-1.5">
               {activeTitles.map(t => {
                 const info = titleFedMap.get(t.titleId);
                 const label = info
@@ -366,40 +319,39 @@ export default function PlayerPage() {
                   <Link
                     key={t.titleId}
                     to={`/league/championship-history#title-${t.titleId}`}
-                    className={styles.titleBadge}
                   >
-                    {label}
+                    <Badge variant="accent">{label}</Badge>
                   </Link>
                 );
               })}
               {boxer.naturalTalents.map((t, i) => (
-                <span key={i} className={styles.talentTag}>
+                <Badge key={i} variant="warning">
                   Super {STAT_LABELS[t.stat]}
-                </span>
+                </Badge>
               ))}
             </div>
           )}
         </div>
 
         {/* Stats grid */}
-        <div className={styles.statsGrid}>
+        <div className="grid grid-cols-2 gap-3">
           {STAT_GROUPS.map(group => (
-            <div key={group.label} className={styles.statPanel}>
-              <div className={styles.panelTitle}>{group.label}</div>
+            <div key={group.label} className="bg-zinc-900 border border-zinc-700 rounded overflow-hidden">
+              <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 px-3.5 py-2 bg-zinc-800 border-b border-zinc-700">{group.label}</div>
               {group.stats.map(stat => {
                 const isFocus = trainedStats.has(stat);
                 const currentExp = boxer.trainingExp?.[stat] ?? 0;
                 const threshold = boxer.stats[stat] * 7.5;
                 const pct = threshold > 0 ? Math.min(100, (currentExp / threshold) * 100) : 0;
                 return (
-                  <div key={stat} className={styles.statRow}>
-                    <span className={styles.statName}>{STAT_LABELS[stat]}</span>
-                    <div className={styles.statBarWrapper}>
-                      <div className={isFocus ? styles.statBar : styles.statBarDim}>
-                        <div className={styles.statBarFill} style={{ width: `${pct}%` }} />
-                        <span className={styles.statBarPct}>{Math.round(pct)}%</span>
+                  <div key={stat} className="flex justify-between px-3.5 py-1.5 border-b border-zinc-700 last:border-b-0">
+                    <span className="text-zinc-400 text-xs">{STAT_LABELS[stat]}</span>
+                    <div className="flex items-center gap-1.5 min-w-[80px]">
+                      <div className={isFocus ? "relative w-[60px] h-3.5 bg-red-500 rounded-sm overflow-hidden" : "relative w-[60px] h-3.5 bg-zinc-700 rounded-sm overflow-hidden"}>
+                        <div className="absolute left-0 top-0 h-full bg-green-500" style={{ width: `${pct}%` }} />
+                        <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white pointer-events-none">{Math.round(pct)}%</span>
                       </div>
-                      <span className={styles.statBarValue}>{boxer.stats[stat]}</span>
+                      <span className="font-mono text-xs text-zinc-100 font-semibold whitespace-nowrap">{boxer.stats[stat]}</span>
                     </div>
                   </div>
                 );
@@ -411,10 +363,10 @@ export default function PlayerPage() {
         <RankingSection boxer={boxer} />
 
         {/* Fight record */}
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>Fight Record</div>
+        <div className="bg-zinc-900 border border-zinc-700 rounded overflow-hidden">
+          <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 px-3.5 py-2 bg-zinc-800 border-b border-zinc-700">Fight Record</div>
           {sortedRecord.length === 0 ? (
-            <p className={styles.empty}>No professional fights.</p>
+            <p className="px-3.5 py-3 text-zinc-500 italic text-xs">No professional fights.</p>
           ) : (
             <table>
               <thead>
@@ -435,9 +387,9 @@ export default function PlayerPage() {
                 {sortedRecord.map((fight, i) => (
                   <tr key={i}>
                     <td className={
-                      fight.result === 'win' ? styles.win :
-                      fight.result === 'loss' ? styles.loss :
-                      styles.draw
+                      fight.result === 'win' ? "text-green-500 font-semibold" :
+                      fight.result === 'loss' ? "text-red-500 font-semibold" :
+                      "text-zinc-500 font-semibold"
                     }>
                       {capitalize(fight.result)}
                     </td>
@@ -458,7 +410,7 @@ export default function PlayerPage() {
                     <td>{fight.opponentAgeAtFight ?? '—'}</td>
                     <td>
                       {fight.isTitleFight && (
-                        <span className={styles.titleBadge}>Title Fight</span>
+                        <Badge variant="accent">Title Fight</Badge>
                       )}
                     </td>
                   </tr>
