@@ -392,7 +392,7 @@ export function TopNav() {
   }
 
   return (
-    <div className="flex flex-col" style={{ gridArea: 'nav' }}>
+    <div className="relative" style={{ gridArea: 'nav' }}>
       <nav className="flex items-center bg-zinc-900 border-b border-zinc-700 px-4 gap-1 h-12">
         <NavLink to="/" className="font-bold text-sm !text-white mr-4 whitespace-nowrap hover:opacity-80">Boxing Manager</NavLink>
 
@@ -449,12 +449,14 @@ export function TopNav() {
         ))}
       </nav>
 
+      <div className="absolute top-full left-0 right-0 z-50 flex flex-col">
+
       {fightStop && (
-        <div className="bg-orange-500 text-white px-4 py-2 text-sm flex items-start gap-2 border-t border-black/20">
+        <div className="bg-zinc-200 text-zinc-800 px-4 py-2 text-sm flex items-start gap-2 border-t border-zinc-400">
           <strong>Fight Day!</strong> A scheduled fight has arrived on{' '}
           {formatGameDate(fightStop.date)}.{' '}
           <button
-            className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-white/20 text-white border border-white/40 rounded cursor-pointer hover:bg-white/30"
+            className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-zinc-300 text-zinc-700 border border-zinc-400 rounded cursor-pointer hover:bg-zinc-400"
             onClick={() => setFightStop(null)}
           >
             Dismiss
@@ -463,7 +465,7 @@ export function TopNav() {
       )}
 
       {simmedFights.length > 0 && (
-        <div className="bg-orange-500 text-white px-4 py-2 text-sm flex items-start gap-2 border-t border-black/20">
+        <div className="bg-zinc-200 text-zinc-800 px-4 py-2 text-sm flex items-start gap-2 border-t border-zinc-400">
           <div className="flex flex-col gap-1 flex-1">
             <strong>Fight Day Results</strong>
             {simmedFights.map((f, i) => {
@@ -475,67 +477,69 @@ export function TopNav() {
                   : `${f.boxer1Name} wins by ${f.method}${f.finishingMove ? ` (${f.finishingMove})` : ''}${f.round != null ? ` — Rd. ${f.round}` : ''}`;
               return (
                 <div key={f.fightId}>
-                  {i > 0 && <hr className="border-none border-t border-white/25 my-1" />}
-                  <div className="text-xs text-white">{summary}</div>
+                  {i > 0 && <hr className="border-none border-t border-zinc-400 my-1" />}
+                  <div className="text-xs text-zinc-700">{summary}</div>
                 </div>
               );
             })}
             <button
-              className="text-white text-xs font-semibold underline bg-transparent border-none cursor-pointer p-0 mt-1 text-left"
+              className="text-zinc-600 text-xs font-semibold underline bg-transparent border-none cursor-pointer p-0 mt-1 text-left"
               onClick={() => navigate(`/fight-results?fights=${simmedFights.map(f => f.fightId).join(',')}`)}
             >
               View Full Results →
             </button>
           </div>
-          <button className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-white/20 text-white border border-white/40 rounded cursor-pointer hover:bg-white/30" onClick={() => setSimmedFights([])}>Dismiss</button>
+          <button className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-zinc-300 text-zinc-700 border border-zinc-400 rounded cursor-pointer hover:bg-zinc-400" onClick={() => setSimmedFights([])}>Dismiss</button>
         </div>
       )}
 
       {rankChanges.length > 0 && (
-        <div className="bg-orange-500 text-white px-4 py-2 text-sm flex items-start gap-2 border-t border-black/20">
+        <div className="bg-zinc-200 text-zinc-800 px-4 py-2 text-sm flex items-start gap-2 border-t border-zinc-400">
           <div className="flex flex-col gap-1 flex-1">
             {rankChanges.map((change, i) => {
               const { name, delta, reputation } = change;
               if (delta.promoted) return (
-                <div key={i} className="text-xs text-white">
-                  <span className="text-green-300 font-bold">{name}: Promoted to {reputation}!</span>
+                <div key={i} className="text-xs text-zinc-700">
+                  <span className="text-green-700 font-bold">{name}: Promoted to {reputation}!</span>
                 </div>
               );
               if (delta.demoted) return (
-                <div key={i} className="text-xs text-white">
-                  <span className="text-red-300 font-bold">{name}: Demoted to {reputation}</span>
+                <div key={i} className="text-xs text-zinc-700">
+                  <span className="text-red-700 font-bold">{name}: Demoted to {reputation}</span>
                 </div>
               );
               if (delta.points > 0) return (
-                <div key={i} className="text-xs text-white">
-                  {name}: <span className="text-green-300 font-bold">+{delta.points} rank pts</span> ({reputation})
+                <div key={i} className="text-xs text-zinc-700">
+                  {name}: <span className="text-green-700 font-bold">+{delta.points} rank pts</span> ({reputation})
                 </div>
               );
               if (delta.bufferPoints > 0) return (
-                <div key={i} className="text-xs text-white">
-                  {name}: <span className="text-red-300 font-bold">−{delta.bufferPoints} buffer pts</span> ({reputation})
+                <div key={i} className="text-xs text-zinc-700">
+                  {name}: <span className="text-red-700 font-bold">−{delta.bufferPoints} buffer pts</span> ({reputation})
                 </div>
               );
               return null;
             })}
           </div>
-          <button className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-white/20 text-white border border-white/40 rounded cursor-pointer hover:bg-white/30" onClick={() => setRankChanges([])}>Dismiss</button>
+          <button className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-zinc-300 text-zinc-700 border border-zinc-400 rounded cursor-pointer hover:bg-zinc-400" onClick={() => setRankChanges([])}>Dismiss</button>
         </div>
       )}
 
       {hofInductees.length > 0 && (
-        <div className="bg-orange-500 text-white px-4 py-2 text-sm flex items-start gap-2 border-t border-black/20">
+        <div className="bg-zinc-200 text-zinc-800 px-4 py-2 text-sm flex items-start gap-2 border-t border-zinc-400">
           <div className="flex flex-col gap-1 flex-1">
             <strong>Hall of Fame!</strong>
             {hofInductees.map((inductee, i) => (
-              <div key={i} className="text-xs text-white">
+              <div key={i} className="text-xs text-zinc-700">
                 ⭐ {inductee.name} has been inducted into the Hall of Fame! (Score: {inductee.score.toFixed(1)})
               </div>
             ))}
           </div>
-          <button className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-white/20 text-white border border-white/40 rounded cursor-pointer hover:bg-white/30" onClick={() => setHofInductees([])}>Dismiss</button>
+          <button className="ml-auto flex-shrink-0 self-start px-2.5 py-0.5 text-xs bg-zinc-300 text-zinc-700 border border-zinc-400 rounded cursor-pointer hover:bg-zinc-400" onClick={() => setHofInductees([])}>Dismiss</button>
         </div>
       )}
+
+      </div>
     </div>
   );
 }

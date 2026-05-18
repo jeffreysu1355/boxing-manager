@@ -127,7 +127,7 @@ export function applyRankChange(
       reputation: prevRep,
       rankPoints: Math.floor(prevConfig.promotionThreshold * 0.7),
       demotionBuffer: prevConfig.bufferMax,
-      lastRankDelta: { points: lost, bufferPoints: bufferDrained, promoted: false, demoted: true },
+      lastRankDelta: { points: 0, bufferPoints: lost, promoted: false, demoted: true },
     };
   }
 
@@ -135,6 +135,6 @@ export function applyRankChange(
     ...boxer,
     rankPoints: newRankPoints,
     demotionBuffer: newBuffer,
-    lastRankDelta: { points: lost, bufferPoints: bufferDrained, promoted: false, demoted: false },
+    lastRankDelta: { points: 0, bufferPoints: lost, promoted: false, demoted: false },
   };
 }
