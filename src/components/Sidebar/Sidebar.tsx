@@ -93,8 +93,8 @@ export function Sidebar() {
               to={link.to}
               className={({ isActive }) =>
                 isActive
-                  ? "block px-4 pl-5 py-2 text-sm text-zinc-100 bg-zinc-800 border-l-[3px] border-orange-500 transition-colors"
-                  : "block px-4 pl-6 py-2 text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700 transition-colors"
+                  ? "block px-4 pl-5 py-2 text-sm !text-zinc-100 bg-zinc-800 border-l-[3px] border-white transition-colors"
+                  : "block px-4 pl-6 py-2 text-sm !text-zinc-400 hover:!text-zinc-100 hover:bg-zinc-700 transition-colors"
               }
             >
               {link.label}
@@ -106,8 +106,8 @@ export function Sidebar() {
         to="/info"
         className={({ isActive }) =>
           isActive
-            ? "block px-4 pt-2 pb-1 text-[11px] font-bold uppercase text-zinc-100 tracking-wide"
-            : "block px-4 pt-2 pb-1 text-[11px] font-bold uppercase text-zinc-500 tracking-wide hover:text-zinc-400 transition-colors"
+            ? "block px-4 pt-2 pb-1 text-[11px] font-bold uppercase !text-zinc-100 tracking-wide"
+            : "block px-4 pt-2 pb-1 text-[11px] font-bold uppercase !text-zinc-500 tracking-wide hover:!text-zinc-400 transition-colors"
         }
       >
         Info

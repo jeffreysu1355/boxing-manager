@@ -394,13 +394,14 @@ export function TopNav() {
   return (
     <div className="flex flex-col" style={{ gridArea: 'nav' }}>
       <nav className="flex items-center bg-zinc-900 border-b border-zinc-700 px-4 gap-1 h-12">
-        <NavLink to="/" className="font-bold text-sm text-orange-500 mr-4 whitespace-nowrap hover:opacity-80">Boxing Manager</NavLink>
+        <NavLink to="/" className="font-bold text-sm !text-white mr-4 whitespace-nowrap hover:opacity-80">Boxing Manager</NavLink>
 
         <div className="relative flex items-center gap-5 mr-4" ref={dropdownRef}>
-          <span className="text-sm text-zinc-400 whitespace-nowrap">{formatGameDate(currentDate)}</span>
+          <span className="text-sm !text-white whitespace-nowrap">{formatGameDate(currentDate)}</span>
           <Button
             onClick={() => setDropdownOpen(o => !o)}
             disabled={isSimming}
+            className="bg-green-600 hover:bg-green-500"
           >
             {isSimming ? 'Simming...' : 'Play ▾'}
           </Button>
@@ -439,8 +440,8 @@ export function TopNav() {
             end={tab.to === '/'}
             className={({ isActive }) =>
               isActive
-                ? 'inline-flex items-center px-5 h-12 text-sm font-medium text-zinc-100 bg-zinc-800'
-                : 'inline-flex items-center px-5 h-12 text-sm font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700'
+                ? 'inline-flex items-center px-5 h-12 text-sm font-medium !text-white bg-zinc-800'
+                : 'inline-flex items-center px-5 h-12 text-sm font-medium !text-white hover:bg-zinc-700'
             }
           >
             {tab.label}
