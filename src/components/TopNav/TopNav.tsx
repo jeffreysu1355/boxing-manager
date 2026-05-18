@@ -393,7 +393,7 @@ export function TopNav() {
 
   return (
     <div className="flex flex-col" style={{ gridArea: 'nav' }}>
-      <nav className="flex items-center bg-zinc-900 border-b border-zinc-700 px-4 gap-1">
+      <nav className="flex items-center bg-zinc-900 border-b border-zinc-700 px-4 gap-1 h-10">
         <span className="font-bold text-sm text-orange-500 mr-4 whitespace-nowrap">Boxing Manager</span>
 
         <div className="relative flex items-center gap-2 mr-4" ref={dropdownRef}>
