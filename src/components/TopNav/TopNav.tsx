@@ -393,7 +393,7 @@ export function TopNav() {
 
   return (
     <div className="flex flex-col" style={{ gridArea: 'nav' }}>
-      <nav className="flex items-center bg-zinc-900 border-b border-zinc-700 px-4 gap-0.5 h-12">
+      <nav className="flex items-center bg-zinc-900 border-b border-zinc-700 px-4 gap-1 h-12">
         <span className="font-bold text-sm text-orange-500 mr-4 whitespace-nowrap">Boxing Manager</span>
 
         <div className="relative flex items-center gap-2 mr-4" ref={dropdownRef}>
@@ -440,8 +440,8 @@ export function TopNav() {
             end={tab.to === '/'}
             className={({ isActive }) =>
               isActive
-                ? 'inline-flex items-center px-4 py-3 text-sm font-medium text-zinc-100 bg-zinc-800'
-                : 'inline-flex items-center px-4 py-3 text-sm font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700'
+                ? 'inline-flex items-center px-5 h-12 text-sm font-medium text-zinc-100 bg-zinc-800'
+                : 'inline-flex items-center px-5 h-12 text-sm font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700'
             }
           >
             {tab.label}
