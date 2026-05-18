@@ -93,8 +93,8 @@ export function Sidebar() {
               to={link.to}
               className={({ isActive }) =>
                 isActive
-                  ? "block px-4 pl-5 py-1.5 text-sm text-zinc-100 bg-zinc-800 border-l-[3px] border-orange-500 transition-colors"
-                  : "block px-4 pl-6 py-1.5 text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700 transition-colors"
+                  ? "block px-4 pl-5 py-2 text-sm text-zinc-100 bg-zinc-800 border-l-[3px] border-orange-500 transition-colors"
+                  : "block px-4 pl-6 py-2 text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700 transition-colors"
               }
             >
               {link.label}
