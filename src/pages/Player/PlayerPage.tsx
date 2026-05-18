@@ -16,6 +16,7 @@ import type { Boxer, BoxerStats, Coach, FightRecord, Federation } from '../../db
 import { FEDERATION_ABBR } from '../../constants/federations';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { calcAgeAtDate } from '../../lib/ageCalc';
 
 // --- Stat group definitions ---
 
@@ -157,6 +158,7 @@ export default function PlayerPage() {
   const [coach, setCoach] = useState<Coach | null | undefined>(undefined);
   const [titleFedMap, setTitleFedMap] = useState<Map<number, { abbr: string; weightClass: string }>>(new Map());
   const [godMode, setGodMode] = useState(false);
+  const [currentDate, setCurrentDate] = useState<string>('');
   const [gymId, setGymId] = useState<number | null>(null);
   const [watchlistIds, setWatchlistIds] = useState<number[]>([]);
   const [hofEntry, setHofEntry] = useState<import('../../db/db').HallOfFameEntry | null>(null);
@@ -169,6 +171,7 @@ export default function PlayerPage() {
       const [b, coaches, gym] = await Promise.all([getBoxer(Number(id)), getAllCoaches(), getGym()]);
       if (cancelled) return;
       setGodMode(gym?.godModeEnabled ?? false);
+      setCurrentDate(gym?.currentDate ?? '');
       setGymId(gym?.id ?? null);
       setWatchlistIds(gym?.watchlistIds ?? []);
       setBoxer(b ?? null);
@@ -300,7 +303,7 @@ export default function PlayerPage() {
         {/* Header card */}
         <div className="bg-zinc-900 border border-zinc-700 rounded p-4">
           <div className="flex gap-3 text-sm text-zinc-400 mb-2.5">
-            <span>{boxer.age} yrs</span>
+            <span>{currentDate && boxer.birthDate ? calcAgeAtDate(boxer.birthDate, currentDate).split('y')[0] + ' yrs' : `${boxer.age} yrs`}</span>
             <span>{capitalize(boxer.weightClass)}</span>
             <span>{styleLabel(boxer.style)}</span>
           </div>
